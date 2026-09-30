@@ -1,0 +1,6 @@
+model_list:
+  - model_name: sabiroute-cloudflare
+    litellm_params:
+      model: cloudflare/@cf/meta/llama-2-7b-chat-int8
+      api_key: os.environ/CLOUDFLARE_API_KEY
+      account_id: os.environ/CLOUDFLARE_ACCOUNT_ID

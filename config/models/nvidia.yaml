@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-nvidia
+    litellm_params:
+      model: nvidia_nim/meta/llama3-70b-instruct
+      api_key: os.environ/NVIDIA_NIM_API_KEY

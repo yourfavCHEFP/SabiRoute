@@ -1,0 +1,6 @@
+model_list:
+  - model_name: sabiroute-pollinations
+    litellm_params:
+      model: openai/openai
+      api_base: https://gen.pollinations.ai/v1
+      api_key: os.environ/POLLINATION_API_KEY

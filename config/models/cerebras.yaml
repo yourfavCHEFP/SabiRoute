@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-cerebras
+    litellm_params:
+      model: cerebras/llama3-70b-instruct
+      api_key: os.environ/CEREBRAS_API_KEY
