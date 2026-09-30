@@ -4,14 +4,14 @@
 
 <br/>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=600&size=20&pause=1200&color=8B5CF6&center=true&vCenter=true&width=700&lines=One+gateway.+Every+provider.;Health-aware+routing+%2B+auto-fallback;Self-hosted+%C2%B7+OpenAI-compatible+%C2%B7+Apache-2.0)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=600&size=20&pause=1200&color=8B5CF6&center=true&vCenter=true&width=700&lines=One+gateway.+Every+provider.;Health-aware+routing+%2B+auto-fallback;Self-hosted+%C2%B7+OpenAI-compatible+%C2%B7+MIT)](https://git.io/typing-svg)
 
 [![release](https://img.shields.io/badge/release-v0.1.0--dev-blue)](https://github.com/yourfavCHEFP/SabiRoute/releases)
 [![made with](https://img.shields.io/badge/made%20with-Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![engine](https://img.shields.io/badge/engine-LiteLLM-6C5CE7)](https://github.com/BerriAI/litellm)
-[![license](https://img.shields.io/badge/license-Apache--2.0-green)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![status](https://img.shields.io/badge/status-active--development-orange)]()
-![providers](https://img.shields.io/badge/providers-7-8B5CF6)
+![providers](https://img.shields.io/badge/providers-17-8B5CF6)
 ![stacks](https://img.shields.io/badge/virtual_stacks-6-22C55E)
 ![roadmap](https://img.shields.io/badge/roadmap-24_phases-F59E0B)
 
@@ -104,7 +104,17 @@ This is the part that turns SabiRoute from *"I configured LiteLLM"* into an actu
 | Moonshot | Kimi, Kimi Coding | Long-context, coding — verified working |
 | Zhipu | GLM | Reasoning, coding — verified working |
 | MiniMax | MiniMax | Cost/latency balancing — verified working |
-| *Planned* | DeepSeek, Mistral, Groq, xAI, OpenRouter, local Ollama, Hugging Face | Expansion tier |
+| Groq | `groq/openai/gpt-oss-120b` | Fast inference for open-weight models |
+| Together AI | `together_ai/openai/gpt-oss-120B` | Hosted open-weight model inference |
+| DeepInfra | `deepinfra/meta-llama/Meta-Llama-3-70B-Instruct` | Hosted Llama instruction model |
+| Cloudflare Workers AI | `cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Edge-hosted, low-latency inference |
+| OpenRouter | `openrouter/google/gemini-3.8-flash` | Aggregated provider access and alternate routing |
+| Hugging Face | `huggingface/meta-llama/Llama-3.3-70B-Instruct` | Hosted open-model inference |
+| Cerebras | `cerebras/llama3-70b-instruct` | High-throughput inference |
+| NVIDIA NIM | `nvidia_nim/meta/llama3-70b-instruct` | NVIDIA-accelerated model serving |
+| Cohere | `cohere_chat/command-a-03-2025` | Enterprise assistant and retrieval workloads |
+| Pollinations AI | `openai/gpt-6-luna` | OpenAI-compatible custom endpoint |
+| *Planned* | DeepSeek, Mistral, xAI, local Ollama | Expansion tier |
 
 Clients never see this table directly — they see **virtual stacks**:
 
@@ -170,20 +180,19 @@ If it fails over from Qwen → GLM → Kimi → Claude without you noticing, v0.
 | **v0.4 — Remote** | Tailscale access, security hardening, CI/CD |
 | **v1.0 — Intelligence** | Task-classification router, model scoring, then an ML model trained on real routing history to pick the best model per request |
 
-Existing routing setup (**OmniRoute**, `:20128`) stays running throughout development — SabiRoute is built alongside it, not as a risky in-place replacement.
-
 ## 🤝 Contributing
 
 This is currently a solo build tied to my own AI infrastructure and ML learning path, so it isn't accepting external contributions yet — but issues, ideas, and "you should route this differently" arguments are always welcome. Once the intelligence layer (v1.0) lands, this section gets a real contribution guide.
 
 ## 📄 License
 
-Released under the [Apache-2.0 License](./LICENSE) — use it, fork it, route through it.
+Released under the [MIT License](./LICENSE) — use it, fork it, route through it.
 
 ## 👤 Author
 
 **Olumide "CHEF_P" Oladosu** — ML/AI engineering, building toward tier-1 ML/MLOps roles.
 GitHub: [@yourfavCHEFP](https://github.com/yourfavCHEFP)
+X: [@yourfavCHEF_P](https://x.com/yourfavCHEF_P)
 
 ---
 
