@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-together
+    litellm_params:
+      model: together_ai/openai/gpt-oss-120B
+      api_key: os.environ/TOGETHERAI_API_KEY

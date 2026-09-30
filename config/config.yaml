@@ -1,0 +1,200 @@
+# ============================================================
+# SabiRoute — LiteLLM Proxy Configuration
+# ============================================================
+#
+# Purpose:
+#   Provider/model verification stage.
+#
+# Rules:
+#   - Provider credentials come from environment variables.
+#   - model_name is SabiRoute's public alias.
+#   - litellm_params.model is the actual LiteLLM provider route.
+#   - Do not place API keys directly in this file.
+#
+# ============================================================
+
+model_list:
+
+  # ==========================================================
+  # 01 — OPENAI
+  # ==========================================================
+
+  - model_name: sabiroute-openai
+    litellm_params:
+      model: openai/gpt-6-luna
+      api_key: os.environ/OPENAI_API_KEY
+
+
+  # ==========================================================
+  # 02 — GOOGLE GEMINI
+  # ==========================================================
+
+  - model_name: sabiroute-gemini
+    litellm_params:
+      model: gemini/gemini-3.8-flash
+      api_key: os.environ/GEMINI_API_KEY
+
+
+  # ==========================================================
+  # 03 — GROQ
+  # ==========================================================
+
+  - model_name: sabiroute-groq
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: os.environ/GROQ_API_KEY
+
+
+  # ==========================================================
+  # 04 — TOGETHER AI
+  # ==========================================================
+
+  - model_name: sabiroute-together
+    litellm_params:
+      model: together_ai/openai/gpt-oss-120B
+      api_key: os.environ/TOGETHERAI_API_KEY
+
+
+  # ==========================================================
+  # 05 — DEEPINFRA
+  # ==========================================================
+
+  - model_name: sabiroute-deepinfra
+    litellm_params:
+      model: deepinfra/meta-llama/Meta-Llama-3-70B-Instruct
+      api_key: os.environ/DEEPINFRA_API_KEY
+
+
+  # ==========================================================
+  # 06 — MOONSHOT / KIMI
+  # ==========================================================
+
+  - model_name: sabiroute-kimi
+    litellm_params:
+      model: moonshot/moonshot-v1-128k
+      api_key: os.environ/MOONSHOT_API_KEY
+
+
+  # ==========================================================
+  # 07 — MINIMAX
+  # ==========================================================
+
+  - model_name: sabiroute-minimax
+    litellm_params:
+      model: minimax/MiniMax-M2.1
+      api_key: os.environ/MINIMAX_API_KEY
+      api_base: https://api.minimax.io/v1
+
+
+  # ==========================================================
+  # 08 — CLOUDFLARE WORKERS AI
+  # ==========================================================
+
+  - model_name: sabiroute-cloudflare
+    litellm_params:
+      model: cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast
+      api_key: os.environ/CLOUDFLARE_API_KEY
+      account_id: os.environ/CLOUDFLARE_ACCOUNT_ID
+
+
+  # ==========================================================
+  # 09 — OPENROUTER
+  # ==========================================================
+
+  - model_name: sabiroute-openrouter
+    litellm_params:
+      model: openrouter/google/gemini-3.8-flash
+      api_key: os.environ/OPENROUTER_API_KEY
+
+
+  # ==========================================================
+  # 10 — HUGGING FACE
+  # ==========================================================
+
+  - model_name: sabiroute-huggingface
+    litellm_params:
+      model: huggingface/meta-llama/Llama-3.3-70B-Instruct
+      api_key: os.environ/HF_TOKEN
+
+
+  # ==========================================================
+  # 11 — CEREBRAS
+  # ==========================================================
+
+  - model_name: sabiroute-cerebras
+    litellm_params:
+      model: cerebras/llama3-70b-instruct
+      api_key: os.environ/CEREBRAS_API_KEY
+
+
+  # ==========================================================
+  # 12 — NVIDIA NIM
+  # ==========================================================
+
+  - model_name: sabiroute-nvidia
+    litellm_params:
+      model: nvidia_nim/meta/llama3-70b-instruct
+      api_key: os.environ/NVIDIA_NIM_API_KEY
+
+
+  # ==========================================================
+  # 13 — COHERE
+  # ==========================================================
+
+  - model_name: sabiroute-cohere
+    litellm_params:
+      model: cohere_chat/command-a-03-2025
+      api_key: os.environ/COHERE_API_KEY
+
+
+  # ==========================================================
+  # 14 — POLLINATIONS AI
+  # ==========================================================
+
+  - model_name: sabiroute-pollinations
+    litellm_params:
+      model: openai/gpt-6-luna
+      api_base: https://gen.pollinations.ai/v1
+      api_key: os.environ/POLLINATION_API_KEY
+
+
+  # ==========================================================
+  # 15 — QODER
+  # ==========================================================
+  #
+  # HOLD.
+  #
+  # Qoder does not currently have a native LiteLLM provider
+  # route that we should invent here.
+  #
+  # Integration can be revisited later through a verified
+  # OpenAI-compatible or Anthropic-compatible endpoint.
+  #
+
+
+# ============================================================
+# LITELLM SETTINGS
+# ============================================================
+
+litellm_settings:
+
+  # Maximum time allowed for an upstream request.
+  request_timeout: 120
+
+  # Prevent provider-specific unsupported parameters from
+  # breaking otherwise valid requests.
+  drop_params: true
+
+  # Keep normal operation logs quiet.
+  set_verbose: false
+
+
+# ============================================================
+# GATEWAY SETTINGS
+# ============================================================
+
+general_settings:
+
+  # SabiRoute/LiteLLM administrative master key.
+  # Loaded from .env.
+  master_key: os.environ/LITELLM_MASTER_KEY

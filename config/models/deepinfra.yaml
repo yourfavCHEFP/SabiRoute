@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-deepinfra
+    litellm_params:
+      model: deepinfra/meta-llama/Meta-Llama-3-70B-Instruct
+      api_key: os.environ/DEEPINFRA_API_KEY

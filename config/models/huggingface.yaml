@@ -1,0 +1,2 @@
+# Add a supported inference provider and model ID before enabling.
+model_list: []
