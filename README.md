@@ -825,12 +825,13 @@ Reliability
         +
 Developer Tooling
 
-GitHub: @yourfavCHEFP
+GitHub: [@yourfavCHEFP](https://github.com/yourfavCHEFP)
+X: [@yourfavCHEF_P](https://x.com/yourfavCHEF_P)
+Linkdln: [@olumide-oladosu](https://www.linkedin.com/in/olumide-oladosu-336a2b40a/)
 
 
-<div align="center">
 
 Built because developers shouldn't have to manually babysit every AI provider.
 One endpoint. Multiple providers. Smarter routing.
-</div>
+
 ```
