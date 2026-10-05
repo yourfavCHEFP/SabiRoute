@@ -68,7 +68,20 @@ class HealthRegistry:
 
     def available(self, model_name: str) -> bool:
         self.register(model_name)
-        return self.deployments[model_name].is_available()
+
+        health = self.deployments[model_name]
+
+        if not health.is_available():
+            return False
+
+        if not health.healthy:
+            # Cooldown expired: enter half-open state and grant a fresh
+            # failure budget instead of re-tripping on the first error.
+            health.healthy = True
+            health.consecutive_failures = 0
+            health.cooldown_until = None
+
+        return True
 
     def snapshot(self) -> dict[str, dict]:
         return {
