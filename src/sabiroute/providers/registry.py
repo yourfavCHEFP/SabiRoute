@@ -149,6 +149,7 @@ def registry_from_config(config: SabiRouteConfig) -> ProviderRegistry:
         api_key = raw_params.get("api_key")
 
         api_key_env = _environment_reference_name(api_key)
+        api_key_literal = api_key if api_key_env is None else None
         api_base = raw_params.get("api_base")
 
         metadata = {
@@ -164,6 +165,7 @@ def registry_from_config(config: SabiRouteConfig) -> ProviderRegistry:
                 provider=provider,
                 model=litellm_model,
                 api_key_env=api_key_env,
+                api_key=api_key_literal,
                 api_base=api_base,
                 metadata=metadata or None,
             )
