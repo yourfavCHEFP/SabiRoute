@@ -74,8 +74,18 @@ def _resolve_environment_variables(value: Any) -> Any:
     return _resolve_os_environ_value(value)
 
 
-def load_raw_config(config_path: str | Path | None = None) -> dict[str, Any]:
-    """Load a raw YAML config file and return the parsed mapping."""
+def load_raw_config(
+    config_path: str | Path | None = None,
+    *,
+    resolve_env: bool = False,
+) -> dict[str, Any]:
+    """Load a raw YAML config file and return the parsed mapping.
+
+    By default ``os.environ/NAME`` references are preserved as-is: the
+    LiteLLM proxy resolves them in its own config file, and the SDK
+    boundary resolves them lazily (``ProviderDeployment.as_litellm_params``).
+    Pass ``resolve_env=True`` to resolve them eagerly instead.
+    """
 
     _load_environment_file()
 
@@ -91,7 +101,10 @@ def load_raw_config(config_path: str | Path | None = None) -> dict[str, Any]:
             "Configuration file must contain a YAML mapping at the root."
         )
 
-    return _resolve_environment_variables(raw_config)
+    if resolve_env:
+        return _resolve_environment_variables(raw_config)
+
+    return raw_config
 
 
 def load_config(config_path: str | Path | None = None) -> SabiRouteConfig:
