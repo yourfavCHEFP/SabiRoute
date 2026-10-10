@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from dotenv import find_dotenv, load_dotenv
@@ -102,7 +102,10 @@ def load_raw_config(
         )
 
     if resolve_env:
-        return _resolve_environment_variables(raw_config)
+        resolved = _resolve_environment_variables(raw_config)
+        if not isinstance(resolved, dict):
+            raise ConfigLoadError("Resolved configuration must remain a mapping.")
+        return cast(dict[str, Any], resolved)
 
     return raw_config
 

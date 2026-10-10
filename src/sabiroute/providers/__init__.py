@@ -1,5 +1,7 @@
 """Provider integrations and deployment registry."""
 
+from typing import Any
+
 from .base import ProviderDeployment, ProviderInfo
 from .registry import ProviderRegistry, registry_from_config
 
@@ -13,7 +15,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     if name in {"LiteLLMClient", "LiteLLMClientError"}:
         from .litellm_client import LiteLLMClient, LiteLLMClientError
 

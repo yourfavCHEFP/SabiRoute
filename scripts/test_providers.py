@@ -292,7 +292,7 @@ def test_streaming(
 
         chunks = 0
 
-        for chunk in stream:
+        for _chunk in stream:
             chunks += 1
 
             if chunks >= 1:

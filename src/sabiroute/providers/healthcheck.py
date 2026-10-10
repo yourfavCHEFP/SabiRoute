@@ -4,6 +4,7 @@ import time
 from dataclasses import dataclass
 
 import litellm
+from litellm import exceptions as litellm_exceptions
 
 from .base import ProviderDeployment
 
@@ -56,7 +57,7 @@ class ProviderHealthChecker:
                 latency_ms=round(latency_ms, 2),
             )
 
-        except litellm.AuthenticationError as exc:
+        except litellm_exceptions.AuthenticationError as exc:
             return self._failure(
                 deployment,
                 "authentication_error",
@@ -64,7 +65,7 @@ class ProviderHealthChecker:
                 started,
             )
 
-        except litellm.RateLimitError as exc:
+        except litellm_exceptions.RateLimitError as exc:
             return self._failure(
                 deployment,
                 "rate_limit",
@@ -72,7 +73,7 @@ class ProviderHealthChecker:
                 started,
             )
 
-        except litellm.Timeout as exc:
+        except litellm_exceptions.Timeout as exc:
             return self._failure(
                 deployment,
                 "timeout",
@@ -80,7 +81,7 @@ class ProviderHealthChecker:
                 started,
             )
 
-        except litellm.APIError as exc:
+        except litellm_exceptions.APIError as exc:
             return self._failure(
                 deployment,
                 "api_error",
