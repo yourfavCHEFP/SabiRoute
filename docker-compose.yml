@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "${SABIROUTE_PORT:-4000}:4000"
+      - "127.0.0.1:${LITELLM_PORT:-${SABIROUTE_PORT:-4000}}:4000"
 
     command:
       - "--config"
@@ -39,15 +39,16 @@ services:
       # Database
       # ------------------------------------------------------
 
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sabiroute}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sabiroute}
 
       # ------------------------------------------------------
       # Redis
       # ------------------------------------------------------
 
-      REDIS_HOST: ${REDIS_HOST:-redis}
-      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
 
       # ------------------------------------------------------
       # Provider credentials
@@ -112,7 +113,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
 
     volumes:
       - sabiroute_postgres_data:/var/lib/postgresql/data
@@ -147,7 +148,7 @@ services:
       ]
 
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
     volumes:
       - sabiroute_redis_data:/data
