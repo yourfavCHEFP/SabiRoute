@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any
 
 import httpx
@@ -21,6 +21,31 @@ class LiteLLMClientError(RuntimeError):
         super().__init__(message)
         self.status_code = status_code
         self.response_body = response_body
+
+
+class LiteLLMStream:
+    """An open LiteLLM SSE response whose lifetime belongs to the caller."""
+
+    def __init__(self, client: httpx.AsyncClient, response: httpx.Response) -> None:
+        self._client = client
+        self.response = response
+
+    async def events(self) -> AsyncIterator[bytes]:
+        """Yield complete SSE event frames while preserving event data."""
+        lines: list[str] = []
+        async for line in self.response.aiter_lines():
+            if line:
+                lines.append(line)
+                continue
+            if lines:
+                yield ("\n".join(lines) + "\n\n").encode()
+                lines.clear()
+        if lines:
+            yield ("\n".join(lines) + "\n\n").encode()
+
+    async def aclose(self) -> None:
+        await self.response.aclose()
+        await self._client.aclose()
 
 
 class LiteLLMClient:
@@ -100,3 +125,65 @@ class LiteLLMClient:
             )
 
         return body
+
+    async def start_chat_completion_stream(
+        self,
+        decision: RouteDecision,
+        messages: Sequence[Mapping[str, Any]],
+        *,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        **extra: Any,
+    ) -> LiteLLMStream:
+        """Open an SSE completion, raising before returning on HTTP errors."""
+        payload: dict[str, Any] = {
+            "model": decision.deployment,
+            "messages": list(messages),
+            **extra,
+            "stream": True,
+        }
+        if temperature is not None:
+            payload["temperature"] = temperature
+        if max_tokens is not None:
+            payload["max_tokens"] = max_tokens
+
+        headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        client = httpx.AsyncClient(timeout=self.timeout, headers=headers)
+        request = client.build_request(
+            "POST", f"{self.base_url}/v1/chat/completions", json=payload
+        )
+        try:
+            response = await client.send(request, stream=True)
+            if response.is_error:
+                body = await response.aread()
+                await response.aclose()
+                detail: Any = body.decode(errors="replace")
+                try:
+                    detail = response.json()
+                except ValueError:
+                    pass
+                raise LiteLLMClientError(
+                    f"LiteLLM gateway returned HTTP {response.status_code}.",
+                    status_code=response.status_code,
+                    response_body=detail,
+                )
+            if "text/event-stream" not in response.headers.get("content-type", ""):
+                body = await response.aread()
+                await response.aclose()
+                raise LiteLLMClientError(
+                    "LiteLLM gateway did not return an event stream.",
+                    status_code=response.status_code,
+                    response_body=body.decode(errors="replace")[:1000],
+                )
+            return LiteLLMStream(client, response)
+        except httpx.TimeoutException as exc:
+            await client.aclose()
+            raise LiteLLMClientError("LiteLLM gateway stream timed out.") from exc
+        except httpx.HTTPError as exc:
+            await client.aclose()
+            raise LiteLLMClientError("LiteLLM gateway stream transport error.") from exc
+        except LiteLLMClientError:
+            await client.aclose()
+            raise

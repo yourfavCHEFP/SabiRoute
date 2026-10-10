@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -41,7 +42,17 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
                 degraded = empty_gateway_state()
                 degraded.startup_error = str(exc)
                 app.state.gateway = degraded
-        yield
+        try:
+            yield
+        finally:
+            gateway = getattr(app.state, "gateway", None)
+            for resource_name in ("key_store", "rate_limiter"):
+                resource = getattr(gateway, resource_name, None)
+                close = getattr(resource, "close", None)
+                if callable(close):
+                    result = close()
+                    if inspect.isawaitable(result):
+                        await result
 
     app = FastAPI(
         title="SabiRoute",

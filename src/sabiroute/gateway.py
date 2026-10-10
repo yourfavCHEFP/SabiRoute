@@ -6,6 +6,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from redis.asyncio import Redis
+
 from .config.loader import load_config
 from .config.models import SabiRouteConfig
 from .monitoring.errors import ErrorTracker
@@ -19,6 +21,9 @@ from .routing.health import HealthRegistry
 from .routing.policies import PolicyRegistry
 from .routing.router import Router
 from .routing.scoring import ScoringSettings
+from .security.keys import ApiKeyStore
+from .security.rate_limit import RedisTokenBucket
+from .security.store import PostgresApiKeyStore
 
 DEFAULT_PROXY_URL = "http://127.0.0.1:4000"
 DEFAULT_ROUTES_PATH = Path(__file__).resolve().parents[2] / "config" / "routes"
@@ -44,6 +49,8 @@ class GatewayState:
     usage: UsageTracker
     client: LiteLLMClient
     startup_error: str | None = None
+    key_store: ApiKeyStore | None = None
+    rate_limiter: RedisTokenBucket | None = None
 
 
 def build_gateway_state(
@@ -51,13 +58,18 @@ def build_gateway_state(
     *,
     config: SabiRouteConfig | None = None,
     client: LiteLLMClient | None = None,
+    key_store: ApiKeyStore | None = None,
+    rate_limiter: RedisTokenBucket | None = None,
 ) -> GatewayState:
     """Build gateway state from configuration.
 
     The config path defaults to ``SABIROUTE_CONFIG_PATH`` or the repo's
     ``config/config.yaml``. Pass ``config`` directly to skip file loading
     (used by tests and embedders), and ``client`` to inject a custom
-    LiteLLM boundary client.
+    LiteLLM boundary client, and ``key_store`` to inject SabiRoute-owned key
+    persistence (tests/embedders). When omitted, ``DATABASE_URL`` selects the
+    PostgreSQL-backed store. Pass ``rate_limiter`` to inject Redis admission;
+    otherwise it is configured from ``REDIS_URL`` or ``REDIS_HOST``.
     """
 
     load_runtime_routes = config is None
@@ -101,6 +113,25 @@ def build_gateway_state(
             timeout_seconds=float(config.litellm_settings.request_timeout),
         )
 
+    if key_store is None:
+        database_url = os.environ.get("DATABASE_URL")
+        key_store = PostgresApiKeyStore(database_url) if database_url else None
+
+    if rate_limiter is None:
+        redis_url = os.environ.get("REDIS_URL")
+        redis_host = os.environ.get("REDIS_HOST")
+        if redis_url:
+            redis_client = Redis.from_url(redis_url, decode_responses=True)
+            rate_limiter = RedisTokenBucket(redis_client)
+        elif redis_host:
+            redis_client = Redis(
+                host=redis_host,
+                port=int(os.environ.get("REDIS_PORT", "6379")),
+                password=os.environ.get("REDIS_PASSWORD") or None,
+                db=int(os.environ.get("REDIS_DB", "0")),
+                decode_responses=True,
+            )
+            rate_limiter = RedisTokenBucket(redis_client)
 
     return GatewayState(
         config=config,
@@ -113,6 +144,8 @@ def build_gateway_state(
         errors=errors,
         usage=usage,
         client=client,
+        key_store=key_store,
+        rate_limiter=rate_limiter,
     )
 
 
@@ -144,4 +177,6 @@ def empty_gateway_state(*, client: LiteLLMClient | None = None) -> GatewayState:
         errors=ErrorTracker(),
         usage=UsageTracker(),
         client=client or LiteLLMClient(),
+        key_store=None,
+        rate_limiter=None,
     )
