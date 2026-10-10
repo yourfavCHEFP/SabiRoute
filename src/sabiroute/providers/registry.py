@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from typing import Any
+from typing import Any, cast
 
+from ..capabilities import DeploymentCapabilities
 from ..config.models import SabiRouteConfig
 from .base import ProviderDeployment, ProviderInfo
 
@@ -168,6 +169,20 @@ def registry_from_config(config: SabiRouteConfig) -> ProviderRegistry:
                 api_key=api_key_literal,
                 api_base=api_base,
                 metadata=metadata or None,
+                input_cost_per_million_tokens=model_entry.input_cost_per_million_tokens,
+                output_cost_per_million_tokens=model_entry.output_cost_per_million_tokens,
+                capabilities=DeploymentCapabilities(
+                    supported=frozenset(
+                        capability
+                        for capability, declaration in (model_entry.capabilities or {}).items()
+                        if declaration is True
+                    ),
+                    unsupported=frozenset(
+                        capability
+                        for capability, declaration in (model_entry.capabilities or {}).items()
+                        if declaration is False
+                    ),
+                ),
             )
         )
 
@@ -197,7 +212,7 @@ def _environment_reference_name(value: Any) -> str | None:
 
 def _model_dump(value: Any) -> dict[str, Any]:
     if hasattr(value, "model_dump"):
-        return value.model_dump(exclude_none=False)
+        return cast(dict[str, Any], value.model_dump(exclude_none=False))
 
     if isinstance(value, dict):
         return dict(value)

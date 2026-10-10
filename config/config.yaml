@@ -23,6 +23,19 @@ model_list:
     litellm_params:
       model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
+    capabilities: &unverified_capabilities
+      chat: unknown
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: unknown
+      structured_output: unknown
+      json: unknown
+      streaming: unknown
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -33,6 +46,21 @@ model_list:
     litellm_params:
       model: gemini/gemini-3.8-flash
       api_key: os.environ/GEMINI_API_KEY
+    # Runtime-verified 2026-10-08: non-empty text completion through LiteLLM.
+    # No other Gemini capability is inferred from this chat-only probe.
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: unknown
+      structured_output: unknown
+      json: unknown
+      streaming: unknown
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -43,6 +71,21 @@ model_list:
     litellm_params:
       model: groq/openai/gpt-oss-120b
       api_key: os.environ/GROQ_API_KEY
+    # Runtime-verified 2026-10-08: non-empty completion and incremental SSE
+    # through SabiRoute -> LiteLLM using the configured Groq deployment.
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: unknown
+      structured_output: unknown
+      json: unknown
+      streaming: true
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -53,6 +96,7 @@ model_list:
     litellm_params:
       model: together_ai/openai/gpt-oss-120B
       api_key: os.environ/TOGETHERAI_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -63,6 +107,7 @@ model_list:
     litellm_params:
       model: deepinfra/meta-llama/Meta-Llama-3-70B-Instruct
       api_key: os.environ/DEEPINFRA_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -73,6 +118,7 @@ model_list:
     litellm_params:
       model: moonshot/moonshot-v1-128k
       api_key: os.environ/MOONSHOT_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -84,6 +130,7 @@ model_list:
       model: minimax/MiniMax-M2.1
       api_key: os.environ/MINIMAX_API_KEY
       api_base: https://api.minimax.io/v1
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -95,6 +142,7 @@ model_list:
       model: cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast
       api_key: os.environ/CLOUDFLARE_API_KEY
       account_id: os.environ/CLOUDFLARE_ACCOUNT_ID
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -105,6 +153,20 @@ model_list:
     litellm_params:
       model: openrouter/google/gemini-3.8-flash
       api_key: os.environ/OPENROUTER_API_KEY
+    # Runtime-verified 2026-10-08: non-empty text completion through LiteLLM.
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: unknown
+      structured_output: unknown
+      json: unknown
+      streaming: unknown
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -115,6 +177,7 @@ model_list:
     litellm_params:
       model: huggingface/meta-llama/Llama-3.3-70B-Instruct
       api_key: os.environ/HF_TOKEN
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -125,6 +188,7 @@ model_list:
     litellm_params:
       model: cerebras/llama3-70b-instruct
       api_key: os.environ/CEREBRAS_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -135,6 +199,7 @@ model_list:
     litellm_params:
       model: nvidia_nim/meta/llama3-70b-instruct
       api_key: os.environ/NVIDIA_NIM_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -145,6 +210,7 @@ model_list:
     litellm_params:
       model: cohere_chat/command-a-03-2025
       api_key: os.environ/COHERE_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -156,6 +222,7 @@ model_list:
       model: openai/gpt-6-luna
       api_base: https://gen.pollinations.ai/v1
       api_key: os.environ/POLLINATION_API_KEY
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -198,3 +265,13 @@ general_settings:
   # SabiRoute/LiteLLM administrative master key.
   # Loaded from .env.
   master_key: os.environ/LITELLM_MASTER_KEY
+
+# Measured deterministic ranking. Reliability is weighted more heavily than
+# latency because avoiding failed attempts is preferred over small speed gains.
+# These are configurable policy defaults, not values learned from model quality.
+routing_scoring:
+  policy_version: deterministic-v1
+  reliability_weight: 0.7
+  latency_weight: 0.3
+  minimum_samples: 5
+  max_signal_age_seconds: 3600

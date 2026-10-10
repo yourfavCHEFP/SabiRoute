@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
+
+from ..capabilities import DeploymentCapabilities
 
 _ENV_PREFIX = "os.environ/"
 
@@ -43,6 +46,9 @@ class ProviderDeployment:
     api_key: str | None = None
     api_base: str | None = None
     metadata: dict[str, Any] | None = None
+    input_cost_per_million_tokens: Decimal | None = None
+    output_cost_per_million_tokens: Decimal | None = None
+    capabilities: DeploymentCapabilities = DeploymentCapabilities()
 
     def as_litellm_params(self) -> dict[str, Any]:
         """
