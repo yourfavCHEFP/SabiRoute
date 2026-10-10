@@ -20,6 +20,7 @@ Optional:
     uv run python scripts/test_providers.py --no-stream
     uv run python scripts/test_providers.py --model sabiroute-groq
     uv run python scripts/test_providers.py --timeout 60
+    uv run python scripts/test_providers.py --model sabiroute-groq --max-tokens 32
 
 The script never prints API key values.
 """
@@ -224,24 +225,30 @@ def safe_error_message(error: Exception) -> str:
 def test_non_streaming(
     model: str,
     timeout: int,
+    max_tokens: int | None = None,
 ) -> tuple[str, float | None, str | None, str | None]:
     """Test a normal non-streaming completion."""
 
     started = time.perf_counter()
 
+    completion_kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": TEST_PROMPT,
+            }
+        ],
+        "timeout": timeout,
+        "stream": False,
+        "num_retries": 0,
+    }
+
+    if max_tokens is not None:
+        completion_kwargs["max_tokens"] = max_tokens
+
     try:
-        response = litellm.completion(
-            model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": TEST_PROMPT,
-                }
-            ],
-            timeout=timeout,
-            stream=False,
-            num_retries=0,
-        )
+        response = litellm.completion(**completion_kwargs)
 
         elapsed = (time.perf_counter() - started) * 1000
 
@@ -271,24 +278,30 @@ def test_non_streaming(
 def test_streaming(
     model: str,
     timeout: int,
+    max_tokens: int | None = None,
 ) -> tuple[str, float | None, str | None, str | None]:
     """Test an SSE/streaming completion."""
 
     started = time.perf_counter()
 
+    completion_kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": TEST_PROMPT,
+            }
+        ],
+        "timeout": timeout,
+        "stream": True,
+        "num_retries": 0,
+    }
+
+    if max_tokens is not None:
+        completion_kwargs["max_tokens"] = max_tokens
+
     try:
-        stream = litellm.completion(
-            model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": TEST_PROMPT,
-                }
-            ],
-            timeout=timeout,
-            stream=True,
-            num_retries=0,
-        )
+        stream = litellm.completion(**completion_kwargs)
 
         chunks = 0
 
@@ -325,6 +338,7 @@ def test_deployment(
     deployment: dict[str, Any],
     timeout: int,
     test_stream: bool,
+    max_tokens: int | None = None,
 ) -> ProviderResult:
     """Run all applicable tests for one configured deployment."""
 
@@ -381,6 +395,7 @@ def test_deployment(
     non_stream_status, latency, error_type, error_message = test_non_streaming(
         model=litellm_model,
         timeout=timeout,
+        max_tokens=max_tokens,
     )
 
     if test_stream and non_stream_status == "PASS":
@@ -392,6 +407,7 @@ def test_deployment(
         ) = test_streaming(
             model=litellm_model,
             timeout=timeout,
+            max_tokens=max_tokens,
         )
     else:
         stream_status = "SKIPPED"
@@ -489,7 +505,23 @@ def parse_args() -> argparse.Namespace:
         help="Per-provider request timeout in seconds.",
     )
 
-    return parser.parse_args()
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=None,
+        help=(
+            "Explicit output-token limit passed as max_tokens to every "
+            "LiteLLM completion call. Must be a positive integer. "
+            "When omitted, the provider default applies."
+        ),
+    )
+
+    args = parser.parse_args()
+
+    if args.max_tokens is not None and args.max_tokens <= 0:
+        parser.error("--max-tokens must be a positive integer.")
+
+    return args
 
 
 def main() -> None:
@@ -529,6 +561,7 @@ def main() -> None:
             deployment=deployment,
             timeout=args.timeout,
             test_stream=not args.no_stream,
+            max_tokens=args.max_tokens,
         )
 
         results.append(result)
