@@ -1,0 +1,5 @@
+name: cheap
+deployments:
+  - sabiroute-gemini
+strategy: measured
+max_attempts: 1

@@ -46,16 +46,17 @@ def test_attempted_candidates_excluded(router):
     assert decision.deployment == "secondary"
 
 
-def test_last_resort_uses_unhealthy_candidates(router):
+def test_unhealthy_candidates_are_never_used_as_last_resort(router):
     routing, health = router
 
     for name in ("primary", "secondary"):
         for _ in range(3):
             health.mark_failure(name)
 
-    decision = routing.choose_deployment(["primary", "secondary"])
+    from sabiroute.routing.router import NoHealthyDeploymentError
 
-    assert decision.deployment == "primary"
+    with pytest.raises(NoHealthyDeploymentError):
+        routing.choose_deployment(["primary", "secondary"])
 
 
 def test_unknown_candidate_rejected(router):

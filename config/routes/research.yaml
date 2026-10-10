@@ -1,0 +1,8 @@
+name: research
+deployments:
+  - sabiroute-openrouter
+  - sabiroute-groq
+required_capabilities:
+  - chat
+strategy: measured
+max_attempts: 2
