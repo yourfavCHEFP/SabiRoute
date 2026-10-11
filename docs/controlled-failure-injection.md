@@ -11,9 +11,20 @@ separate, owner-authorized activity.
 
 Mechanism: `StubLiteLLMClient` (`tests/conftest.py`) fails the first N calls
 per deployment with a configurable `failure_status`; selected tests raise
-`LiteLLMClientError` (including `status_code=None` for timeouts) or
-`asyncio.CancelledError` directly. Failing stores (`fail_usage_writes`,
-`fail_finalize_usage_writes`, `FailedRedis`) simulate backend outages.
+`LiteLLMClientError` (including `status_code=None` for timeouts,
+`status_code=200` with a non-dict `response_body` for malformed upstream
+responses) or `asyncio.CancelledError` directly. Failing stores
+(`fail_usage_writes`, `fail_finalize_usage_writes`, `FailedRedis`) simulate
+backend outages.
+
+Execution-attempt accounting: SabiRoute's `LiteLLMClient` issues exactly one
+raw httpx request per execution attempt (no client retries, no backoff, no
+`num_retries` payload). One SabiRoute attempt therefore equals one
+SabiRoute-to-proxy HTTP request. It does NOT necessarily equal one provider
+attempt: the downstream LiteLLM proxy may apply its own retries/fallback per
+its deployment configuration, which is invisible to SabiRoute telemetry. No
+proxy retry configuration was found in this repository, and proxy-side
+behavior is unverified.
 
 Reproduce: `./.venv/bin/python -m pytest tests/test_completions.py
 tests/test_phase10.py tests/test_capabilities.py tests/test_health.py
@@ -29,7 +40,8 @@ tests/test_router.py -q`
 | Upstream 401/403 → fail over (provider-denied, not client-denied) | Covered, passing | `test_upstream_auth_failure_fails_over_without_client_denial` (Sprint 4) | Simulated only; failover is the documented contract (`completions.py` retry comment) |
 | Client denied at SabiRoute boundary (no attempt) | Covered, passing | `test_authenticated_request_without_trusted_identity_fails_closed` | — |
 | Non-retryable 400 stops the sequence | Covered, passing | `test_non_retryable_client_error_stops_retrying` | — |
-| Malformed upstream 200 (non-object JSON) | Not covered | Fails closed without retry under current code; contract question, deliberately untested | Needs owner decision before locking behavior |
+| Malformed upstream 200, text body | Covered, passing | `test_malformed_upstream_text_body_fails_closed_without_retry` (Sprint 5) | 502, one attempt, `client` category, usage/cost null |
+| Malformed upstream 200, list body | Covered, passing | `test_malformed_upstream_list_body_fails_closed_without_retry` (Sprint 5) | Same no-retry contract; dict-shape responses still trusted to LiteLLM normalization |
 | Budget denial (missing cap, overage, store failure) | Covered, passing | `test_budget_rejects_missing_cap_multimodal_and_daily_overage`, `test_budget_reservation_store_failure_fails_before_provider_execution`, `test_token_budget_reserves_once_for_fallback_and_reconciles_actual` | Denials assert `stub.calls == []` |
 | SabiRoute rate-limit denial + Redis/store outage | Covered, passing | `test_one_client_request_consumes_one_bucket_token_across_fallback`, `test_configured_rate_limit_fails_closed_when_redis_is_unavailable`, `test_usage_store_failure_rejects_before_provider_execution` | Redis atomicity is code-inspected, not integration-tested |
 | No capable / no healthy deployment → 503, zero attempts | Covered, passing | `test_current_unannotated_config_stays_unknown_and_fails_explicitly`, `test_all_unhealthy_candidates_rejected_before_provider_execution` (Sprint 4) | Simulated only |
