@@ -664,3 +664,136 @@ def test_policy_exhaustion_fails_closed_with_finalized_telemetry():
         "failure",
         "failure",
     ]
+
+
+def test_upstream_rate_limit_falls_back_and_records_attempt():
+    stub = StubLiteLLMClient(failures={"primary": 1}, failure_status=429)
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-SabiRoute-Deployment"] == "secondary"
+    assert stub.calls == ["primary", "secondary"]
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 200
+    first, second = event.routing_decisions
+    assert first["outcome"] == "failure"
+    assert first["failure_category"] == "rate_limit"
+    assert first["http_status"] == 429
+    assert second["outcome"] == "success"
+
+
+def test_upstream_auth_failure_fails_over_without_client_denial():
+    # A 401 from the upstream provider is SabiRoute being denied, not the
+    # client: the attempt is recorded and the next deployment is tried.
+    # Client authentication still happens before any attempt (dependency),
+    # so this path can never OBSERVE a client-denied request.
+    from sabiroute.providers.litellm_client import LiteLLMClientError
+
+    stub = StubLiteLLMClient()
+
+    async def expired_key_first(decision, messages, **kwargs):
+        if decision.deployment == "primary":
+            raise LiteLLMClientError(
+                "LiteLLM gateway returned HTTP 401: invalid provider key",
+                status_code=401,
+            )
+        return await StubLiteLLMClient.chat_completion(
+            stub, decision, messages, **kwargs
+        )
+
+    stub.chat_completion = expired_key_first  # type: ignore[method-assign]
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-SabiRoute-Deployment"] == "secondary"
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 200
+    first, second = event.routing_decisions
+    assert first["selected_deployment"] == "primary"
+    assert first["outcome"] == "failure"
+    assert first["failure_category"] == "auth"
+    assert first["http_status"] == 401
+    assert second["selected_deployment"] == "secondary"
+    assert second["outcome"] == "success"
+
+
+def test_upstream_timeout_retries_next_deployment():
+    from sabiroute.providers.litellm_client import LiteLLMClientError
+
+    stub = StubLiteLLMClient()
+
+    async def timeout_first(decision, messages, **kwargs):
+        if decision.deployment == "primary" and not getattr(
+            timeout_first, "fired", False
+        ):
+            timeout_first.fired = True  # type: ignore[attr-defined]
+            raise LiteLLMClientError(
+                "LiteLLM gateway request timed out.", status_code=None
+            )
+        return await StubLiteLLMClient.chat_completion(
+            stub, decision, messages, **kwargs
+        )
+
+    stub.chat_completion = timeout_first  # type: ignore[method-assign]
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-SabiRoute-Deployment"] == "secondary"
+    assert stub.calls == ["secondary"]
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    first, second = event.routing_decisions
+    assert first["selected_deployment"] == "primary"
+    assert first["outcome"] == "failure"
+    assert first["failure_category"] == "transport"
+    assert second["selected_deployment"] == "secondary"
+    assert second["outcome"] == "success"
+
+
+def test_all_unhealthy_candidates_rejected_before_provider_execution():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    # The fixture "fast" policy spans more than primary/secondary, so every
+    # registered deployment must be cooling down for the pool to be empty.
+    for _ in range(3):
+        for name in ("primary", "secondary", "cloudy", "literal-key"):
+            state.health.mark_failure(name)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["type"] == "no_healthy_deployment"
+    assert stub.calls == []
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 503
+    assert event.failure_category == "no_healthy_deployment"
+    assert tuple(event.routing_decisions) == ()
