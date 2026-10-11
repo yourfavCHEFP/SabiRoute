@@ -132,3 +132,22 @@ async def test_redis_error_is_not_converted_to_admission() -> None:
             "f" * 24,
             ApiKeyRateLimit(requests_per_minute=10, burst_capacity=2),
         )
+
+
+class GarbledRedis:
+    async def eval(self, *args: object) -> list[int]:
+        return [1]
+
+    async def aclose(self) -> None:
+        return None
+
+
+@pytest.mark.asyncio
+async def test_malformed_redis_reply_is_rejected_not_admitted() -> None:
+    limiter = limiter_for(GarbledRedis())
+
+    with pytest.raises(RuntimeError, match="invalid rate-limit result"):
+        await limiter.admit(
+            "g" * 24,
+            ApiKeyRateLimit(requests_per_minute=10, burst_capacity=2),
+        )
