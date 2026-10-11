@@ -59,6 +59,19 @@ def test_unhealthy_candidates_are_never_used_as_last_resort(router):
         routing.choose_deployment(["primary", "secondary"])
 
 
+def test_router_has_no_fallback_engine(router):
+    routing, health = router
+
+    assert not hasattr(routing, "fallback")
+
+    with pytest.raises(TypeError):
+        Router(routing.registry, health=health, fallback=object())
+
+    decision = routing.choose_deployment(["primary", "secondary"])
+
+    assert decision.deployment == "primary"
+
+
 def test_unknown_candidate_rejected(router):
     routing, _ = router
 

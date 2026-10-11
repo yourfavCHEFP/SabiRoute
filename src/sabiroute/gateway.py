@@ -16,7 +16,6 @@ from .monitoring.metrics import Metrics
 from .monitoring.usage import UsageTracker
 from .providers.litellm_client import LiteLLMClient
 from .providers.registry import ProviderRegistry, registry_from_config
-from .routing.fallback import FallbackEngine
 from .routing.health import HealthRegistry
 from .routing.policies import PolicyRegistry
 from .routing.router import Router
@@ -95,7 +94,6 @@ def build_gateway_state(
         registry,
         health=health,
         policies=policies,
-        fallback=FallbackEngine(health),
         scoring_settings=ScoringSettings(
             policy_version=config.routing_scoring.policy_version,
             reliability_weight=config.routing_scoring.reliability_weight,
@@ -162,7 +160,6 @@ def empty_gateway_state(*, client: LiteLLMClient | None = None) -> GatewayState:
         registry,
         health=health,
         policies=policies,
-        fallback=FallbackEngine(health),
         latency=latency,
     )
 
