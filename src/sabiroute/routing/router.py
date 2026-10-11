@@ -8,7 +8,6 @@ from typing import Any
 from ..capabilities import Capability, RequestType
 from ..monitoring.latency import LatencyTracker
 from ..providers.registry import ProviderRegistry
-from .fallback import FallbackEngine
 from .health import HealthRegistry
 from .policies import PolicyRegistry
 from .scoring import CandidateScore, DeterministicScorer, ScoringSettings
@@ -79,14 +78,12 @@ class Router:
         registry: ProviderRegistry,
         health: HealthRegistry | None = None,
         policies: PolicyRegistry | None = None,
-        fallback: FallbackEngine | None = None,
         scoring_settings: ScoringSettings | None = None,
         latency: LatencyTracker | None = None,
     ) -> None:
         self.registry = registry
         self.health = health or HealthRegistry()
         self.policies = policies or PolicyRegistry()
-        self.fallback = fallback or FallbackEngine(self.health)
         self.scorer = DeterministicScorer(scoring_settings)
         self.latency = latency or LatencyTracker()
 
