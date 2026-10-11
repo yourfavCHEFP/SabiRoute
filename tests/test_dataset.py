@@ -1149,3 +1149,120 @@ def test_read_only_database_reader_does_not_initialize_or_change_schema(tmp_path
     assert len(rows) == 1
     assert rows[0]["request_id"] == "r1"
     assert before == after == ["sabiroute_request_usage"]
+
+
+def _measured_candidate(
+    *,
+    reliability_observation: str | None = "2026-01-01T00:00:00+00:00",
+    latency_observation: str | None = "2026-01-01T00:00:00+00:00",
+    reliability_scope: str | None = "reliability-scope",
+    latency_scope: str | None = "latency-scope",
+) -> dict[str, object]:
+    """One populated deterministic_score_context candidate for aggregate-provenance tests."""
+    return {
+        "deployment": "provider-a",
+        "reliability_samples": 5,
+        "latency_samples": 5,
+        "latest_reliability_observation": reliability_observation,
+        "latest_latency_observation": latency_observation,
+        "reliability_state_scope_id": reliability_scope,
+        "latency_state_scope_id": latency_scope,
+    }
+
+
+def _measured_event_with_candidate(
+    request_id: str, candidate: dict[str, object]
+) -> dict[str, object]:
+    event = _versioned_attempt_event(
+        request_id, [("2026-01-01T00:00:00+00:00", "success")]
+    )
+    event["pre_routing_features"][0]["deterministic_score_context"] = [  # type: ignore[index]
+        candidate
+    ]
+    return event
+
+
+def test_naive_reliability_observation_is_excluded_from_verified_provenance() -> None:
+    event = _measured_event_with_candidate(
+        "naive-reliability",
+        _measured_candidate(reliability_observation="2026-01-01T00:00:00"),
+    )
+    audit = audit_dataset([event])
+    integrity = audit["integrity_checks"]
+    row = diagnostic_export_rows([event])[0]
+
+    assert integrity["valid"] is False
+    assert integrity["issues"]["naive_latest_reliability_observation"] == 1
+    assert integrity["temporal_provenance"]["verified_attempts"] == 0
+    assert "latest_reliability_observation_not_valid_at_cutoff" in row["exclusion_reasons"]
+    assert row["temporal_provenance_status"] == "incomplete_or_unknown"
+    with pytest.raises(DatasetExportBlocked):
+        training_candidate_export([event])
+
+
+def test_naive_latency_observation_is_excluded_from_verified_provenance() -> None:
+    event = _measured_event_with_candidate(
+        "naive-latency",
+        _measured_candidate(latency_observation="2026-01-01T00:00:00"),
+    )
+    audit = audit_dataset([event])
+    integrity = audit["integrity_checks"]
+    row = diagnostic_export_rows([event])[0]
+
+    assert integrity["valid"] is False
+    assert integrity["issues"]["naive_latest_latency_observation"] == 1
+    assert integrity["temporal_provenance"]["verified_attempts"] == 0
+    assert "latest_latency_observation_not_valid_at_cutoff" in row["exclusion_reasons"]
+    assert row["temporal_provenance_status"] == "incomplete_or_unknown"
+    with pytest.raises(DatasetExportBlocked):
+        training_candidate_export([event])
+
+
+def test_observation_after_historical_cutoff_is_rejected() -> None:
+    event = _measured_event_with_candidate(
+        "after-cutoff",
+        _measured_candidate(reliability_observation="2026-01-02T00:00:00+00:00"),
+    )
+    audit = audit_dataset([event])
+    integrity = audit["integrity_checks"]
+    row = diagnostic_export_rows([event])[0]
+
+    assert integrity["valid"] is False
+    assert integrity["issues"]["latest_reliability_observation_after_cutoff"] == 1
+    assert integrity["temporal_provenance"]["verified_attempts"] == 0
+    assert "latest_reliability_observation_not_valid_at_cutoff" in row["exclusion_reasons"]
+    assert row["temporal_provenance_status"] == "incomplete_or_unknown"
+    with pytest.raises(DatasetExportBlocked):
+        training_candidate_export([event])
+
+
+def test_missing_aggregate_state_scope_ids_block_verification() -> None:
+    event = _measured_event_with_candidate(
+        "missing-scopes",
+        _measured_candidate(reliability_scope=None, latency_scope=None),
+    )
+    audit = audit_dataset([event])
+    integrity = audit["integrity_checks"]
+    row = diagnostic_export_rows([event])[0]
+
+    assert integrity["valid"] is False
+    assert integrity["issues"]["missing_reliability_state_scope_id"] == 1
+    assert integrity["issues"]["missing_latency_state_scope_id"] == 1
+    assert integrity["temporal_provenance"]["verified_attempts"] == 0
+    assert "reliability_state_scope_missing" in row["exclusion_reasons"]
+    assert "latency_state_scope_missing" in row["exclusion_reasons"]
+    assert row["temporal_provenance_status"] == "incomplete_or_unknown"
+    with pytest.raises(DatasetExportBlocked):
+        training_candidate_export([event])
+
+
+def test_valid_aggregate_observations_within_cutoff_verify_provenance() -> None:
+    event = _measured_event_with_candidate("valid-aggregate", _measured_candidate())
+    audit = audit_dataset([event])
+    integrity = audit["integrity_checks"]
+    row = diagnostic_export_rows([event])[0]
+
+    assert integrity["valid"] is True
+    assert integrity["temporal_provenance"]["verified_attempts"] == 1
+    assert row["temporal_provenance_status"] == "verified"
+    assert row["disposition"] == "diagnostic_only"
