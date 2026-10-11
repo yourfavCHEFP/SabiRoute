@@ -439,6 +439,10 @@ def test_non_stream_cancellation_finalizes_an_interrupted_attempt():
     assert len(event.pre_routing_features) == len(event.routing_decisions) == 1
     assert event.routing_decisions[0]["failure_category"] == "client_cancelled"
     assert event.routing_decisions[0]["outcome"] == "failure"
+    # Cancellation must not poison deployment health: no failure recorded.
+    snapshot = state.health.snapshot()
+    assert snapshot["primary"]["healthy"] is True
+    assert snapshot["primary"]["total_failures"] == 0
 
 
 def test_stream_cancellation_before_first_frame_finalizes_attempt():
@@ -881,3 +885,73 @@ def test_malformed_upstream_list_body_fails_closed_without_retry():
     assert decision["usage"] is None
     assert decision["actual_cost_usd"] is None
     assert event.total_tokens is None
+
+
+@pytest.mark.parametrize(
+    ("model", "failures", "expected_status"),
+    [
+        ("primary", {}, 200),
+        ("fast", {"primary": 5, "secondary": 5}, 502),
+    ],
+)
+def test_telemetry_finalized_exactly_once(model, failures, expected_status):
+    stub = StubLiteLLMClient(failures=failures)
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": model, "messages": MESSAGES},
+    )
+
+    assert response.status_code == expected_status
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    assert store.finalize_calls == 1
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == expected_status
+
+
+def test_denied_request_finalized_exactly_once():
+    # Budget denial needs no Redis: the denial path must still finalize once.
+    from sabiroute.security.keys import ApiKeyBudget
+
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    record = next(iter(store.records.values()))
+    assert store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=1))
+
+    denied = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": MESSAGES, "max_tokens": 5},
+    )
+
+    assert denied.status_code == 429
+    assert denied.json()["error"]["type"] == "budget_exceeded"
+    assert stub.calls == []
+    assert store.finalize_calls == 1
+
+
+def test_streaming_open_exhaustion_returns_json_error_without_partial_stream():
+    stub = StubLiteLLMClient(failures={"primary": 5, "secondary": 5})
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES, "stream": True},
+    )
+
+    assert response.status_code == 502
+    assert "text/event-stream" not in response.headers.get("content-type", "")
+    assert "[DONE]" not in response.text
+    assert response.json()["error"]["attempts"] == ["primary", "secondary"]
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 502
+    assert [attempt["outcome"] for attempt in event.routing_decisions] == [
+        "failure",
+        "failure",
+    ]

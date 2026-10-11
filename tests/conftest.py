@@ -32,6 +32,7 @@ class InMemoryApiKeyStore:
         self.budgets: dict[str, ApiKeyBudget] = {}
         self.budget_usage: dict[tuple[str, str], tuple[int, Decimal | None]] = {}
         self.usage_events: dict[str, RequestUsageEvent] = {}
+        self.finalize_calls = 0
         self.fail_usage_writes = False
         self.fail_feature_snapshot_writes = False
         self.fail_finalize_usage_writes = False
@@ -191,6 +192,7 @@ class InMemoryApiKeyStore:
 
     def finalize_usage_event(self, event: RequestUsageEvent) -> bool:
         with self._lock:
+            self.finalize_calls += 1
             if self.fail_usage_writes or self.fail_finalize_usage_writes:
                 raise RuntimeError("test usage store unavailable")
             existing = self.usage_events.get(event.request_id)
