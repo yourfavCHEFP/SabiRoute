@@ -797,3 +797,87 @@ def test_all_unhealthy_candidates_rejected_before_provider_execution():
     assert event.final_status == 503
     assert event.failure_category == "no_healthy_deployment"
     assert tuple(event.routing_decisions) == ()
+
+
+def test_malformed_upstream_text_body_fails_closed_without_retry():
+    # Mirrors LiteLLMClient: HTTP 200 whose body is not JSON raises with
+    # status 200 and a text response_body. Replay-unsafe: no fallback.
+    from sabiroute.providers.litellm_client import LiteLLMClientError
+
+    stub = StubLiteLLMClient()
+
+    async def text_body(decision, messages, **kwargs):
+        stub.calls.append(decision.deployment)
+        raise LiteLLMClientError(
+            "LiteLLM gateway returned a non-object JSON response.",
+            status_code=200,
+            response_body="upstream gateway error page",
+        )
+
+    stub.chat_completion = text_body  # type: ignore[method-assign]
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["type"] == "sabiroute_upstream_error"
+    assert response.json()["error"]["attempts"] == ["primary"]
+    assert response.headers["X-SabiRoute-Request-ID"]
+    assert stub.calls == ["primary"]
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 502
+    (decision,) = event.routing_decisions
+    assert decision["outcome"] == "failure"
+    assert decision["failure_category"] == "client"
+    assert decision["http_status"] == 200
+    assert decision["usage"] is None
+    assert decision["actual_cost_usd"] is None
+    assert event.total_tokens is None
+
+
+def test_malformed_upstream_list_body_fails_closed_without_retry():
+    # Mirrors LiteLLMClient: HTTP 200 with valid JSON of unexpected
+    # top-level type raises with status 200. Same no-retry contract.
+    from sabiroute.providers.litellm_client import LiteLLMClientError
+
+    stub = StubLiteLLMClient()
+
+    async def list_body(decision, messages, **kwargs):
+        stub.calls.append(decision.deployment)
+        raise LiteLLMClientError(
+            "LiteLLM gateway returned a non-object JSON response.",
+            status_code=200,
+            response_body=[{"unexpected": "list"}],
+        )
+
+    stub.chat_completion = list_body  # type: ignore[method-assign]
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["type"] == "sabiroute_upstream_error"
+    assert response.json()["error"]["attempts"] == ["primary"]
+    assert response.headers["X-SabiRoute-Request-ID"]
+    assert stub.calls == ["primary"]
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 502
+    (decision,) = event.routing_decisions
+    assert decision["outcome"] == "failure"
+    assert decision["failure_category"] == "client"
+    assert decision["http_status"] == 200
+    assert decision["usage"] is None
+    assert decision["actual_cost_usd"] is None
+    assert event.total_tokens is None
