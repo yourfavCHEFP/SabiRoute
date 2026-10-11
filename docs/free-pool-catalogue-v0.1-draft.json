@@ -6973,8 +6973,8 @@
    "status": "current"
   },
   {
-   "checked_date": "2026-10-10",
-   "claim": "345-model catalog with paid_only flags, per-model pollen pricing, tool/reasoning flags, context lengths",
+   "checked_date": "2026-10-11",
+   "claim": "Model catalog with paid_only flags, per-model pollen pricing, tool/reasoning flags, context lengths (350 entries directly counted 2026-10-11; count drifts over time, so no fixed total is asserted)",
    "claim_type": "pricing",
    "confidence": "verified",
    "evidence_id": "E07",
@@ -7006,8 +7006,8 @@
    "status": "current"
   },
   {
-   "checked_date": "2026-10-10",
-   "claim": "36 text-catalog model IDs",
+   "checked_date": "2026-10-11",
+   "claim": "Workers AI text-model catalog IDs (dozens of entries confirmed; exact total not recounted on 2026-10-11 re-check)",
    "claim_type": "identity",
    "confidence": "verified",
    "evidence_id": "E10",
@@ -7172,7 +7172,7 @@
   },
   {
    "checked_date": "2026-10-11",
-   "claim": "One-time grants: 200M (voyage-4 family, rerank-2.x, multimodal+150B px) / 50M (older models); post-grant prices",
+   "claim": "One-time grants: 200M (voyage-4 family, current rerank generation, multimodal text+150B px) / 50M (named older models only); post-grant prices; free credits exclude Batch API use",
    "claim_type": "pricing",
    "confidence": "verified",
    "evidence_id": "E25",
@@ -7204,8 +7204,8 @@
    "status": "current"
   },
   {
-   "checked_date": "2026-10-10",
-   "claim": "Per-token prices (flash/pro); 'granted balance' mentioned with no amount; top-up balance required",
+   "checked_date": "2026-10-11",
+   "claim": "Per-token prices (flash/pro); 'granted balance' mentioned with no amount; top-up advised, spend drawn from topped-up or granted balance",
    "claim_type": "pricing",
    "confidence": "partial",
    "evidence_id": "E28",
