@@ -633,3 +633,34 @@ def test_extras_pass_through_to_client():
 
 def test_console_entry_point_exists():
     assert callable(main)
+
+
+def test_policy_exhaustion_fails_closed_with_finalized_telemetry():
+    stub = StubLiteLLMClient(failures={"primary": 5, "secondary": 5})
+    client, state = make_client(stub)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["attempts"] == ["primary", "secondary"]
+    assert stub.calls == ["primary", "secondary"]
+
+    # Cooldown trips only at three consecutive failures, so one failure
+    # each increments the counters without marking either unhealthy.
+    snapshot = state.health.snapshot()
+    assert snapshot["primary"]["total_failures"] == 1
+    assert snapshot["secondary"]["total_failures"] == 1
+    assert snapshot["primary"]["healthy"] is True
+    assert snapshot["secondary"]["healthy"] is True
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 502
+    assert [attempt["outcome"] for attempt in event.routing_decisions] == [
+        "failure",
+        "failure",
+    ]
