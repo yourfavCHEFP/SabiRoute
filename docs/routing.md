@@ -39,3 +39,31 @@ The `research` route currently requires verified chat support and contains the
 runtime-verified OpenRouter and Groq deployments. It uses the same configured
 measured scoring and fallback behavior as other measured routes; the label does
 not imply a verified reasoning or answer-quality capability.
+
+## Appendix: provider-health architecture decision (2026-10-11)
+
+**Status:** decided and implemented — passive `HealthRegistry` is the single
+health source of truth; the unused active `ProviderHealthChecker` was removed.
+
+**Evidence:** `providers/healthcheck.py` (active smoke tests via direct
+`litellm.completion`) had zero importers, zero tests, and zero references
+outside its own file, while `routing/health.py` (`HealthRegistry`: passive
+success/failure counting, three-consecutive-failure cooldown, half-open
+recovery) is wired into candidate eligibility, deterministic scoring, and
+gateway telemetry, with coverage in `tests/test_health.py`,
+`tests/test_router.py`, and `tests/test_completions.py`.
+
+**Options considered:** (A) integrate the active checker — rejected without
+owner approval: it is synchronous (blocks the async path), bypasses
+`LiteLLMClient`/telemetry/budgets, spends real provider budget per probe, and
+needs a scheduler, persistence, and registry-bridge design; (B) remove the
+dead abstraction — adopted, mirroring the earlier `FallbackEngine` removal;
+(C) keep both — rejected: distinct responsibilities (active probing vs passive
+eligibility) do not justify carrying unwired code with its own failure
+semantics (`unknown_error` catch-all) and 500-char provider-error capture.
+
+**Consequences:** one fewer health definition; no behavior change (the checker
+never ran). Re-adding active probing later requires: async design, probe
+spend/budget policy, registry integration, persistence decision, tests, and
+explicit owner approval. Health thresholds (`failure_threshold`,
+`cooldown_seconds`) are unchanged.

@@ -78,3 +78,12 @@ def test_snapshot_is_read_only():
     # snapshot must not perform the half-open reset
     assert state.consecutive_failures == 3
     assert state.healthy is False
+
+
+def test_unwired_active_health_checker_is_absent():
+    import importlib.util
+
+    import sabiroute.providers as providers
+
+    assert importlib.util.find_spec("sabiroute.providers.healthcheck") is None
+    assert not hasattr(providers, "ProviderHealthChecker")
