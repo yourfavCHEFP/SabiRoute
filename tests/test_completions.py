@@ -955,3 +955,67 @@ def test_streaming_open_exhaustion_returns_json_error_without_partial_stream():
         "failure",
         "failure",
     ]
+
+
+def test_sustained_failure_cools_down_and_recovers():
+    stub = StubLiteLLMClient(failures={"primary": 100})
+    client, state = make_client(stub)
+
+    deployments = []
+    for _ in range(5):
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": MESSAGES},
+        )
+        assert response.status_code == 200
+        deployments.append(response.headers["X-SabiRoute-Deployment"])
+
+    # Primary fails every time: after three consecutive failures it cools
+    # down, so later requests skip it and go straight to secondary.
+    assert deployments[:3] == ["secondary"] * 3
+    assert stub.calls.count("primary") == 3
+    assert deployments[3:] == ["secondary"] * 2
+    assert stub.calls.count("primary") == 3
+    assert state.health.deployments["primary"].healthy is False
+
+    # After cooldown expiry the failed deployment is tried again.
+    from datetime import timedelta as _td
+
+    from sabiroute.routing.health import utc_now as _utc_now
+
+    state.health.deployments["primary"].cooldown_until = _utc_now() - _td(seconds=1)
+    before = stub.calls.count("primary")
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES},
+    )
+    assert response.status_code == 200
+    assert stub.calls.count("primary") == before + 1
+
+
+def test_request_lifecycle_reconstructable_from_persisted_telemetry():
+    stub = StubLiteLLMClient(failures={"primary": 1})
+    client, state = make_client(stub)
+    client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES})
+
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    (event,) = store.usage_events.values()
+
+    # Reconstruct the incident from the persisted record alone.
+    assert event.final_status == 200
+    attempts = sorted(
+        event.routing_decisions, key=lambda attempt: attempt["fallback_attempt"]
+    )
+    assert [attempt["fallback_attempt"] for attempt in attempts] == [1, 2]
+    assert [attempt["selected_deployment"] for attempt in attempts] == [
+        "primary",
+        "secondary",
+    ]
+    assert [attempt["outcome"] for attempt in attempts] == ["failure", "success"]
+    assert attempts[0]["failure_category"] is not None
+    assert event.final_deployment == attempts[-1]["selected_deployment"]
+    assert all(
+        attempt["logical_request_id"] == event.request_id for attempt in attempts
+    )
+    assert all(attempt["attempt_schema_version"] == "1.1" for attempt in attempts)

@@ -151,3 +151,73 @@ async def test_malformed_redis_reply_is_rejected_not_admitted() -> None:
             "g" * 24,
             ApiKeyRateLimit(requests_per_minute=10, burst_capacity=2),
         )
+
+
+class SilentServer:
+    """Accepts one connection and never replies: a deterministically wedged peer."""
+
+    def __init__(self) -> None:
+        import socket as _socket
+        import threading as _threading
+
+        self._sock = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+        self._sock.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(1)
+        self.port = self._sock.getsockname()[1]
+        self._stop = _threading.Event()
+        self._holder = _threading.Thread(target=self._hold, daemon=True)
+        self._holder.start()
+
+    def _hold(self) -> None:
+        try:
+            conn, _ = self._sock.accept()
+            conn.settimeout(10)
+            try:
+                conn.recv(4096)
+                # Hold the connection open without replying: the peer looks
+                # wedged, so the client must time out rather than observe
+                # a close.
+                self._stop.wait(timeout=10)
+            except OSError:
+                pass
+            finally:
+                try:
+                    conn.close()
+                except OSError:
+                    pass
+        except OSError:
+            pass
+
+    def close(self) -> None:
+        self._stop.set()
+        try:
+            self._sock.close()
+        except OSError:
+            pass
+        self._holder.join(timeout=5)
+
+
+@pytest.mark.asyncio
+async def test_wedged_redis_raises_timeout_instead_of_hanging() -> None:
+    import redis.exceptions
+    from redis.asyncio import Redis as AsyncRedis
+
+    server = SilentServer()
+    try:
+        client = AsyncRedis.from_url(
+            f"redis://127.0.0.1:{server.port}/15"
+            "?socket_timeout=0.3&socket_connect_timeout=0.3",
+            decode_responses=True,
+        )
+        try:
+            limiter = RedisTokenBucket(client)
+            with pytest.raises(redis.exceptions.TimeoutError):
+                await limiter.admit(
+                    "h" * 24,
+                    ApiKeyRateLimit(requests_per_minute=10, burst_capacity=2),
+                )
+        finally:
+            await client.aclose()
+    finally:
+        server.close()
