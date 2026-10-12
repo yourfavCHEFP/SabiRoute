@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 import pytest
@@ -62,6 +62,11 @@ class _ScriptedHandler(BaseHTTPRequestHandler):
         model = payload.get("model") if isinstance(payload, dict) else None
         seen.append({"path": self.path, "model": model})
         kind = action[0]
+        if kind == "hang":
+            # Hold the connection open without replying until teardown:
+            # the client must time out (not observe a close).
+            self.server.hang_event.wait(timeout=30)  # type: ignore[attr-defined]
+            return
         if kind == "reset":
             # Abrupt close: deterministic client-side transport failure.
             try:
@@ -96,22 +101,28 @@ class _ScriptedHandler(BaseHTTPRequestHandler):
 
 @pytest.fixture()
 def stub_proxy():
-    server = HTTPServer(("127.0.0.1", 0), _ScriptedHandler)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _ScriptedHandler)
     server.script = [(200, SUCCESS_BODY)]
     server.seen = []
+    import threading as _threading
+
+    server.hang_event = _threading.Event()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         yield server
     finally:
+        server.hang_event.set()
         server.shutdown()
         thread.join(timeout=5)
         server.server_close()
 
 
-def _client_for(server: HTTPServer):
+def _client_for(server: ThreadingHTTPServer, timeout_seconds: float = 120.0):
     port = server.server_address[1]
-    client = LiteLLMClient(base_url=f"http://127.0.0.1:{port}")
+    client = LiteLLMClient(
+        base_url=f"http://127.0.0.1:{port}", timeout_seconds=timeout_seconds
+    )
     state = build_gateway_state(
         config=make_config(), client=client, key_store=InMemoryApiKeyStore()
     )
@@ -261,3 +272,35 @@ def test_streaming_open_failure_falls_back_with_matching_counts(stub_proxy) -> N
     event = _event(state)
     assert [d["outcome"] for d in event.routing_decisions] == ["failure", "success"]
     assert len(stub_proxy.seen) == len(event.routing_decisions) == 2
+
+
+def test_error_category_distinguishes_timeout_from_transport() -> None:
+    from sabiroute.api.completions import _error_category
+    from sabiroute.providers.litellm_client import LiteLLMClientError
+
+    assert (
+        _error_category(LiteLLMClientError("timed out", timed_out=True)) == "timeout"
+    )
+    assert _error_category(LiteLLMClientError("reset", status_code=None)) == "transport"
+    assert (
+        _error_category(LiteLLMClientError("boom", status_code=500)) == "server"
+    )
+
+
+def test_hanging_upstream_times_out_with_bounded_attempts(stub_proxy) -> None:
+    stub_proxy.script = [("hang", None)]
+    client, state = _client_for(stub_proxy, timeout_seconds=0.5)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": MESSAGES},
+    )
+
+    assert response.status_code == 502
+    # Single-alias request: the hung deployment is attempted once, excluded
+    # as attempted, and there is nothing left to try. No retry storm.
+    assert len(stub_proxy.seen) == 1
+    event = _event(state)
+    assert event.final_status == 502
+    assert [d["outcome"] for d in event.routing_decisions] == ["failure"]
+    assert event.routing_decisions[0]["failure_category"] == "timeout"
