@@ -1041,3 +1041,30 @@ def test_missing_key_store_fails_closed_at_endpoint_layer():
     assert response.status_code == 503
     assert json.loads(response.body)["error"]["type"] == "usage_store_unavailable"
     assert stub.calls == []
+
+
+def test_cli_help_exits_without_starting_server(capsys):
+    from unittest import mock
+
+    from sabiroute.main import CLI_USAGE, main
+
+    with mock.patch("uvicorn.run") as run:
+        assert main(["--help"]) is None
+    run.assert_not_called()
+    assert "Usage: sabiroute" in capsys.readouterr().out
+    assert CLI_USAGE.startswith("Usage: sabiroute")
+
+
+def test_cli_unknown_arguments_fail_without_starting_server(capsys):
+    from unittest import mock
+
+    import pytest
+
+    from sabiroute.main import main
+
+    with mock.patch("uvicorn.run") as run:
+        with pytest.raises(SystemExit) as exc_info:
+            main(["--port", "9000"])
+    run.assert_not_called()
+    assert exc_info.value.code != 0
+    assert "Usage: sabiroute" in capsys.readouterr().err

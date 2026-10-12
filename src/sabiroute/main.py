@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import logging
 import os
+from collections.abc import Sequence
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -73,10 +74,29 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
     return app
 
 
-def main() -> None:
+CLI_USAGE = """Usage: sabiroute [OPTIONS]
+
+Run the SabiRoute API with uvicorn. Configuration comes from environment
+variables (see .env.example); this command takes no positional arguments.
+
+Options:
+  -h, --help   Show this message without starting the server.
+"""
+
+
+def main(argv: Sequence[str] | None = None) -> None:
     """Console-script entry point (``sabiroute``): run the API with uvicorn."""
+    import sys
 
     import uvicorn
+
+    args = list(sys.argv[1:] if argv is None else argv)
+    if args in (["-h"], ["--help"]):
+        print(CLI_USAGE)
+        return
+    if args:
+        print(CLI_USAGE, file=sys.stderr)
+        raise SystemExit(f"Unknown arguments: {' '.join(args)}")
 
     uvicorn.run(
         "sabiroute.main:app",
