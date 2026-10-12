@@ -1019,3 +1019,25 @@ def test_request_lifecycle_reconstructable_from_persisted_telemetry():
         attempt["logical_request_id"] == event.request_id for attempt in attempts
     )
     assert all(attempt["attempt_schema_version"] == "1.1" for attempt in attempts)
+
+
+def test_missing_key_store_fails_closed_at_endpoint_layer():
+    # Defense in depth: even past authentication, a missing store must not
+    # execute. Via HTTP this is unreachable (the auth dependency rejects
+    # first), so the endpoint is exercised directly.
+    import json
+
+    stub = StubLiteLLMClient()
+    _, state = make_client(stub)
+    request = make_direct_request(state)
+    state.key_store = None
+
+    response = asyncio.run(
+        chat_completions(
+            ChatCompletionRequest(model="primary", messages=MESSAGES), request
+        )
+    )
+
+    assert response.status_code == 503
+    assert json.loads(response.body)["error"]["type"] == "usage_store_unavailable"
+    assert stub.calls == []
