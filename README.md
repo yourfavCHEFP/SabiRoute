@@ -1,20 +1,20 @@
 <div align="center">
 
-<img src="docs/diagrams/readme-hero.svg" alt="SabiRoute — self-hosted AI gateway" width="100%" />
+<img src="docs/diagrams/readme-hero.svg" alt="SabiRoute routing control plane: client requests pass through SabiRoute policy and eligibility checks, LiteLLM execution, configured providers, and operational data stores" width="100%" />
 
 <br/>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=600&size=20&pause=1200&color=8B5CF6&center=true&vCenter=true&width=900&lines=One+gateway.+Multiple+providers.;Context-aware+%2B+health-aware+routing;Deterministic+fallback+before+ML+intelligence;LiteLLM+execution.+SabiRoute+control.;Self-hosted+%C2%B7+OpenAI-compatible+%C2%B7+MIT)](https://git.io/typing-svg)
+**Context-aware routing · Explicit eligibility · Deterministic first**
 
-[![release](https://img.shields.io/badge/release-v0.1.0--dev-blue)](https://github.com/yourfavCHEFP/SabiRoute/releases)
+[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/yourfavCHEFP/SabiRoute/blob/feat/sabiroute-routing-foundation/pyproject.toml)
 [![made with](https://img.shields.io/badge/made%20with-Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![engine](https://img.shields.io/badge/engine-LiteLLM-6C5CE7)](https://github.com/BerriAI/litellm)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-![status](https://img.shields.io/badge/status-active--development-orange)
+![status](https://img.shields.io/badge/status-alpha-orange)
 
 **One gateway. Multiple providers. Deterministic, health-aware routing.**
 
-[Architecture](#-architecture) · [Routing](#-routing-intelligence) · [Providers](#-provider-strategy) · [Roadmap](#-engineering-roadmap) · [Phase 13](#-ml-readiness-status-phase-13) · [Free Pool](#-free-pool-planned-workstream) · [Getting started](#-getting-started) · [Testing](#-testing-and-validation) · [Contributing](#-contributing) · [License](#-license)
+[Architecture](#-architecture) · [Routing](#-routing-intelligence) · [Providers](#-provider-strategy) · [Roadmap](#-engineering-roadmap) · [Getting started](#-getting-started) · [Code of Conduct](#code-of-conduct) · [Contributing](#-contributing) · [Security](#security) · [MIT License](#-license)
 
 </div>
 
@@ -44,13 +44,14 @@ SabiRoute owns the decision layer:
 >
 > A gateway that knows which model should handle a request, so the developer does not have to.
 
-SabiRoute is in active development (v0.1.0-dev, alpha). The deterministic routing foundation is working and progressively verified; ML-assisted routing is a gated future layer, not a current feature. Status below is reported from real evidence, phase by phase.
+SabiRoute is in active alpha development (package version `0.1.0`). The deterministic routing foundation is implemented and progressively verified; ML-assisted routing is a gated future layer, not a current feature. Status below distinguishes implementation, tests, and documented runtime evidence.
 
 ## Contents
 
 - [Why SabiRoute?](#-why-sabiroute)
 - [Core capabilities and direction](#-core-capabilities-and-direction)
 - [Architecture](#-architecture)
+- [Request flow](#request-flow)
 - [Routing intelligence](#-routing-intelligence)
 - [Provider strategy](#-provider-strategy)
 - [Engineering roadmap](#-engineering-roadmap)
@@ -60,7 +61,9 @@ SabiRoute is in active development (v0.1.0-dev, alpha). The deterministic routin
 - [What makes this an ML systems project?](#-what-makes-this-an-ml-systems-project)
 - [Free Pool (planned workstream)](#-free-pool-planned-workstream)
 - [Known limitations](#-known-limitations)
+- [Code of Conduct](#code-of-conduct)
 - [Contributing](#-contributing)
+- [Security](#security)
 - [Long-term direction](#-long-term-direction)
 - [License](#-license)
 - [Author](#-author)
@@ -99,7 +102,7 @@ Classes come from explicit request metadata (`sabi_route_request_type`) and rout
 
 ### 🛡️ Health-aware fallback
 
-A provider failure becomes a controlled routing event, not an application outage. Unhealthy deployments are excluded from the eligible pool, deterministic fallback tries the next eligible candidate, and cooldown lets failed deployments recover. Retryable failures (eligible 429/5xx responses, timeouts, connection failures) are distinguished from errors that must not be blindly retried. Fallback and cooldown recovery are verified (Phases 05–06).
+A provider failure becomes a controlled routing event, not an application outage. Unhealthy deployments are excluded from the eligible pool, deterministic fallback tries the next eligible candidate, and cooldown lets failed deployments recover. Retryable failures (eligible 429/5xx responses, timeouts, connection failures) are distinguished from errors that must not be blindly retried. Fallback and cooldown recovery are implemented and unit-tested (Phases 05–06); the failure paths have not been exercised against live providers, and the former active `ProviderHealthChecker` smoke test was removed after verification that nothing referenced it (see `docs/routing.md`) — it was never wired into the request path.
 
 ### 🧩 Virtual model policies
 
@@ -107,7 +110,7 @@ Clients request a virtual route instead of hard-coding provider/model pairs — 
 
 ### 🔐 Governance on the request path
 
-Authentication, budgets, and rate limits run on the real request path, not in side configuration (Phases 09–10, verified):
+Authentication, budgets, and rate limits run on the real request path, not in side configuration (Phase 09 exercised on the documented live run; Phase 10 unit- and API-tested):
 
 - client API keys with create / rotate / revoke lifecycle, stored as SHA-256 digests only;
 - a separate admin bootstrap credential for `/admin/*`;
@@ -181,6 +184,8 @@ SabiRoute decides which deployment should be attempted; LiteLLM executes the pro
 
 ### Request flow
 
+![Request flow: client request, access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome. Retryable failures return to bounded route selection.](docs/diagrams/readme-request-flow.svg)
+
 The request path implemented today:
 
 1. Receive the client request.
@@ -194,7 +199,7 @@ The request path implemented today:
 9. On retryable failure, fall back per the retry and eligibility rules.
 10. Normalize the response and persist operational telemetry.
 
-Every stage above exists and has been exercised by tests and live requests; the maturity of each varies by phase (see the [roadmap](#-engineering-roadmap)). ML scoring is deliberately absent from this flow — it is a future, gated addition.
+The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition.
 
 ---
 
@@ -251,24 +256,26 @@ Planned expansion may include DeepSeek, Mistral, xAI, and Ollama. Note that the 
 
 > **Code exists ≠ feature works.** A phase is complete only with implementation + tests + integration + real execution + failure validation. A unit-test pass is evidence — but it does not prove live provider behavior or production readiness.
 
-**Legend:** **Complete** — acceptance criteria verified · **Implemented** — code and tests exist, verification incomplete · **In progress** — active work, scope remains · **Blocked** — waiting on a data or dependency gate · **Planned** — not started
+**Legend:** **Complete** — implemented, tested, and exercised on a documented live path · **Implemented** — code and tests exist, required verification incomplete · **In progress** — active work, scope remains · **Blocked** — waiting on a data, evaluation, or dependency gate · **Planned** — not started
+
+These labels are not interchangeable. *Implemented* is not *Complete*, and a green unit-test suite is not integration evidence. Status evidence comes from the linked phase records and capability matrix. The documented live-path evidence is **success-only** and was not re-run while updating this README; automated tests do not establish live provider behavior.
 
 | Phase | Focus | Status | Evidence / notes |
 |---:|---|---|---|
-| 00 | Architecture and environment | Complete | Typed configuration, validation, and local environment in place |
-| 01 | Basic LiteLLM gateway | Complete | Real request and fallback path previously verified (`sabiroute-gemini`) |
-| 02 | Provider expansion | In progress | Gemini, Groq, and OpenRouter have runtime evidence; remaining deployments unverified |
+| 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green |
+| 01 | Basic LiteLLM gateway | Complete | Non-streaming and streaming requests documented on the live path; fallback covered by tests only |
+| 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence ([docs/capabilities.md](docs/capabilities.md), 2026-10-08); the 2026-10-10 harness run recorded a Together authentication failure |
 | 03 | Model registry | Complete | Registry and aliases in place; `config/config.yaml` is the runtime catalog |
-| 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup |
-| 05 | Fallback engine | Complete | Deterministic fallback verified |
-| 06 | Health monitoring | Complete | Cooldown and recovery behavior verified |
-| 07 | Observability | Complete | Runtime metrics, latency, and error reporting on admin endpoints |
-| 08 | PostgreSQL | Complete | API-key lifecycle verified against PostgreSQL |
-| 09 | Authentication and API keys | Complete | Client/admin boundary and key lifecycle verified |
-| 10 | Budgets and rate limits | Complete | Request, token, and priced-cost gates verified (text-only estimator contract) |
+| 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup; `research` exercised on the live path |
+| 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`, unit-tested; no live failure-injection evidence; see [limitations](#-known-limitations) |
+| 06 | Health monitoring | Implemented | Passive cooldown and recovery unit-tested; the former active `ProviderHealthChecker` was removed (see `docs/routing.md`) |
+| 07 | Observability | Implemented | Trackers wired into gateway state and admin endpoints; no stored failure-metric evidence |
+| 08 | PostgreSQL | Complete | `PostgresApiKeyStore` exercised by the documented live run |
+| 09 | Authentication and API keys | Complete | Client/admin boundary; a key was issued and revoked during that run |
+| 10 | Budgets and rate limits | Implemented | Unit and API tests cover admission and rejection (text-only estimator contract); rejection paths not exercised on the live path |
 | 11 | Capability-aware deterministic routing | Implemented | Routing and tests in place; capability evidence missing for most deployments |
 | 12 | Measured deterministic scoring | Implemented | `deterministic-v1` live on measured routes; benchmark evidence is synthetic only |
-| 13 | ML-assisted routing | In progress | Data foundation and live path verified; training blocked — see [below](#-ml-readiness-status-phase-13) |
+| 13 | ML-assisted routing | In progress | 13.1 committed; live sub-gate passed; aggregate integrity failed; 13.3 blocked — see [below](#-ml-readiness-status-phase-13) |
 | 14 | Benchmarking | Planned | Compare against the unchanged deterministic baseline |
 | 15 | Admin dashboard | Planned | — |
 | 16 | Private remote access / Tailscale | Planned | — |
@@ -287,11 +294,11 @@ Five status dimensions, kept deliberately separate:
 
 | Dimension | Status |
 |---|---|
-| ML data-foundation implementation | Implemented — schema `1.1` feature snapshots and a read-only audit tool in the working tree (not yet isolated in a phase-scoped commit) |
+| ML data-foundation implementation | Implemented — schema `1.1` feature snapshots and a read-only audit tool, committed as `71271fc` (phase-13.1 routing data foundation) |
 | Live request-path verification | Passed for two bounded requests — one non-streaming (`research` policy → OpenRouter) and one streaming (Groq, SSE frames terminated with `[DONE]`); schema `1.1` records persisted |
 | Aggregate dataset integrity | **Failed** — one feature/outcome count mismatch and one outcome without a feature snapshot remain visible by design |
 | Training readiness (13.3) | **Blocked** — no outcome variation and no defensible chronological split |
-| Commit status | Foundation, capabilities, scoring, registry, route-loading, and standalone security-primitive commits are in (through `df0bc8a`); request-path wiring, intelligence work, and recent provider-harness changes remain uncommitted in the working tree |
+| Commit isolation (2026-10-10) | Every phase-scoped group is committed on `feat/sabiroute-routing-foundation` — foundation, capabilities, scoring, registry, route-loading, security primitives, request-path wiring, dataset foundation, README, and the provider harness. No source, configuration, or test file is left modified or uncommitted; the only open tracked change in the working tree is this documentation reconciliation. |
 
 The latest read-only database audit **succeeded** and reported:
 
@@ -438,14 +445,24 @@ That progression — and the honesty about selection bias, missing outcomes, and
 - **Token estimation is text-only:** multimodal token estimation stays null; cost appears only when calculable from configured pricing.
 - **No versioned migration framework yet:** the API-key table is created idempotently at startup; introduce migrations before non-additive schema changes.
 - **Host-run topology only:** the Compose stack has no SabiRoute application container yet.
-- **Phase-scoped commits still pending for recent work:** foundation through security-primitives commits are in; the remaining request-path wiring, telemetry, intelligence, and provider-harness changes still need dependency-aware separation before reviewable phase-scoped commits.
-- Some root files (`Dockerfile`, `Makefile`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`) are placeholders awaiting their phases.
+- **`FallbackEngine` is not on the request path:** `routing/fallback.py` is constructed by `Router` but its methods are never called — the live retry/fallback loop lives in `src/sabiroute/api/completions.py`. Reported, not silently rewired.
+- **Active health checking was removed:** `providers/healthcheck.py` (`ProviderHealthChecker`) was deleted after verification that nothing referenced it (see `docs/routing.md`). Runtime health is the passive success/failure and cooldown registry in `routing/health.py`.
+- **Live evidence is documentary and success-only:** the isolated run in [docs/phase13-data-foundation.md](docs/phase13-data-foundation.md) is the stored live-path evidence; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
+- Some root files (`Dockerfile`, `Makefile`, `CHANGELOG.md`) are placeholders awaiting their phases.
 
 ---
 
+## Code of Conduct
+
+SabiRoute welcomes respectful, constructive participation. Everyone taking part in project spaces is expected to follow the project's [Code of Conduct](CODE_OF_CONDUCT.md). To report harmful behavior, contact the maintainer privately through the [project owner’s GitHub profile](https://github.com/yourfavCHEFP); do not post personal or sensitive details in a public issue.
+
 ## 🤝 Contributing
 
+Read the project’s [contribution guidelines](CONTRIBUTING.md) before proposing a change. They explain the development setup, review expectations, and the evidence required for routing or security changes.
+
 SabiRoute is currently a solo engineering project in active development. Ideas, issues, architecture discussions, and reproducible bug reports are welcome. As the gateway and intelligence layers mature, the project can grow toward broader community contributions.
+
+The authoritative development branch is `feat/sabiroute-routing-foundation`. The earlier `setup/claude-code-action` branch and its pull request were deleted; do not resurrect or target it.
 
 Engineering work progresses phase by phase:
 
@@ -457,6 +474,10 @@ Engineering work progresses phase by phase:
 6. commit only when that phase's acceptance criteria are met — never stage everything indiscriminately or merge unrelated phases into one commit.
 
 Do not commit secrets or local artifacts, mark a phase complete because it compiles, or push without explicit authorization.
+
+## Security
+
+SabiRoute is alpha software. Review the [Security Policy](SECURITY.md) for supported reporting channels and safe disclosure guidance. Do not report vulnerabilities in a public issue.
 
 ---
 
@@ -531,7 +552,7 @@ These are roadmap objectives, not claims about the current release. The order ma
 
 ## 📄 License
 
-Released under the [MIT License](./LICENSE).
+SabiRoute is released under the [MIT License](./LICENSE).
 
 Use it, fork it, improve it, route through it.
 
