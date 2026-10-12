@@ -744,3 +744,25 @@ def test_admin_budget_lifecycle_is_protected_and_inspectable(monkeypatch) -> Non
     assert inspected.json()["budget"]["monthly_cost_usd"] == "2.50"
     assert removed.status_code == 200
     assert store.get_budget(record.key_id) is None
+
+
+def test_budget_denial_omits_retry_after_but_names_window() -> None:
+    # Rate-limit 429s carry Retry-After (retry soon makes sense); budget 429s
+    # must not, since the budget will not refill in seconds. The denial names
+    # its window in the body instead.
+    state, store, stub, secret = _state()
+    record = next(iter(store.records.values()))
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=50))
+
+    with TestClient(create_app(state=state)) as client:
+        denied = client.post(
+            "/v1/chat/completions",
+            json={"model": "primary", "messages": MESSAGES, "max_tokens": 5},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert denied.status_code == 429
+    assert denied.json()["error"]["type"] == "budget_exceeded"
+    assert denied.json()["error"]["window"] == "daily"
+    assert "retry-after" not in {k.lower() for k in denied.headers}
+    assert stub.calls == []
