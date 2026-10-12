@@ -51,3 +51,69 @@ def test_malformed_env_reference_rejected(tmp_path):
 
     with pytest.raises(ConfigValidationError):
         load_config(config_file)
+
+
+ROUTE_YAML = """\
+name: testroute
+deployments:
+  - sabiroute-openai
+strategy: priority
+max_attempts: 1
+"""
+
+
+def _gateway_state_with_env():
+    from sabiroute.gateway import build_gateway_state
+
+    return build_gateway_state()
+
+
+def test_blank_routes_path_selects_repo_default_not_cwd(tmp_path, monkeypatch):
+    from sabiroute.gateway import DEFAULT_ROUTES_PATH
+
+    routes_dir = tmp_path / "routes"
+    routes_dir.mkdir()
+    (routes_dir / "testroute.yaml").write_text(ROUTE_YAML, encoding="utf-8")
+
+    monkeypatch.setenv("SABIROUTE_ROUTES_PATH", str(routes_dir))
+    overridden = _gateway_state_with_env()
+    assert overridden.policies.get("testroute").deployments == ["sabiroute-openai"]
+    with pytest.raises(ValueError, match="Unknown routing policy"):
+        overridden.policies.get("fast")
+
+    for blank in ("", "   "):
+        monkeypatch.setenv("SABIROUTE_ROUTES_PATH", blank)
+        state = _gateway_state_with_env()
+        assert state.policies.get("fast").name == "fast"
+        with pytest.raises(ValueError, match="Unknown routing policy"):
+            state.policies.get("testroute")
+
+    monkeypatch.delenv("SABIROUTE_ROUTES_PATH", raising=False)
+    defaulted = _gateway_state_with_env()
+    assert defaulted.policies.get("fast").name == "fast"
+    assert str(DEFAULT_ROUTES_PATH).endswith("config/routes")
+
+
+def test_blank_litellm_url_selects_default_without_network(monkeypatch):
+    from sabiroute.gateway import DEFAULT_PROXY_URL, build_gateway_state
+
+    for blank in ("", "   "):
+        monkeypatch.setenv("SABIROUTE_LITELLM_URL", blank)
+        state = build_gateway_state()
+        assert state.client.base_url == DEFAULT_PROXY_URL == "http://127.0.0.1:4000"
+
+    monkeypatch.delenv("SABIROUTE_LITELLM_URL", raising=False)
+    assert build_gateway_state().client.base_url == DEFAULT_PROXY_URL
+
+    monkeypatch.setenv("SABIROUTE_LITELLM_URL", "http://127.0.0.1:4123/")
+    assert build_gateway_state().client.base_url == "http://127.0.0.1:4123"
+
+
+def _rate_limiter_db(state) -> int | None:
+    client = state.rate_limiter._client  # type: ignore[union-attr]
+    return client.connection_pool.connection_kwargs.get("db")
+
+
+def _rate_limiter_port(state) -> int | None:
+    client = state.rate_limiter._client  # type: ignore[union-attr]
+    return client.connection_pool.connection_kwargs.get("port")

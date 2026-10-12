@@ -78,7 +78,11 @@ def build_gateway_state(
 
     registry = registry_from_config(config)
     if load_runtime_routes:
-        routes_path = os.environ.get("SABIROUTE_ROUTES_PATH", str(DEFAULT_ROUTES_PATH))
+        # Blank means unset: an empty SABIROUTE_ROUTES_PATH must select the
+        # repository default, not the process working directory.
+        routes_path = (os.environ.get("SABIROUTE_ROUTES_PATH") or "").strip() or str(
+            DEFAULT_ROUTES_PATH
+        )
         policies = PolicyRegistry.from_directory(routes_path, registry)
     else:
         # Explicitly injected configs are used by tests and embedders; keep
@@ -105,8 +109,12 @@ def build_gateway_state(
     )
 
     if client is None:
+        # Blank means unset: an empty SABIROUTE_LITELLM_URL must select the
+        # default proxy URL, not an empty base URL. Non-blank values,
+        # including invalid ones, pass through unchanged.
         client = LiteLLMClient(
-            base_url=os.environ.get("SABIROUTE_LITELLM_URL", DEFAULT_PROXY_URL),
+            base_url=(os.environ.get("SABIROUTE_LITELLM_URL") or "").strip()
+            or DEFAULT_PROXY_URL,
             api_key=os.environ.get("LITELLM_MASTER_KEY") or None,
             timeout_seconds=float(config.litellm_settings.request_timeout),
         )
