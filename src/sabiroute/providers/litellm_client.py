@@ -17,10 +17,12 @@ class LiteLLMClientError(RuntimeError):
         *,
         status_code: int | None = None,
         response_body: Any = None,
+        timed_out: bool = False,
     ) -> None:
         super().__init__(message)
         self.status_code = status_code
         self.response_body = response_body
+        self.timed_out = timed_out
 
 
 class LiteLLMStream:
@@ -100,7 +102,9 @@ class LiteLLMClient:
             ) as client:
                 response = await client.post(url, json=payload)
         except httpx.TimeoutException as exc:
-            raise LiteLLMClientError("LiteLLM gateway request timed out.") from exc
+            raise LiteLLMClientError(
+                "LiteLLM gateway request timed out.", timed_out=True
+            ) from exc
         except httpx.HTTPError as exc:
             raise LiteLLMClientError(f"LiteLLM gateway transport error: {exc}") from exc
 
@@ -180,7 +184,9 @@ class LiteLLMClient:
             return LiteLLMStream(client, response)
         except httpx.TimeoutException as exc:
             await client.aclose()
-            raise LiteLLMClientError("LiteLLM gateway stream timed out.") from exc
+            raise LiteLLMClientError(
+                "LiteLLM gateway stream timed out.", timed_out=True
+            ) from exc
         except httpx.HTTPError as exc:
             await client.aclose()
             raise LiteLLMClientError("LiteLLM gateway stream transport error.") from exc

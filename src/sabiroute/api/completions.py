@@ -79,7 +79,7 @@ def _resolve_target(state: GatewayState, model: str) -> tuple[list[str], Routing
 
 def _error_category(exc: LiteLLMClientError) -> str:
     if exc.status_code is None:
-        return "transport"
+        return "timeout" if exc.timed_out else "transport"
     if exc.status_code in {401, 403}:
         return "auth"
     if exc.status_code == 429:
