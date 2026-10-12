@@ -71,3 +71,38 @@ def test_liveness_endpoints(monkeypatch):
     with TestClient(app) as client:
         assert client.get("/health").json() == {"status": "ok", "service": "sabiroute"}
         assert client.get("/health/live").json() == {"status": "alive"}
+
+
+def test_readiness_reports_ready_when_request_path_is_servable():
+    state = build_gateway_state(
+        config=make_config(),
+        client=StubLiteLLMClient(),
+        key_store=InMemoryApiKeyStore(),
+    )
+    provision_test_key(state)
+    app = create_app(state=state)
+
+    with TestClient(app) as client:
+        response = client.get("/health/ready")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ready"
+    assert body["components"]["startup"] == "ok"
+    assert body["components"]["registry"] == "ok"
+    assert body["components"]["key_store"] == "ok"
+    assert body["components"]["rate_limiter"] == "absent"
+
+
+def test_readiness_fails_when_startup_is_degraded():
+    from sabiroute.gateway import empty_gateway_state
+
+    app = create_app(state=empty_gateway_state())
+
+    with TestClient(app) as client:
+        response = client.get("/health/ready")
+
+    assert response.status_code == 503
+    body = response.json()
+    assert body["status"] == "not_ready"
+    assert "startup" in body["failing"] or "registry" in body["failing"]
