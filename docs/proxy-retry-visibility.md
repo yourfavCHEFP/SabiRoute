@@ -78,7 +78,24 @@ repo files), and proxy log access.
 
 - Any claim that the production proxy performs exactly one provider
   attempt per request (needs the procedure above).
+- Deployed image identification from this machine (2026-10-12): the local
+  Docker daemon holds no LiteLLM image, so no digest or version can be
+  read without pulling — which is out of scope.
 - Pinning the proxy image or setting explicit `num_retries: 0` /
   fallback policy (proxy config change; owner decision, out of scope —
   note that disabling proxy retries is itself a behavior change needing
   review, not a default to assume).
+
+## Duplicate-execution and billing risk (analysis, not observed behavior)
+
+- A provider may execute a request whose response is then lost (timeout,
+  reset, malformed body). SabiRoute's no-retry rule for malformed-200 and
+  its bounded `max_attempts` limit SabiRoute-side re-execution, but usage
+  for failed attempts is recorded only when the failure body carries
+  parsable token counts; otherwise usage stays null and budgets reconcile
+  against the reservation rather than actuals.
+- Any proxy-internal retry would consume real provider quota and budget
+  outside SabiRoute's reservation accounting, and its latency would land
+  inside the attempt's measured latency (depressing deterministic-v1
+  scores without a visible cause). Treat per-attempt cost/latency
+  anomalies as a signal to run the verification procedure above.

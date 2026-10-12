@@ -70,6 +70,21 @@ class _ScriptedHandler(BaseHTTPRequestHandler):
                 pass
             self.connection.close()
             return
+        if kind == "sse":
+            frames = [
+                b'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n',
+                b'data: {"choices":[{"delta":{"content":" world"}}]}\n\n',
+                b'data: {"choices":[],"usage":{"prompt_tokens":3,'
+                b'"completion_tokens":2,"total_tokens":5}}\n\n',
+                b"data: [DONE]\n\n",
+            ]
+            encoded = b"".join(frames)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            self.wfile.write(encoded)
+            return
         status, body = action
         encoded = json.dumps(body).encode("utf-8")
         self.send_response(status)
@@ -210,3 +225,39 @@ def test_exhaustion_bounds_stub_requests_to_max_attempts(stub_proxy) -> None:
     event = _event(state)
     assert event.final_status == 502
     assert [d["outcome"] for d in event.routing_decisions] == ["failure", "failure"]
+
+
+def test_streaming_success_single_request(stub_proxy) -> None:
+    stub_proxy.script = [("sse", None)]
+    client, state = _client_for(stub_proxy)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": MESSAGES, "stream": True},
+    )
+
+    assert response.status_code == 200
+    assert response.text.count("[DONE]") == 1
+    assert len(stub_proxy.seen) == 1
+    assert stub_proxy.seen[0]["model"] == "primary"
+    event = _event(state)
+    assert event.final_status == 200
+    assert len(event.routing_decisions) == 1
+    assert event.routing_decisions[0]["outcome"] == "success"
+
+
+def test_streaming_open_failure_falls_back_with_matching_counts(stub_proxy) -> None:
+    stub_proxy.script = [(500, _error_body("open failed")), ("sse", None)]
+    client, state = _client_for(stub_proxy)
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "fast", "messages": MESSAGES, "stream": True},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-SabiRoute-Deployment"] == "secondary"
+    assert [r["model"] for r in stub_proxy.seen] == ["primary", "secondary"]
+    event = _event(state)
+    assert [d["outcome"] for d in event.routing_decisions] == ["failure", "success"]
+    assert len(stub_proxy.seen) == len(event.routing_decisions) == 2
