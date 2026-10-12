@@ -1068,3 +1068,21 @@ def test_cli_unknown_arguments_fail_without_starting_server(capsys):
     run.assert_not_called()
     assert exc_info.value.code != 0
     assert "Usage: sabiroute" in capsys.readouterr().err
+
+
+def test_large_text_body_handled_without_error():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    big_text = "hello world, this is a large payload. " * 8192  # ~300KB
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "primary", "messages": [{"role": "user", "content": big_text}]},
+    )
+
+    assert response.status_code == 200
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    event = next(iter(store.usage_events.values()))
+    assert event.final_status == 200
+    assert event.total_tokens == 5
