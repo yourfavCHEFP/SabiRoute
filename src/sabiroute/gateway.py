@@ -130,11 +130,16 @@ def build_gateway_state(
             redis_client = Redis.from_url(redis_url, decode_responses=True)
             rate_limiter = RedisTokenBucket(redis_client)
         elif redis_host:
+            # Blank means unset for numeric options too: int("") would crash
+            # startup even though no value was really provided. Non-blank
+            # invalid values still raise loudly instead of becoming defaults.
+            redis_port = (os.environ.get("REDIS_PORT") or "").strip() or "6379"
+            redis_db = (os.environ.get("REDIS_DB") or "").strip() or "0"
             redis_client = Redis(
                 host=redis_host,
-                port=int(os.environ.get("REDIS_PORT", "6379")),
+                port=int(redis_port),
                 password=os.environ.get("REDIS_PASSWORD") or None,
-                db=int(os.environ.get("REDIS_DB", "0")),
+                db=int(redis_db),
                 decode_responses=True,
             )
             rate_limiter = RedisTokenBucket(redis_client)

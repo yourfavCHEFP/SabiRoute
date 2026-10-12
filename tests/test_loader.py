@@ -117,3 +117,51 @@ def _rate_limiter_db(state) -> int | None:
 def _rate_limiter_port(state) -> int | None:
     client = state.rate_limiter._client  # type: ignore[union-attr]
     return client.connection_pool.connection_kwargs.get("port")
+
+
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_blank_redis_db_and_port_use_defaults(monkeypatch, blank):
+    from sabiroute.gateway import build_gateway_state
+
+    # Blank URL keeps the host branch selected: config loading injects the
+    # repository .env for unset vars, so deleting is not enough to isolate.
+    monkeypatch.setenv("REDIS_URL", "")
+    monkeypatch.setenv("REDIS_HOST", "127.0.0.1")
+    monkeypatch.setenv("REDIS_DB", blank)
+    monkeypatch.setenv("REDIS_PORT", blank)
+
+    state = build_gateway_state()
+
+    assert state.rate_limiter is not None
+    assert _rate_limiter_db(state) == 0
+    assert _rate_limiter_port(state) == 6379
+
+
+def test_explicit_redis_db_and_port_preserved(monkeypatch):
+    from sabiroute.gateway import build_gateway_state
+
+    # Blank URL keeps the host branch selected: config loading injects the
+    # repository .env for unset vars, so deleting is not enough to isolate.
+    monkeypatch.setenv("REDIS_URL", "")
+    monkeypatch.setenv("REDIS_HOST", "127.0.0.1")
+    monkeypatch.setenv("REDIS_DB", "3")
+    monkeypatch.setenv("REDIS_PORT", "6380")
+
+    state = build_gateway_state()
+
+    assert _rate_limiter_db(state) == 3
+    assert _rate_limiter_port(state) == 6380
+
+
+@pytest.mark.parametrize("var,value", [("REDIS_DB", "abc"), ("REDIS_PORT", "abc")])
+def test_invalid_redis_numbers_still_fail_loudly(monkeypatch, var, value):
+    from sabiroute.gateway import build_gateway_state
+
+    # Blank URL keeps the host branch selected: config loading injects the
+    # repository .env for unset vars, so deleting is not enough to isolate.
+    monkeypatch.setenv("REDIS_URL", "")
+    monkeypatch.setenv("REDIS_HOST", "127.0.0.1")
+    monkeypatch.setenv(var, value)
+
+    with pytest.raises(ValueError):
+        build_gateway_state()
