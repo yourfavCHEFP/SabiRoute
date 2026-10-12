@@ -49,8 +49,13 @@ tests/test_router.py -q`
 | Client cancellation (non-stream + streaming) | Covered, passing | `test_non_stream_cancellation_finalizes_an_interrupted_attempt`, `test_stream_cancellation_before_first_frame_finalizes_attempt`, `test_stream_cancellation_after_partial_delivery_is_recorded_as_client_cancel` | 499 + `client_cancelled`, distinct from provider failure |
 | Streaming failure before/after first chunk | Covered, passing | `test_streaming_falls_back_only_before_first_event`, `test_streaming_failure_after_first_event_is_not_replayed` | — |
 | Telemetry finalization failure | Covered, passing | `test_stream_finalization_failure_is_logged_and_remains_unfinalized`, `test_non_stream_finalization_failure_returns_unavailable_and_stays_unfinalized` | Unfinalized stays auditable (`final_status is None`), never fabricated |
-| Concurrent/distributed rate-limit correctness | Not covered — infrastructure-gated | `RedisTokenBucket` is a server-side Lua script (atomic by design); no local Redis here | Requires Redis + owner approval; in-memory tests must not claim distributed safety |
-| Real-provider failure drills | Blocked — owner authorization | Needs spend scope, credentials, and explicit approval | See Handoff: no live failure-injection evidence to date |
+| Concurrent/distributed rate-limit correctness | Partially covered | `test_concurrent_admissions_capped_at_burst` (MemoryRedis) + opt-in real-Redis twin in `tests/test_rate_limit_redis.py`; multi-worker deployment still unverified | `RedisTokenBucket` is a server-side Lua script (atomic by design); no local Redis here | Requires Redis + owner approval; in-memory tests must not claim distributed safety |
+| Real-provider failure drills | Blocked — owner authorization |
+| Sustained provider failure → cooldown → recovery | Covered, passing | `test_sustained_failure_cools_down_and_recovers` (Sprint 8) | Deterministic sequential; thread-level concurrency still unproven |
+| Lifecycle reconstruction from persisted telemetry | Covered, passing | `test_request_lifecycle_reconstructable_from_persisted_telemetry` (Sprint 8) | Proves reconstructability for fallback-success; exhaustion/cancel shapes covered by their own tests |
+| Cancellation poisons health | Covered (negative), passing | extended `test_non_stream_cancellation_finalizes_an_interrupted_attempt` asserts zero failures recorded | Stream-cancel path shares the guard in code; not separately asserted |
+| Wedged Redis (accepts, never replies) | Covered, passing | `test_wedged_redis_raises_timeout_instead_of_hanging` (Sprint 8) | Production client defaults (5s/5s, no internal retry) verified in redis-py 8.1.0; gateway maps all admit errors to 503 |
+| Malformed Redis reply shape | Covered, passing | `test_malformed_redis_reply_is_rejected_not_admitted` (Sprint 8) | Raises instead of admitting; never fail-open | Needs spend scope, credentials, and explicit approval | See Handoff: no live failure-injection evidence to date |
 
 ## Confirmed defects and fixes (Sprint 4)
 
