@@ -10,6 +10,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .keys import ApiKeyIdentity, ApiKeyRecord, ApiKeyStore, authenticate_api_key
+from .store_executor import BoundedStoreExecutor
 
 _bearer = HTTPBearer(auto_error=False)
 _bearer_dependency = Depends(_bearer)
@@ -56,12 +57,25 @@ def _credentials(credentials: HTTPAuthorizationCredentials | None) -> str:
     return credentials.credentials
 
 
+def _executor(request: Request) -> BoundedStoreExecutor | None:
+    state = getattr(request.app.state, "gateway", None)
+    executor = getattr(state, "store_executor", None)
+    return executor if isinstance(executor, BoundedStoreExecutor) else None
+
+
 async def require_client_key(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = _bearer_dependency,
 ) -> ApiKeyRecord:
     """Require an active SabiRoute client API key for request execution."""
-    record = authenticate_api_key(_store(request), _credentials(credentials))
+    store = _store(request)
+    presented = _credentials(credentials)
+    executor = _executor(request)
+    if executor is None:
+        # States without an executor keep exact synchronous behavior.
+        record = authenticate_api_key(store, presented)
+    else:
+        record = await executor.run(authenticate_api_key, store, presented)
     if record is None:
         raise _unauthorized()
     request.state.api_identity = ApiKeyIdentity(
