@@ -1,0 +1,26 @@
+{
+  "experiment": "sprint13-429-retry-drill",
+  "image": "ghcr.io/berriai/litellm:main-latest@sha256:de5b050c1e9bd7e6c0aebfa126c5df71de071962592ba3e9638b28e45bed3901",
+  "network": "sabi-429-net (internal, no egress)",
+  "proxy_request_timeout": 10,
+  "cases": {
+    "base_unset": {
+      "success": {"stub": 1, "result": "HTTP 200"},
+      "error429_with_retry_after_2": {"stub": 3, "result": "HTTP error", "elapsed_s": 7, "inter_retry_gaps_s": [2.7, 2.3], "note": "gaps consistent with honoring Retry-After: 2"}
+    },
+    "r1_num_retries_1": {
+      "error429_with_retry_after_2": {"stub": 2, "result": "HTTP error", "elapsed_s": 7},
+      "error500_control": {"stub": 2, "result": "HTTP error", "elapsed_s": 3}
+    },
+    "r0_num_retries_0": {
+      "error429_with_retry_after_2": {"stub": 1, "result": "HTTP error", "elapsed_s": 2},
+      "error500_control": {"stub": 1, "result": "HTTP error", "elapsed_s": 0}
+    }
+  },
+  "log_evidence": {
+    "r1": "Retried: lines present (4 across cases)",
+    "r0": "zero Retried: lines"
+  },
+  "anomalies": "First r0/429 attempt hit a still-booting proxy (URLError, 0 stub); discarded and re-ran clean. An early volume-mount typo (IsADirectoryError) was diagnosed and fixed before any measurement; no data kept from bad runs.",
+  "conclusion": "HTTP 429 IS retried by the pinned proxy (3/2/1 across base/r1/r0), with inter-retry gaps consistent with the stub's Retry-After: 2 header. The 429 evidence gap is closed."
+}
