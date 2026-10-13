@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from redis.asyncio import Redis
@@ -23,6 +23,7 @@ from .routing.scoring import ScoringSettings
 from .security.keys import ApiKeyStore
 from .security.rate_limit import RedisTokenBucket
 from .security.store import PostgresApiKeyStore
+from .security.store_executor import BoundedStoreExecutor
 
 DEFAULT_PROXY_URL = "http://127.0.0.1:4000"
 DEFAULT_ROUTES_PATH = Path(__file__).resolve().parents[2] / "config" / "routes"
@@ -50,6 +51,9 @@ class GatewayState:
     startup_error: str | None = None
     key_store: ApiKeyStore | None = None
     rate_limiter: RedisTokenBucket | None = None
+    store_executor: BoundedStoreExecutor = field(
+        default_factory=BoundedStoreExecutor
+    )
 
 
 def build_gateway_state(

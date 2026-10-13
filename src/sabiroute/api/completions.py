@@ -233,7 +233,7 @@ async def chat_completions(
     try:
         # Durable admission record comes before Redis so a persistence failure
         # cannot consume a request token and then reject the request.
-        store.create_usage_event(event)
+        await state.store_executor.run(store.create_usage_event, event)
     except Exception:
         response = _error_response(
             503,
@@ -250,7 +250,7 @@ async def chat_completions(
     routing_decisions: list[dict[str, Any]] = []
     pre_routing_features: list[dict[str, Any]] = []
 
-    def finish(
+    async def finish(
         response: JSONResponse,
         *,
         deployment: str | None = None,
@@ -262,9 +262,12 @@ async def chat_completions(
         if budget_reserved:
             try:
                 if release_budget:
-                    store.release_budget(identity.key_id, request_id)
+                    await state.store_executor.run(
+                        store.release_budget, identity.key_id, request_id
+                    )
                 else:
-                    store.reconcile_budget(
+                    await state.store_executor.run(
+                        store.reconcile_budget,
                         identity.key_id,
                         request_id,
                         tokens[2],
@@ -294,7 +297,9 @@ async def chat_completions(
         )
         validation_failed = False
         try:
-            persisted = store.finalize_usage_event(final_event)
+            persisted = await state.store_executor.run(
+                store.finalize_usage_event, final_event
+            )
         except UsageEventValidationError as exc:
             logger.error("Request telemetry rejected at finalization: %s", exc)
             persisted = False
@@ -317,10 +322,12 @@ async def chat_completions(
         response.headers["X-SabiRoute-Request-ID"] = request_id
         return response
 
-    def snapshot_persistence_failure() -> JSONResponse:
+    async def snapshot_persistence_failure() -> JSONResponse:
         if budget_reserved:
             try:
-                store.release_budget(identity.key_id, request_id)
+                await state.store_executor.run(
+                    store.release_budget, identity.key_id, request_id
+                )
             except Exception:
                 logger.error("Budget reservation release failed after snapshot persistence error.")
         response = _error_response(
@@ -332,9 +339,11 @@ async def chat_completions(
         return response
 
     try:
-        key_limit = store.get_rate_limit(identity.key_id)
+        key_limit = await state.store_executor.run(
+            store.get_rate_limit, identity.key_id
+        )
     except Exception:
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "Rate-limit configuration is unavailable.",
@@ -345,14 +354,14 @@ async def chat_completions(
 
     if key_limit is not None:
         if state.rate_limiter is None:
-            return finish(
+            return await finish(
                 _error_response(503, "Rate limiting is unavailable.", "rate_limiter_unavailable"),
                 failure_category="redis_unavailable",
             )
         try:
             rate_decision = await state.rate_limiter.admit(identity.key_id, key_limit)
         except Exception:
-            return finish(
+            return await finish(
                 _error_response(503, "Rate limiting is unavailable.", "rate_limiter_unavailable"),
                 failure_category="redis_unavailable",
             )
@@ -364,13 +373,13 @@ async def chat_completions(
                 "rate_limit_exceeded",
             )
             denied.headers["Retry-After"] = str(rate_decision.retry_after_seconds or 1)
-            return finish(denied, failure_category="rate_limited")
+            return await finish(denied, failure_category="rate_limited")
 
     if len(state.registry) == 0:
         detail = "SabiRoute has no deployments configured."
         if state.startup_error:
             detail = f"{detail} Startup error: {state.startup_error}"
-        return finish(
+        return await finish(
             _error_response(503, detail, "sabiroute_not_configured"),
             failure_category="no_deployments",
         )
@@ -378,7 +387,7 @@ async def chat_completions(
     try:
         candidates, policy = _resolve_target(state, payload.model)
     except UnknownModelError:
-        return finish(
+        return await finish(
             _error_response(
                 404,
                 f"Unknown model {payload.model!r}.",
@@ -400,9 +409,9 @@ async def chat_completions(
     max_tokens = extras.pop("max_tokens", None)
 
     try:
-        budget = store.get_budget(identity.key_id)
+        budget = await state.store_executor.run(store.get_budget, identity.key_id)
     except Exception:
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "Budget configuration is unavailable.",
@@ -412,7 +421,7 @@ async def chat_completions(
         )
     if budget is not None:
         if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens < 1:
-            return finish(
+            return await finish(
                 _error_response(
                     400,
                     "A positive max_tokens is required for budgeted requests.",
@@ -423,7 +432,7 @@ async def chat_completions(
         try:
             estimated_input = estimate_input_tokens(payload.messages)
         except UnsupportedBudgetRequest as exc:
-            return finish(
+            return await finish(
                 _error_response(400, str(exc), "budget_request_unsupported"),
                 failure_category="budget_request_unsupported",
             )
@@ -435,7 +444,7 @@ async def chat_completions(
             "stream_options",
         }
         if unsupported_parameters:
-            return finish(
+            return await finish(
                 _error_response(
                     400,
                     "This request includes parameters outside the budget estimator contract.",
@@ -456,7 +465,7 @@ async def chat_completions(
             required_capabilities=classification.required_capabilities,
         )
     except (KeyError, ValueError):
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "The requested route is misconfigured.",
@@ -465,7 +474,7 @@ async def chat_completions(
             failure_category="route_configuration_error",
         )
     if not eligibility.capability_eligible_deployments:
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "No configured deployment is verified for this request's capabilities.",
@@ -474,7 +483,7 @@ async def chat_completions(
             failure_category="no_capable_deployment",
         )
     if not eligibility.available_deployments:
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "No healthy deployment is currently eligible for this request.",
@@ -490,7 +499,7 @@ async def chat_completions(
         if (
             budget.daily_cost_usd is not None or budget.monthly_cost_usd is not None
         ) and estimated_cost is None:
-            return finish(
+            return await finish(
                 _error_response(
                     503,
                     "Pricing metadata is unavailable for this request's routing candidates.",
@@ -499,7 +508,8 @@ async def chat_completions(
                 failure_category="budget_pricing_unavailable",
             )
         try:
-            denial = store.reserve_budget(
+            denial = await state.store_executor.run(
+                store.reserve_budget,
                 identity.key_id,
                 request_id,
                 reserved_tokens,
@@ -507,7 +517,7 @@ async def chat_completions(
                 event.created_at,
             )
         except Exception:
-            return finish(
+            return await finish(
                 _error_response(
                     503,
                     "Budget reservation is unavailable.",
@@ -517,7 +527,7 @@ async def chat_completions(
             )
         if denial is not None:
             if denial == "budget_changed":
-                return finish(
+                return await finish(
                     _error_response(
                         503,
                         "Budget configuration changed during admission.",
@@ -526,7 +536,7 @@ async def chat_completions(
                     failure_category="budget_config_changed",
                 )
             if denial.endswith("pricing_unknown"):
-                return finish(
+                return await finish(
                     _error_response(
                         503,
                         "Pricing metadata is unavailable for the configured monetary budget.",
@@ -534,7 +544,7 @@ async def chat_completions(
                     ),
                     failure_category="budget_pricing_unavailable",
                 )
-            return finish(
+            return await finish(
                 _error_response(
                     429,
                     "The API key's configured budget would be exceeded.",
@@ -627,7 +637,7 @@ async def chat_completions(
             )
         except Exception:
             logger.error("Pre-routing feature snapshot construction failed.")
-            return finish(
+            return await finish(
                 _error_response(
                     500,
                     "Decision telemetry could not be constructed.",
@@ -642,12 +652,14 @@ async def chat_completions(
                 failure_category="telemetry_snapshot_invalid",
             )
         try:
-            snapshot_persisted = store.append_pre_routing_feature_snapshot(
-                request_id, feature_snapshot
+            snapshot_persisted = await state.store_executor.run(
+                store.append_pre_routing_feature_snapshot,
+                request_id,
+                feature_snapshot,
             )
         except UsageEventValidationError as exc:
             logger.error("Pre-routing feature snapshot rejected: %s", exc)
-            return finish(
+            return await finish(
                 _error_response(
                     500,
                     "Decision telemetry failed its integrity checks.",
@@ -663,10 +675,10 @@ async def chat_completions(
             )
         except Exception:
             logger.error("Pre-routing feature snapshot persistence failed.")
-            return snapshot_persistence_failure()
+            return await snapshot_persistence_failure()
         if not snapshot_persisted:
             logger.error("Pre-routing feature snapshot persistence was rejected.")
-            return snapshot_persistence_failure()
+            return await snapshot_persistence_failure()
 
         pre_routing_features.append(feature_snapshot)
         attempted.append(route_decision.deployment)
@@ -811,7 +823,7 @@ async def chat_completions(
                 )
                 last_error = None
                 last_error_category = "deadline_exceeded"
-                return finish(
+                return await finish(
                     _error_response(
                         503,
                         "The request exceeded its processing deadline.",
@@ -839,7 +851,7 @@ async def chat_completions(
                     http_status=None,
                 )
             )
-            finish(
+            await finish(
                 _error_response(499, "Client cancelled the request.", "client_cancelled"),
                 deployment=route_decision.deployment,
                 tokens=(None, None, None),
@@ -870,7 +882,7 @@ async def chat_completions(
                     http_status=None,
                 )
             )
-            finish(
+            await finish(
                 _error_response(
                     500,
                     "Provider execution raised an unexpected exception.",
@@ -1028,7 +1040,7 @@ async def chat_completions(
                     if completed
                     else 502
                 )
-                finish(
+                await finish(
                     JSONResponse(status_code=finalize_status, content={}),
                     deployment=decision.deployment,
                     tokens=(None, None, None)
@@ -1098,7 +1110,7 @@ async def chat_completions(
                 "X-SabiRoute-Attempt": str(attempt),
             },
         )
-        durable = finish(
+        durable = await finish(
             response,
             deployment=route_decision.deployment,
             tokens=(None, None, None)
@@ -1110,7 +1122,7 @@ async def chat_completions(
         return durable
 
     if last_error_category == "deadline_exceeded":
-        return finish(
+        return await finish(
             _error_response(
                 503,
                 "The request exceeded its processing deadline.",
@@ -1126,7 +1138,7 @@ async def chat_completions(
             release_budget=not attempted,
             failure_category="deadline_exceeded",
         )
-    return finish(
+    return await finish(
         _error_response(
             502,
             "All routing attempts failed.",
