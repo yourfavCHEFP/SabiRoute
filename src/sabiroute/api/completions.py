@@ -77,6 +77,24 @@ def _resolve_target(state: GatewayState, model: str) -> tuple[list[str], Routing
     return candidates, policy
 
 
+def _deadline_at(request: Any) -> float | None:
+    """Absolute monotonic deadline published by DeadlineMiddleware, if any."""
+    state = getattr(request, "state", None)
+    value = getattr(state, "sabiroute_deadline_at", None)
+    return value if isinstance(value, (int, float)) else None
+
+
+def _deadline_expired(request: Any) -> bool:
+    """Whether this request's absolute deadline has passed, if one exists.
+
+    The middleware enforces the deadline by cancelling the downstream task,
+    which arrives here as CancelledError — indistinguishable from a caller
+    disconnect without comparing against the published instant.
+    """
+    deadline_at = _deadline_at(request)
+    return deadline_at is not None and time.monotonic() >= deadline_at
+
+
 def _error_category(exc: LiteLLMClientError) -> str:
     if exc.status_code is None:
         return "timeout" if exc.timed_out else "transport"
@@ -536,6 +554,11 @@ async def chat_completions(
     provider_usage_unknown = False
 
     for attempt in range(1, policy.max_attempts + 1):
+        if _deadline_expired(request):
+            # Absolute deadline passed before this attempt could start.
+            # Never begin upstream work merely to report a richer error.
+            last_error_category = "deadline_exceeded"
+            break
         decision_at = datetime.now(UTC) if policy.strategy != "measured" else None
         try:
             route_decision = state.router.choose_deployment(
@@ -746,6 +769,10 @@ async def chat_completions(
                 max_tokens = min(max_tokens, remaining - estimated_input)
             continue
         except asyncio.CancelledError:
+            # Cancellation arrives here for caller disconnects AND for the
+            # middleware deadline (which cancels the downstream task). The
+            # published deadline instant tells them apart: past it, this is
+            # our own budget expiring, not proof the caller left.
             attempt_completed_at = datetime.now(UTC)
             if stream_session is not None:
                 try:
@@ -757,6 +784,44 @@ async def chat_completions(
                 except Exception:
                     pass
             elapsed_ms = (time.perf_counter() - started) * 1000
+            if _deadline_expired(request):
+                if budget_reserved:
+                    provider_usage_unknown = True
+                state.errors.record(
+                    "deadline_exceeded",
+                    route_decision.deployment,
+                    "Request deadline exceeded before the attempt completed.",
+                )
+                routing_decisions.append(
+                    _routing_attempt_event(
+                        request_id=request_id,
+                        attempt=attempt,
+                        decision=route_decision,
+                        request_type=classification.request_type.value,
+                        decided_at=decision_at,
+                        attempt_started_at=attempt_started_at,
+                        attempt_completed_at=attempt_completed_at,
+                        outcome="failure",
+                        latency_ms=elapsed_ms,
+                        usage=None,
+                        actual_cost_usd=None,
+                        failure_category="deadline_exceeded",
+                        http_status=None,
+                    )
+                )
+                last_error = None
+                last_error_category = "deadline_exceeded"
+                return finish(
+                    _error_response(
+                        503,
+                        "The request exceeded its processing deadline.",
+                        "deadline_exceeded",
+                    ),
+                    deployment=route_decision.deployment,
+                    tokens=(None, None, None),
+                    failure_category="deadline_exceeded",
+                    actual_cost=None,
+                )
             routing_decisions.append(
                 _routing_attempt_event(
                     request_id=request_id,
@@ -841,6 +906,7 @@ async def chat_completions(
                 completed = False
                 stream_error: str | None = None
                 client_cancelled = False
+                deadline_expired = False
                 try:
                     frame = first_event
                     while True:
@@ -857,8 +923,16 @@ async def chat_completions(
                         except StopAsyncIteration:
                             break
                 except asyncio.CancelledError:
-                    client_cancelled = True
-                    stream_error = "Client disconnected during provider streaming."
+                    # Same ambiguity as the attempt handler: the middleware
+                    # deadline arrives as cancellation too. Compare against
+                    # the published instant; a genuine disconnect keeps the
+                    # client_cancelled outcome and health stays untouched.
+                    if _deadline_expired(request):
+                        deadline_expired = True
+                        stream_error = "Request deadline exceeded during streaming."
+                    else:
+                        client_cancelled = True
+                        stream_error = "Client disconnected during provider streaming."
                 except Exception:
                     stream_error = "Provider stream terminated unexpectedly."
                     error_event = json.dumps(
@@ -898,8 +972,14 @@ async def chat_completions(
                     category = None
                 else:
                     provider_usage_unknown = budget_reserved or provider_usage_unknown
-                    category = "client_cancelled" if client_cancelled else "stream_interrupted"
-                    if not client_cancelled:
+                    category = (
+                        "client_cancelled"
+                        if client_cancelled
+                        else "deadline_exceeded"
+                        if deadline_expired
+                        else "stream_interrupted"
+                    )
+                    if not client_cancelled and not deadline_expired:
                         state.health.mark_failure(decision.deployment)
                         state.metrics.record_failure()
                     state.errors.record(
@@ -932,10 +1012,22 @@ async def chat_completions(
                         usage=usage,
                         actual_cost_usd=actual_cost,
                         failure_category=category,
-                        http_status=None if client_cancelled else 200 if completed else 502,
+                        http_status=None
+                        if client_cancelled or deadline_expired
+                        else 200
+                        if completed
+                        else 502,
                     )
                 )
-                finalize_status = 499 if client_cancelled else 200 if completed else 502
+                finalize_status = (
+                    499
+                    if client_cancelled
+                    else 503
+                    if deadline_expired
+                    else 200
+                    if completed
+                    else 502
+                )
                 finish(
                     JSONResponse(status_code=finalize_status, content={}),
                     deployment=decision.deployment,
@@ -1017,6 +1109,23 @@ async def chat_completions(
         )
         return durable
 
+    if last_error_category == "deadline_exceeded":
+        return finish(
+            _error_response(
+                503,
+                "The request exceeded its processing deadline.",
+                "deadline_exceeded",
+                policy=policy.name,
+                attempts=attempted,
+            ),
+            deployment=last_deployment,
+            tokens=(None, None, None)
+            if provider_usage_unknown
+            else _sum_actual_tokens(actual_usage_parts),
+            actual_cost=_actual_cost(state, cost_usage_parts, provider_usage_unknown),
+            release_budget=not attempted,
+            failure_category="deadline_exceeded",
+        )
     return finish(
         _error_response(
             502,
