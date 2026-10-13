@@ -13,6 +13,7 @@ from fastapi import FastAPI
 
 from .api.admin import router as admin_router
 from .api.completions import router as completions_router
+from .api.deadline import DeadlineMiddleware, request_deadline_seconds
 from .api.health import router as health_router
 from .gateway import GatewayState, build_gateway_state, empty_gateway_state
 
@@ -70,6 +71,9 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
     app.include_router(health_router)
     app.include_router(completions_router)
     app.include_router(admin_router)
+    app.add_middleware(
+        DeadlineMiddleware, deadline_seconds=request_deadline_seconds()
+    )
 
     return app
 
