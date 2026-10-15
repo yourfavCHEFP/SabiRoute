@@ -107,7 +107,8 @@ async def create_client_api_key(
     payload: CreateApiKeyRequest,
     request: Request,
 ) -> dict[str, Any]:
-    record, plaintext = issue_api_key(
+    record, plaintext = await _state(request).store_executor.run(
+        issue_api_key,
         _key_store(request),
         project_id=payload.project_id,
         name=payload.name,
@@ -118,7 +119,9 @@ async def create_client_api_key(
 
 @router.post("/api-keys/{key_id}/rotate", status_code=201)
 async def rotate_client_api_key(key_id: str, request: Request) -> dict[str, Any]:
-    rotated = rotate_api_key(_key_store(request), key_id)
+    rotated = await _state(request).store_executor.run(
+        rotate_api_key, _key_store(request), key_id
+    )
     if rotated is None:
         raise HTTPException(
             status_code=404,
@@ -135,7 +138,9 @@ async def rotate_client_api_key(key_id: str, request: Request) -> dict[str, Any]
 
 @router.post("/api-keys/{key_id}/revoke")
 async def revoke_client_api_key(key_id: str, request: Request) -> dict[str, str]:
-    if not revoke_api_key(_key_store(request), key_id):
+    if not await _state(request).store_executor.run(
+        revoke_api_key, _key_store(request), key_id
+    ):
         raise HTTPException(
             status_code=404,
             detail={
@@ -155,7 +160,8 @@ async def set_client_rate_limit(
     request: Request,
 ) -> dict[str, Any]:
     store = _key_store(request)
-    record = store.get(key_id)
+    state = _state(request)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None or record.revoked_at is not None:
         raise HTTPException(
             status_code=404,
@@ -170,7 +176,7 @@ async def set_client_rate_limit(
         requests_per_minute=payload.requests_per_minute,
         burst_capacity=payload.burst_capacity,
     )
-    if not store.set_rate_limit(key_id, limit):
+    if not await state.store_executor.run(store.set_rate_limit, key_id, limit):
         raise HTTPException(status_code=404, detail="API key not found or inactive.")
     return {
         "key_id": key_id,
@@ -183,13 +189,14 @@ async def set_client_rate_limit(
 @router.get("/api-keys/{key_id}/rate-limit")
 async def get_client_rate_limit(key_id: str, request: Request) -> dict[str, Any]:
     store = _key_store(request)
-    record = store.get(key_id)
+    state = _state(request)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None:
         raise HTTPException(
             status_code=404,
             detail={"error": {"message": "API key not found.", "type": "key_not_found"}},
         )
-    limit = store.get_rate_limit(key_id)
+    limit = await state.store_executor.run(store.get_rate_limit, key_id)
     return {
         "key_id": key_id,
         "project_id": record.project_id,
@@ -201,7 +208,9 @@ async def get_client_rate_limit(key_id: str, request: Request) -> dict[str, Any]
 @router.delete("/api-keys/{key_id}/rate-limit")
 async def clear_client_rate_limit(key_id: str, request: Request) -> dict[str, str]:
     store = _key_store(request)
-    if not store.set_rate_limit(key_id, None):
+    if not await _state(request).store_executor.run(
+        store.set_rate_limit, key_id, None
+    ):
         raise HTTPException(
             status_code=404,
             detail={
@@ -222,13 +231,16 @@ async def client_usage_events(
     offset: int = Query(default=0, ge=0, le=1_000_000),
 ) -> dict[str, Any]:
     store = _key_store(request)
-    record = store.get(key_id)
+    state = _state(request)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None:
         raise HTTPException(
             status_code=404,
             detail={"error": {"message": "API key not found.", "type": "key_not_found"}},
         )
-    events, total = store.list_usage_events(key_id, limit=limit, offset=offset)
+    events, total = await state.store_executor.run(
+        store.list_usage_events, key_id, limit=limit, offset=offset
+    )
     return {
         "key_id": key_id,
         "project_id": record.project_id,
@@ -257,6 +269,7 @@ async def client_usage_events(
                 "feature_schema_version": event.feature_schema_version,
                 "pre_routing_features": list(event.pre_routing_features),
                 "routing_decisions": list(event.routing_decisions),
+                "usage_source": event.usage_source,
             }
             for event in events
         ],
@@ -273,7 +286,9 @@ async def set_client_budget(
         budget = ApiKeyBudget(**payload.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    if not _key_store(request).set_budget(key_id, budget):
+    if not await _state(request).store_executor.run(
+        _key_store(request).set_budget, key_id, budget
+    ):
         raise HTTPException(
             status_code=404,
             detail={
@@ -289,10 +304,13 @@ async def set_client_budget(
 @router.get("/api-keys/{key_id}/budget")
 async def get_client_budget(key_id: str, request: Request) -> dict[str, Any]:
     store = _key_store(request)
-    if store.get(key_id) is None:
+    state = _state(request)
+    if await state.store_executor.run(store.get, key_id) is None:
         raise HTTPException(status_code=404, detail="API key not found.")
-    budget = store.get_budget(key_id)
-    usage = store.get_budget_usage(key_id, datetime.now(UTC))
+    budget = await state.store_executor.run(store.get_budget, key_id)
+    usage = await state.store_executor.run(
+        store.get_budget_usage, key_id, datetime.now(UTC)
+    )
     return {
         "key_id": key_id,
         "budget": _budget_payload(budget) if budget else None,
@@ -308,7 +326,9 @@ async def get_client_budget(key_id: str, request: Request) -> dict[str, Any]:
 
 @router.delete("/api-keys/{key_id}/budget")
 async def clear_client_budget(key_id: str, request: Request) -> dict[str, str]:
-    if not _key_store(request).set_budget(key_id, None):
+    if not await _state(request).store_executor.run(
+        _key_store(request).set_budget, key_id, None
+    ):
         raise HTTPException(status_code=404, detail="API key not found or inactive.")
     return {"key_id": key_id, "status": "budget_removed"}
 
