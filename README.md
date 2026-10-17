@@ -117,7 +117,7 @@ Workload classes narrow the candidate pool before selection:
 | `chat` | Quality and context |
 | `coding_agent` | Reasoning and tool capability |
 
-Classes come from explicit request metadata (`sabi_route_request_type`) and route requirements — prompt wording is never treated as evidence of a coding or reasoning task. Deployment-specific capability metadata drives filtering; see [docs/capabilities.md](docs/capabilities.md) for the classification rules and the current evidence matrix.
+Classes come from explicit request metadata (`sabi_route_request_type`) and route requirements — prompt wording is never treated as evidence of a coding or reasoning task. Deployment-specific capability metadata drives filtering; the classification rules and evidence matrix are documented alongside the capability declarations in `config/config.yaml` (a standalone capabilities guide is planned).
 
 ### 🛡️ Health-aware fallback
 
@@ -136,7 +136,7 @@ Authentication, budgets, and rate limits run on the real request path, not in si
 - per-key token-bucket rate limits (atomic in Redis, fail-closed when Redis is unsafe);
 - per-key daily and monthly token/cost budgets with transactional reservation.
 
-Details: [docs/security.md](docs/security.md), [docs/limits-and-usage.md](docs/limits-and-usage.md).
+Details: [docs/security.md](docs/security.md) (a standalone limits-and-usage guide is planned).
 
 ### 💬 SabiChat
 
@@ -213,7 +213,7 @@ SabiRoute decides which deployment should be attempted; LiteLLM executes the pro
 
 ### Request flow
 
-![Request flow: client request, access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome. Retryable failures return to bounded route selection.](docs/diagrams/readme-request-flow.svg)
+Client requests pass through access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome recording; retryable failures return to bounded route selection. (A request-flow diagram is planned under `docs/diagrams/`.)
 
 The request path implemented today:
 
@@ -230,7 +230,7 @@ The request path implemented today:
 
 Free Chat requests (the SabiChat mode) pass an additional explicit-allowlist gate between steps 6 and 7: only mapped deployments stay eligible, fallback cannot leave the allowlist, and denials happen before execution with stable reasons. The SabiChat backend traverses this same numbered path in process — it is a client of the gateway, not a parallel router.
 
-The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition. The authoritative architecture record, roadmap milestones, and production gates live in [docs/architecture-decision-record.md](docs/architecture-decision-record.md).
+The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition. The authoritative roadmap milestones and production gates live in the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations) sections below (a standalone architecture-decision record is planned).
 
 ---
 
@@ -248,7 +248,7 @@ Routing intelligence is built in layers, each resting on a trustworthy one below
 score = 0.7 * success_rate + 0.3 * latency_normalized
 ```
 
-The scoring version is `deterministic-v1` (weights and thresholds live in `config/config.yaml`). This formula is a preserved baseline; changing it requires a separately reviewed design and benchmark. Signals are process-local (operational success rate and mean observed latency); on cold start, missing, or stale signals the scorer falls back to configured route order rather than inventing evidence. Full semantics: [docs/routing-scoring.md](docs/routing-scoring.md).
+The scoring version is `deterministic-v1` (weights and thresholds live in `config/config.yaml`). This formula is a preserved baseline; changing it requires a separately reviewed design and benchmark. Signals are process-local (operational success rate and mean observed latency); on cold start, missing, or stale signals the scorer falls back to configured route order rather than inventing evidence. (A standalone routing-scoring guide is planned.)
 
 **Layer 4 — ML-assisted routing (future, gated).** The first target is attempt-level operational success. Every executed provider attempt must have its own observed outcome — a logical request that fell back contains several attempts, and they are not all labeled by the final result. Hard constraints on the data:
 
@@ -275,7 +275,7 @@ Runtime evidence is deployment-specific and deliberately narrow:
 | `sabiroute-groq` | `chat`, `streaming` | Non-empty completion and incremental SSE chunks end to end |
 | `sabiroute-openrouter` | `chat` | Non-empty text completion through the configured OpenRouter deployment |
 
-All other configured deployments remain **configured but unverified** (`sabiroute-openai` has a prior request that returned no credits). Capability matrix: [docs/capabilities.md](docs/capabilities.md).
+All other configured deployments remain **configured but unverified** (`sabiroute-openai` has a prior request that returned no credits). The full capability matrix is documented alongside the capability declarations in `config/config.yaml` (a standalone evidence-matrix guide is planned).
 
 > **Configured ≠ operational.** A provider appearing in configuration proves only that the alias and credential reference exist. A deployment becomes operational after: configuration → credentials → provider access → health test → real request → streaming test → fallback test.
 
@@ -295,7 +295,7 @@ These labels are not interchangeable. *Implemented* is not *Complete*, and a gre
 |---:|---|---|---|
 | 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green |
 | 01 | Basic LiteLLM gateway | Complete | Non-streaming and streaming requests documented on the live path; fallback covered by tests only |
-| 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence ([docs/capabilities.md](docs/capabilities.md), 2026-10-08); the 2026-10-10 harness run recorded a Together authentication failure |
+| 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence (recorded 2026-10-08; evidence matrix documented with the capability declarations in `config/config.yaml`); the 2026-10-10 harness run recorded a Together authentication failure |
 | 03 | Model registry | Complete | Registry and aliases in place; `config/config.yaml` is the runtime catalog |
 | 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup; `research` exercised on the live path |
 | 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`, unit-tested; no live failure-injection evidence; see [limitations](#-known-limitations) |
@@ -315,7 +315,7 @@ These labels are not interchangeable. *Implemented* is not *Complete*, and a gre
 | 19 | CI/CD | Planned | — |
 | 20 | Production architecture | Planned | — |
 
-Phase 11 note: unknown capabilities are never treated as verified support; only the deployment-specific evidence in [docs/capabilities.md](docs/capabilities.md) is enabled. Phase 12 note: `scripts/benchmark_routing.py` runs a fixed synthetic comparison of `priority` vs `measured` — it is a methodology check, **not** proof of warm live-routing performance against real providers.
+Phase 11 note: unknown capabilities are never treated as verified support; only the deployment-specific evidence declared in `config/config.yaml` is enabled. Phase 12 note: `scripts/benchmark_routing.py` runs a fixed synthetic comparison of `priority` vs `measured` — it is a methodology check, **not** proof of warm live-routing performance against real providers.
 
 Cross-cutting workstreams (not phases — numbers, names, and gates above are unchanged): Free Pool runtime enforcement and usage attribution are implemented and API-tested (stub execution, file-backed database); the SabiChat backend (auth, sessions, conversations, gateway chat) is implemented and API-tested the same way; the SabiChat frontend is planned; catalogue mapping, quotas, and shared inference remain gated behind Phase 20. None of this alters the Phase 13 training gates.
 
@@ -345,7 +345,7 @@ An earlier audit attempt was blocked by the execution environment (`Operation no
 
 Phase status: **13.1** data foundation — implemented · **13.2** target/labels/provenance/audit — in progress (live sub-gate passed, aggregate closure pending) · **13.3** training and evaluation — **blocked** · **13.4** guarded inference — blocked pending a valid trained artifact · **13.5** ML selector integration — blocked pending validated inference. **No model has been trained or deployed.**
 
-Training stays locked until a fresh audit establishes sound feature/outcome pairing and temporal provenance, meaningful outcome variation, adequate coverage, and a leakage-safe chronological evaluation design — and even then, automated checks lead to human review, not automatic authorization to train. Observations should come from normal authorized traffic; never manufacture failures or randomize selection to grow the dataset. Details: [docs/phase13-data-foundation.md](docs/phase13-data-foundation.md).
+Training stays locked until a fresh audit establishes sound feature/outcome pairing and temporal provenance, meaningful outcome variation, adequate coverage, and a leakage-safe chronological evaluation design — and even then, automated checks lead to human review, not automatic authorization to train. Observations should come from normal authorized traffic; never manufacture failures or randomize selection to grow the dataset. (A standalone Phase 13 data-foundation guide is planned.)
 
 ---
 
@@ -481,7 +481,7 @@ That progression — and the honesty about selection bias, missing outcomes, and
 - **Deployment foundation, not production:** the container, CI, and Compose service exist and are smoke-tested without providers; local disposable-PostgreSQL migration and backup/restore are verified, but there has been no managed-database test and no staging deployment — Phase 20 review still gates any public exposure.
 - **No separate fallback engine exists:** there is no `FallbackEngine` or `routing/fallback.py` in the tree (verified by search) — the retry/fallback loop lives in `src/sabiroute/api/completions.py` and routes every attempt through `Router.choose_deployment`.
 - **Active health checking was removed:** `providers/healthcheck.py` (`ProviderHealthChecker`) was deleted after verification that nothing referenced it (see `docs/routing.md`). Runtime health is the passive success/failure and cooldown registry in `routing/health.py`.
-- **Live evidence is documentary and success-only:** the isolated run in [docs/phase13-data-foundation.md](docs/phase13-data-foundation.md) is the stored live-path evidence; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
+- **Live evidence is documentary and success-only:** the stored isolated live-path run is the evidence on record; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
 - Some root files (`Makefile`, `CHANGELOG.md`) are placeholders awaiting their phases; `Dockerfile` is implemented (Sprint 5).
 
 ---
