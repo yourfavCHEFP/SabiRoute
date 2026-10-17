@@ -1,27 +1,20 @@
 <div align="center">
 
-<img src="docs/diagrams/readme-hero.svg" alt="SabiRoute — self-hosted AI gateway" width="100%" />
+<img src="docs/diagrams/readme-hero.svg" alt="SabiRoute routing control plane: client requests pass through SabiRoute policy and eligibility checks, LiteLLM execution, configured providers, and operational data stores" width="100%" />
 
 <br/>
 
-
 [![Typing SVG](https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=600&size=20&pause=1200&color=8B5CF6&center=true&vCenter=true&width=900&lines=One+gateway.+Multiple+providers.;Context-aware+%2B+health-aware+routing;Deterministic+fallback+before+ML+intelligence;LiteLLM+execution.+SabiRoute+control.;Self-hosted+%C2%B7+OpenAI-compatible+%C2%B7+MIT)](https://git.io/typing-svg)
 
-[![release](https://img.shields.io/badge/release-v0.1.0--dev-blue)](https://github.com/yourfavCHEFP/SabiRoute/releases)
+[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/yourfavCHEFP/SabiRoute/blob/feat/sabiroute-routing-foundation/pyproject.toml)
 [![made with](https://img.shields.io/badge/made%20with-Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![engine](https://img.shields.io/badge/engine-LiteLLM-6C5CE7)](https://github.com/BerriAI/litellm)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![status](https://img.shields.io/badge/status-active--development-orange)]()
+![status](https://img.shields.io/badge/status-alpha-orange)
 
-**One gateway. Multiple providers. Health-aware routing.**
+**One gateway. Multiple providers. Deterministic, health-aware routing.**
 
-[Architecture](#-architecture) |
-[Routing](#-routing-intelligence) |
-[Providers](#-provider-strategy) |
-[Quick Start](#-quick-start) |
-[Roadmap](#-engineering-roadmap) |
-[Contributing](#-contributing) |
-[License](#-license)
+[Architecture](#-architecture) · [Routing](#-routing-intelligence) · [Providers](#-provider-strategy) · [Roadmap](#-engineering-roadmap) · [Getting started](#-getting-started) · [Code of Conduct](#code-of-conduct) · [Contributing](#-contributing) · [Security](#security) · [MIT License](#-license)
 
 </div>
 
@@ -29,58 +22,76 @@
 
 # SabiRoute
 
-### The Context-Aware, Health-Aware AI Gateway for Developers
+### The context-aware, health-aware AI gateway for developers
 
-SabiRoute is an open-source, self-hosted AI gateway designed to give developers **one OpenAI-compatible endpoint across multiple model providers**.
+SabiRoute is an open-source, self-hosted, local-first AI gateway that gives applications **one OpenAI-compatible endpoint across multiple model providers**. It sits between clients — Chatbox, IDEs, Python applications, CLI tools, ML projects, and coding agents — and the providers they call, and decides centrally how each request should be routed.
 
-It sits between applications such as:
+SabiRoute owns the decision layer:
 
-- Chatbox
-- VS Code and other IDEs
-- Python applications
-- CLI tools
-- ML projects
-- Future coding agents
-
-and the underlying model providers.
-
-Instead of forcing every client to know which provider or model to use, SabiRoute is designed to make that decision centrally through:
-
-- routing policies
-- request classification
-- model/provider capabilities
-- health signals
-- deterministic fallback
-- latency
-- cost
-- reliability
-- telemetry
-- and eventually machine learning
+- routing policy and request classification;
+- explicit capability and health eligibility;
+- deterministic candidate selection and fallback;
+- authentication, budgets, and rate limits on the real request path;
+- latency, reliability, and usage telemetry;
+- measured routing — and, only when justified by evidence, future ML-assisted selection.
 
 > **SabiRoute is not another LiteLLM wrapper.**
 >
-> LiteLLM is the current execution engine.
->
-> **SabiRoute is the control, routing, intelligence and developer-experience layer built around it.**
+> LiteLLM is the current provider-execution engine.
+> **SabiRoute is the control, routing, intelligence, and governance layer built around it.**
 
 > **"Sabi"** — Nigerian Pidgin for "to know" or "to be skilled at."
 >
 > A gateway that knows which model should handle a request, so the developer does not have to.
 
+SabiRoute is in active alpha development (package version `0.1.0`). The deterministic routing foundation is implemented and progressively verified; ML-assisted routing is a gated future layer, not a current feature. Status below distinguishes implementation, tests, and documented runtime evidence.
+
+## Contents
+
+- [SabiRoute](#sabiroute)
+    - [The context-aware, health-aware AI gateway for developers](#the-context-aware-health-aware-ai-gateway-for-developers)
+  - [Contents](#contents)
+  - [🎯 Why SabiRoute?](#-why-sabiroute)
+  - [✨ Core capabilities and direction](#-core-capabilities-and-direction)
+    - [🧠 Context-aware routing](#-context-aware-routing)
+    - [🛡️ Health-aware fallback](#️-health-aware-fallback)
+    - [🧩 Virtual model policies](#-virtual-model-policies)
+    - [🔐 Governance on the request path](#-governance-on-the-request-path)
+    - [💬 SabiChat](#-sabichat)
+    - [📊 Observability](#-observability)
+    - [🤖 Future ML-assisted routing](#-future-ml-assisted-routing)
+  - [🏗️ Architecture](#️-architecture)
+    - [Responsibility boundary](#responsibility-boundary)
+    - [Request flow](#request-flow)
+  - [🧠 Routing intelligence](#-routing-intelligence)
+  - [🌐 Provider strategy](#-provider-strategy)
+  - [🛣️ Engineering roadmap](#️-engineering-roadmap)
+  - [📊 ML readiness status (Phase 13)](#-ml-readiness-status-phase-13)
+  - [🚀 Getting started](#-getting-started)
+    - [API usage](#api-usage)
+  - [🧪 Testing and validation](#-testing-and-validation)
+  - [🔬 What makes this an ML systems project?](#-what-makes-this-an-ml-systems-project)
+  - [⚠️ Known limitations](#️-known-limitations)
+  - [Code of Conduct](#code-of-conduct)
+  - [🤝 Contributing](#-contributing)
+  - [Security](#security)
+  - [🆓 Free Pool](#-free-pool)
+    - [What is Free Pool?](#what-is-free-pool)
+    - [Runtime enforcement status](#runtime-enforcement-status)
+    - [One platform, three experiences, one routing foundation](#one-platform-three-experiences-one-routing-foundation)
+    - [Catalogue, registry, router: three distinct concepts](#catalogue-registry-router-three-distinct-concepts)
+    - [Free access, stated accurately](#free-access-stated-accurately)
+    - [Current versus future](#current-versus-future)
+    - [Fit with the existing roadmap](#fit-with-the-existing-roadmap)
+  - [🌍 Long-term direction](#-long-term-direction)
+  - [📄 License](#-license)
+  - [👤 Author](#-author)
+
 ---
 
-# 🎯 Why SabiRoute?
+## 🎯 Why SabiRoute?
 
-Modern AI applications increasingly depend on multiple model providers.
-
-One model may be:
-
-- faster,
-- another cheaper,
-- another better at reasoning,
-- another better at coding,
-- another better at long context,
-- while another may simply be unavailable.
+Modern AI applications depend on multiple model providers. One model is faster, another cheaper, another better at reasoning or coding or long context — and any of them can simply be unavailable.
 
 The problem is not only:
 
@@ -88,750 +99,522 @@ The problem is not only:
 
 The more interesting systems problem is:
 
-> **"How do I decide which available model should handle this particular request, while remaining reliable when providers fail?"**
+> **"How do I decide which available deployment should handle this particular request, while remaining reliable when providers fail?"**
 
-SabiRoute is being built around that problem.
-
-The long-term goal is a system where applications interact with one stable endpoint while SabiRoute handles the complexity underneath.
+SabiRoute is being built around that question. The goal is a system where applications talk to one stable endpoint while measured, explainable routing decisions happen underneath — based on real constraints and evidence, not provider marketing claims.
 
 ---
 
-# ✨ Core Capabilities
+## ✨ Core capabilities and direction
 
-The project is being developed around the following capabilities.
+### 🧠 Context-aware routing
 
-### 🧠 Context-Aware Routing
+Workload classes narrow the candidate pool before selection:
 
-Classify incoming workloads and eventually route them according to task requirements rather than simply selecting the first model in a list.
+| Request type | Primary bias |
+|---|---|
+| `inline_completion` | Latency |
+| `chat` | Quality and context |
+| `coding_agent` | Reasoning and tool capability |
 
-Initial workload classes:
+Classes come from explicit request metadata (`sabi_route_request_type`) and route requirements — prompt wording is never treated as evidence of a coding or reasoning task. Deployment-specific capability metadata drives filtering; the classification rules and evidence matrix are documented alongside the capability declarations in `config/config.yaml` (a standalone capabilities guide is planned).
+
+### 🛡️ Health-aware fallback
+
+A provider failure becomes a controlled routing event, not an application outage. Unhealthy deployments are excluded from the eligible pool, deterministic fallback tries the next eligible candidate, and cooldown lets failed deployments recover. Retryable failures (eligible 429/5xx responses, timeouts, connection failures) are distinguished from errors that must not be blindly retried. Fallback and cooldown recovery are implemented and unit-tested (Phases 05–06); the failure paths have not been exercised against live providers, and the former active `ProviderHealthChecker` smoke test was removed after verification that nothing referenced it (see `docs/routing.md`) — it was never wired into the request path.
+
+### 🧩 Virtual model policies
+
+Clients request a virtual route instead of hard-coding provider/model pairs — `ultimate`, `coding`, `research`, `reasoning`, `fast`, or `cheap`. (`SabiRoute_Research`-style names resolve to the same policies, case-insensitively.) The underlying deployments can change without touching every client configuration. Route files are validated at startup; unknown aliases or invalid candidates fail loudly instead of silently routing everywhere. See [docs/routing.md](docs/routing.md).
+
+### 🔐 Governance on the request path
+
+Authentication, budgets, and rate limits run on the real request path, not in side configuration (Phase 09 exercised on the documented live run; Phase 10 unit- and API-tested):
+
+- client API keys with create / rotate / revoke lifecycle, stored as SHA-256 digests only;
+- a separate admin bootstrap credential for `/admin/*`;
+- per-key token-bucket rate limits (atomic in Redis, fail-closed when Redis is unsafe);
+- per-key daily and monthly token/cost budgets with transactional reservation.
+
+Details: [docs/security.md](docs/security.md) (a standalone limits-and-usage guide is planned).
+
+### 💬 SabiChat
+
+User-facing chat over the same gateway — not a second router. Backend implemented and API-tested (stub execution, file-backed database; no live providers yet), with a zero-build browser UI (`web/`, served at `/app/`) verified in a real browser against the stub backend:
+
+- `POST /v1/auth/register|login|logout`, `GET /v1/auth/me` — PBKDF2-hashed passwords (never plaintext), opaque bearer sessions (digest-only storage, 7-day expiry, logout revocation), generic failures that do not reveal whether an account exists, per-IP sign-in rate limits;
+- `POST|GET /v1/conversations`, `GET|POST /v1/conversations/{id}[/messages]` — every read and write is owner-scoped (another user's ID looks identical to a nonexistent one), bounded pagination, message size caps;
+- chat invokes the gateway's own `POST /v1/chat/completions` in process with a server-held service key, forcing Free Chat mode itself — policy, budgets, Free Pool eligibility, and usage accounting apply unchanged, and gateway errors map to fixed public messages.
+
+The UI keeps the session token in memory only (reload signs out), renders model output as text, guards double submits, and maps expiry/rate-limit/eligibility failures to clear states. Interim limits: one service key held only in memory (a restart re-mints it; old rows are retained), in-process rate limits (single-process semantics), history window of 20 messages with a fixed response cap. No BYOK, no billing — those are later phases.
+
+### 📊 Observability
+
+The gateway records latency, success/failure, provider/deployment, token usage, error category, and routing decisions with score breakdowns. Estimated and provider-reported tokens are kept separate; cost is recorded only when calculable from configured pricing — missing cost data is never presented as observed cost.
+
+### 🤖 Future ML-assisted routing
+
+Machine learning is a later, gated stage — never a substitute for safe deterministic routing:
 
 ```text
-INLINE_COMPLETION
-CHAT
-CODING_AGENT
-
-The intended bias is:
-Request Type	Primary Objective
-INLINE_COMPLETION	Latency-first
-CHAT	Quality + context
-CODING_AGENT	Reasoning + tool capability
-
-
-🛡️ Health-Aware Fallback
-A provider failure should become a routing event, not a complete application outage.
-SabiRoute is designed to:
-1. identify unhealthy deployments
-2. remove them from the eligible candidate pool
-3. apply deterministic fallback
-4. allow failed deployments to recover after cooldown
-5. keep routing explainable
-Retry behavior will eventually distinguish retryable failures such as:
-429
-5xx
-timeouts
-connection failures
-
-from failures that should not simply be retried.
-🧩 Virtual Model Policies
-Clients should not need to know every provider/model combination.
-Instead of coupling an application to:
-provider/model
-
-the application can eventually request a SabiRoute policy such as:
-SabiRoute_Ultimate
-SabiRoute_Coding
-SabiRoute_Research
-SabiRoute_Reasoning
-SabiRoute_Fast
-SabiRoute_Cheap
-
-The underlying deployments can then change without requiring every client configuration to change.
-📊 Observability
-SabiRoute is designed to collect routing and execution information such as:
-- latency
-- success/failure
-- provider
-- deployment
-- token usage
-- estimated cost
-- error type
-- routing decision
-- request type
-The long-term objective is to make routing decisions measurable and explainable, rather than based on assumptions.
-📈 Empirical Benchmarking
-Before SabiRoute attempts to make intelligent routing decisions, it needs real evidence.
-The project therefore intends to benchmark providers and deployments on dimensions such as:
-- latency
-- reliability
-- cost
-- capability
-- task performance
-- historical success
-The future routing intelligence should be based on measured behavior rather than provider marketing claims.
-🤖 Future ML Router
-Machine learning is a later stage, not the current routing mechanism.
-The intended progression is:
-Deterministic Routing
-        ↓
-Capability-Aware Routing
-        ↓
-Telemetry
-        ↓
-Benchmarking
-        ↓
-Model Scoring
-        ↓
-Historical Routing Data
-        ↓
-ML Router
-
-The ML router must never be allowed to bypass health and safety constraints.
-If the ML component fails, SabiRoute should fall back to deterministic routing.
-🏗️ Architecture
-Current target architecture
-                    CLIENTS
- ┌───────────────────────────────────────────────┐
- │ Chatbox │ VS Code │ Python │ CLI │ ML Apps   │
- └───────────────────────┬───────────────────────┘
-                         │
-                         ▼
-              ┌──────────────────────┐
-              │     SabiRoute API    │
-              ├──────────────────────┤
-              │ Authentication       │
-              │ Policy               │
-              │ Request Classification
-              │ Capability Filtering │
-              │ Health Filtering     │
-              │ Routing Engine       │
-              │ Fallback             │
-              └──────────┬───────────┘
-                         │
-                         ▼
-                 ┌──────────────┐
-                 │   LiteLLM    │
-                 │    Proxy     │
-                 └──────┬───────┘
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-       OpenAI       Anthropic       Google
-       Qwen         Kimi            GLM
-       MiniMax      Groq            etc.
-                        │
-                        ▼
-              ┌──────────────────┐
-              │ PostgreSQL/Redis │
-              │ telemetry/state  │
-              └──────────────────┘
-
-The important architectural boundary is:
-SabiRoute
-    =
-eligibility + policy + routing + health + governance
-
-LiteLLM
-    =
-provider execution abstraction
-
-SabiRoute decides which deployment should be attempted.
-LiteLLM handles executing the provider request.
-This separation is intentional.
-🔄 Request Flow
-The intended mature request path is:
-Client
-  │
-  ▼
-SabiRoute API
-  │
-  ▼
-Authentication / Policy
-  │
-  ▼
-Request Classification
-  │
-  ▼
-Capability Filter
-  │
-  ▼
-Health Filter
-  │
-  ▼
-Routing Engine
-  │
-  ├── deterministic rules
-  ├── latency
-  ├── reliability
-  ├── cost
-  └── future ML scoring
-  │
-  ▼
-LiteLLM
-  │
-  ▼
-Provider
-  │
-  ▼
-Response Normalization
-  │
-  ▼
-Client
-
-At the same time:
-             ┌───────────────┐
-             │ Request       │
-             └───────┬───────┘
-                     │
-                     ▼
-              Classification
-                     │
-                     ▼
-             Capability Filter
-                     │
-                     ▼
-               Health Filter
-                     │
-                     ▼
-              Route Selection
-                     │
-             ┌───────┴────────┐
-             ▼                ▼
-        Deployment A      Deployment B
-             │                │
-             └───────┬────────┘
-                     ▼
-                  LiteLLM
-
-🧠 Routing Intelligence
-SabiRoute's routing intelligence is intentionally being built in layers.
-Layer 1 — Deterministic Routing
-Request
-   ↓
-Policy
-   ↓
-Healthy Candidates
-   ↓
-Priority
-   ↓
-Fallback
-
-This is where the project currently belongs.
-Layer 2 — Capability-Aware Routing
-Request
-   ↓
-Task Classification
-   ↓
-Required Capabilities
-   ↓
-Candidate Filtering
-   ↓
-Policy Selection
-
-For example:
-Coding Agent
-     ↓
-Requires:
-- coding
-- reasoning
-- long context
-- tool capability
-     ↓
-Remove unsuitable deployments
-     ↓
-Choose from remaining healthy candidates
-
-Layer 3 — Data-Driven Scoring
-Once enough telemetry exists:
-Request Features
-      +
-Provider Features
-      +
-Historical Performance
-      +
-Cost
-      +
-Latency
-      +
-Reliability
-      ↓
-Model Score
-      ↓
-Deployment Selection
-
-Layer 4 — ML Routing
-Only after sufficient data exists:
-Historical Requests
-       ↓
-Benchmark Dataset
-       ↓
-Feature Engineering
-       ↓
-Training
-       ↓
-Evaluation
-       ↓
-ML Router
-       ↓
-Best Candidate
-
-The ML router remains constrained by:
-Health
-Policy
-Capability
-Security
-Budget
-
-ML does not override those constraints.
-🌐 Provider Strategy
-SabiRoute is designed to support multiple independent providers.
-The current configuration includes deployment definitions for providers such as:
-Provider	Current Configuration Role
-OpenAI	General/high-quality workloads
-Google Gemini	Fast/general workloads
-Groq	Fast open-model inference
-Together AI	Hosted open-model inference
-DeepInfra	Hosted open-model inference
-Moonshot/Kimi	Long-context/coding workloads
-MiniMax	Cost/latency experimentation
-Cloudflare Workers AI	Edge-hosted inference
-OpenRouter	Aggregated provider access
-Hugging Face	Open-model inference
-Cerebras	High-throughput inference
-NVIDIA NIM	NVIDIA-hosted inference
-Cohere	Assistant/retrieval workloads
-Pollinations AI	OpenAI-compatible endpoint
-
-
-Planned expansion can include:
-DeepSeek
-Mistral
-xAI
-Ollama
-other providers
-
-Important
-A provider appearing in configuration does not automatically mean that it is currently operational.
-A deployment becomes operational only after:
-Configuration
-      ↓
-Credentials
-      ↓
-Provider access
-      ↓
-Health test
-      ↓
-Real request
-      ↓
-Streaming test
-      ↓
-Fallback test
-
-This distinction is important for keeping the project honest.
-🧱 Current Repository Architecture
-sabi-route/
-│
-├── README.md
-├── LICENSE
-├── CONTRIBUTING.md
-├── CHANGELOG.md
-├── SECURITY.md
-│
-├── pyproject.toml
-├── uv.lock
-├── .gitignore
-├── .env.example
-│
-├── docker-compose.yml
-├── Dockerfile
-├── Makefile
-│
-├── config/
-│   ├── config.yaml
-│   │
-│   ├── models/
-│   │   ├── openai.yaml
-│   │   ├── anthropic.yaml
-│   │   ├── google.yaml
-│   │   ├── qwen.yaml
-│   │   ├── kimi.yaml
-│   │   ├── glm.yaml
-│   │   └── minimax.yaml
-│   │
-│   ├── routes/
-│   │   ├── ultimate.yaml
-│   │   ├── coding.yaml
-│   │   ├── research.yaml
-│   │   ├── reasoning.yaml
-│   │   ├── fast.yaml
-│   │   └── cheap.yaml
-│   │
-│   └── policies/
-│       ├── fallback.yaml
-│       ├── health.yaml
-│       ├── cost.yaml
-│       └── limits.yaml
-│
-├── src/
-│   └── sabiroute/
-│       ├── __init__.py
-│       ├── main.py
-│       │
-│       ├── config/
-│       │   ├── loader.py
-│       │   ├── models.py
-│       │   └── validation.py
-│       │
-│       ├── routing/
-│       │   ├── router.py
-│       │   ├── policies.py
-│       │   ├── fallback.py
-│       │   └── health.py
-│       │
-│       ├── providers/
-│       │   ├── registry.py
-│       │   ├── base.py
-│       │   └── healthcheck.py
-│       │
-│       ├── monitoring/
-│       │   ├── metrics.py
-│       │   ├── latency.py
-│       │   ├── errors.py
-│       │   └── usage.py
-│       │
-│       ├── security/
-│       │   ├── auth.py
-│       │   ├── keys.py
-│       │   └── permissions.py
-│       │
-│       ├── intelligence/
-│       │   ├── classifier.py
-│       │   ├── scorer.py
-│       │   └── selector.py
-│       │
-│       ├── api/
-│       │   ├── health.py
-│       │   ├── models.py
-│       │   └── admin.py
-│       │
-│       └── utils/
-│           ├── logging.py
-│           └── time.py
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── routing/
-│   ├── providers/
-│   └── api/
-│
-├── scripts/
-│   ├── health_check.py
-│   ├── test_models.py
-│   ├── benchmark.py
-│   └── seed_models.py
-│
-├── migrations/
-│
-├── docs/
-│   ├── architecture.md
-│   ├── providers.md
-│   ├── routing.md
-│   ├── security.md
-│   ├── deployment.md
-│   └── troubleshooting.md
-│
-└── monitoring/
-    ├── prometheus/
-    └── grafana/
-
-⚙️ Technology Stack
-Layer	Technology
-Primary language	Python
-Environment	uv
-Current execution engine	LiteLLM
-Configuration	YAML + Pydantic
-API direction	OpenAI-compatible
-Database	PostgreSQL
-Fast state/cache	Redis
-Testing	Pytest
-Containerization	Docker / Docker Compose
-Remote development	Tailscale
-Future monitoring	Prometheus + Grafana
-Future ML	Python ML ecosystem
-Long-term core option	Go / single binary
-
-
-The Go architecture is a future direction, not the current implementation.
-🚀 Current Development Status
-SabiRoute is in active development.
-The current implementation has already established important foundations:
-- typed configuration models
-- configuration validation
-- provider registry
-- routing policy registry
-- health registry foundations
-- fallback engine foundations
-- route decision objects
-- LiteLLM client integration
-- monitoring/telemetry foundations
-- provider metadata
-- local PostgreSQL connectivity
-- local Redis connectivity
-However, source files existing in the repository do not automatically mean that the corresponding feature is production-complete.
-The project uses an evidence-based definition of completion:
-Code exists
-    ≠
-Feature works
-
-A phase is considered complete only after:
-Implementation
-    +
-Integration
-    +
-Tests
-    +
-Real execution
-    +
-Failure validation
-
-🧪 Current Architecture Gate
-Before moving into intelligent routing, SabiRoute must first prove that the underlying gateway works reliably.
-The current immediate gate is:
-1. LiteLLM starts normally
-          ↓
-2. PostgreSQL integration works
-          ↓
-3. Redis integration works
-          ↓
-4. Authenticated health works
-          ↓
-5. Real completion works
-          ↓
-6. Streaming works
-          ↓
-7. Deterministic fallback works
-          ↓
-8. THEN intelligent routing
-
-This is deliberate.
-There is no point training or implementing an intelligent router on top of an execution layer that has not yet been proven reliable.
-🛣️ Engineering Roadmap
-SabiRoute follows a staged engineering roadmap.
-Phase	Focus	Status
-00	Architecture & Environment	🟢 Foundation
-01	Basic LiteLLM Gateway	🟡 Current gate
-02	Provider Expansion	🟡 In progress
-03	Model Registry	🟢 Foundation
-04	Virtual Models	🟡 Foundation
-05	Fallback Engine	🟡 Foundation
-06	Health Monitoring	🟡 Foundation
-07	Observability	🟡 Foundation
-08	PostgreSQL	🟡 Infrastructure active
-09	Authentication & API Keys	⚪ Next intelligence boundary
-10	Budgets & Rate Limits	⚪ Planned
-11	Routing Intelligence	⚪ Planned
-12	Model Scoring	⚪ Planned
-13	ML Router	⚪ Future
-14	Benchmarking	⚪ Future
-15	Admin Dashboard	⚪ Future
-16	Remote Access / Tailscale	⚪ Future
-17	Security Hardening	⚪ Future
-18	Testing & Regression	⚪ Future
-19	CI/CD	⚪ Future
-20	Production Architecture	⚪ Future
-
-
-🔬 What Makes This an ML Systems Project?
-SabiRoute is intentionally being built so that the machine-learning component has a real systems problem to solve.
-The eventual dataset can contain observations such as:
-request_type
-prompt_length
-context_length
-estimated_complexity
-required_capabilities
-
-provider
-model
-latency
-time_to_first_token
-tokens
-cost
-
-success
-failure_type
-retry_count
-
-user/task outcome
-historical performance
-
-That can eventually become:
-                ROUTING DATA
-                     │
-                     ▼
-              Feature Engineering
-                     │
-                     ▼
-               Model Scoring
-                     │
-                     ▼
-              ML Router Training
-                     │
-                     ▼
-             Offline Evaluation
-                     │
-                     ▼
-             Shadow Deployment
-                     │
-                     ▼
-          Controlled Online Routing
-
-This is where SabiRoute can become a genuine ML systems project rather than simply an API wrapper.
-🔐 Security Philosophy
-Secrets should never be committed to Git.
-Provider credentials belong in environment variables or a secure secret-management mechanism.
-The project will eventually implement:
-- API authentication
-- virtual API keys
-- permissions
-- model access control
-- rate limits
-- budgets
-- audit logging
-- security hardening
-Security controls should be attached to the actual request path rather than existing only as isolated configuration files.
-🌍 Long-Term Product Shape
-The long-term SabiRoute architecture can evolve toward:
-                    SabiRoute
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
-    Local Core       IDE / CLI       Cloud Control
-        │               │                │
-        ▼               ▼                ▼
-   Developers       Agents/Tools     Teams/Enterprise
-                        │
-                        ▼
-                 Routing Intelligence
-                        │
-                        ▼
-                       ML
-
-Potential future capabilities include:
-- native IDE integrations
-- coding-agent integrations
-- automatic configuration
-- remote configuration
-- team management
-- enterprise governance
-- cloud control plane
-- usage analytics
-- centralized budgets
-- learned routing
-- eventually a self-contained Go core
-These are roadmap objectives, not claims about the current release.
-💻 Future IDE / Agent Integration
-The architecture is intentionally designed around an OpenAI-compatible interface so tools can eventually connect without learning every underlying provider.
-Conceptually:
-VS Code / Continue / Aider / Coding Agent
-                  │
-                  ▼
-          SabiRoute endpoint
-                  │
-                  ▼
-           Routing decision
-                  │
-                  ▼
-              LiteLLM
-                  │
-                  ▼
-             Provider
-
-Future developer experience:
-sabiroute setup --all
-
-could configure supported developer tools automatically.
-Native VS Code provider integration and a broader auto-configurator remain future work.
-🧪 Testing Philosophy
-SabiRoute will not rely only on:
-HTTP 200
-
-A provider/model can return a successful response while the complete client workflow still fails.
-Testing therefore needs to cover:
-Provider tests
-Can this provider authenticate?
-Can this model answer?
-Can it stream?
-
-Gateway tests
-Can SabiRoute route?
-Can it authenticate?
-Can it stream?
-Can it fallback?
-
-System tests
-Can Chatbox/IDE/client actually use it?
-
-Failure tests
-What happens on:
-
-429?
-500?
-timeout?
-connection failure?
-invalid credentials?
-provider outage?
-
-📊 Benchmarking Philosophy
-SabiRoute will eventually maintain a benchmark suite for real routing decisions.
-Potential benchmark dimensions:
-Latency
-TTFT
-Throughput
-Reliability
-Cost
-Task accuracy
-Coding quality
-Reasoning quality
-Context handling
-Streaming stability
-
-The objective is not to claim:
-"Model X is always the best."
-
-The objective is to determine:
-"Which deployment is best for this request under these constraints?"
-
-🤝 Contributing
-SabiRoute is currently a solo engineering project and is still in its foundational development stage.
-The immediate priority is proving the architecture through working infrastructure, tests and real workloads.
-Once the core gateway and intelligence layers mature, the project can evolve toward broader community contributions.
-Ideas, issues, architectural discussions and routing experiments are welcome.
-📄 License
-Released under the MIT License.
-Use it, fork it, improve it, route through it.
-👤 Author
-Olumide "CHEF_P" Oladosu
-Machine Learning / AI engineering journey.
-Building SabiRoute as a practical systems project at the intersection of:
-Machine Learning
-        +
-AI Infrastructure
-        +
-Model Routing
-        +
-Reliability
-        +
-Developer Tooling
-
-GitHub: [@yourfavCHEFP](https://github.com/yourfavCHEFP)
-X: [@yourfavCHEF_P](https://x.com/yourfavCHEF_P)
-Linkdln: [@olumide-oladosu](https://www.linkedin.com/in/olumide-oladosu-336a2b40a/)
-
-
-
-Built because developers shouldn't have to manually babysit every AI provider.
-One endpoint. Multiple providers. Smarter routing.
-
+Explicit eligibility and deterministic routing
+                    ↓
+          Measured routing signals
+                    ↓
+     Trustworthy, time-aware telemetry
+                    ↓
+       Dataset and evaluation checks
+                    ↓
+       Training only when justified
+                    ↓
+     Guarded inference and integration
+                    ↓
+       Benchmark against the baseline
 ```
+
+An ML selector may only choose among deployments already deemed eligible. It must never bypass authentication, budgets, capabilities, health exclusions, or policy constraints — and if it fails, the deterministic path remains.
+
+---
+
+## 🏗️ Architecture
+
+### Responsibility boundary
+
+```text
+                    Clients
+        (Chatbox · IDEs · CLIs · apps · agents)
+                       │
+                       ▼
+              ┌─────────────────┐
+              │   SabiRoute API │◄──────────── PostgreSQL: keys, usage,
+              ├─────────────────┤◄────────────   budgets, routing decisions
+              │ Authentication  │
+              │ Budgets & rate  │◄──────────── Redis: rate-limit buckets,
+              │ Classification  │◄────────────   fast state
+              │ Capability and  │
+              │   health filters│
+              │ Routing score   │
+              │ Fallback        │
+              └────────┬────────┘
+                       ▼
+             LiteLLM execution layer
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+     Gemini         Groq        OpenRouter · …
+```
+
+The boundary is intentional:
+
+- **SabiRoute** owns eligibility, policy, routing, health constraints, governance, and routing telemetry.
+- **LiteLLM** owns provider execution, provider adapters, and streaming mechanics.
+
+SabiRoute decides which deployment should be attempted; LiteLLM executes the provider request.
+
+### Request flow
+
+Client requests pass through access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome recording; retryable failures return to bounded route selection. (A request-flow diagram is planned under `docs/diagrams/`.)
+
+The request path implemented today:
+
+1. Receive the client request.
+2. Authenticate and authorize it (client key / admin key boundary).
+3. Apply rate-limit and budget admission checks.
+4. Classify the request and establish required capabilities.
+5. Discover candidate deployments from the route policy.
+6. Exclude candidates that fail capability, health, or policy requirements.
+7. Select among eligible candidates (configured priority or measured scoring).
+8. Execute through LiteLLM.
+9. On retryable failure, fall back per the retry and eligibility rules.
+10. Normalize the response and persist operational telemetry.
+
+Free Chat requests (the SabiChat mode) pass an additional explicit-allowlist gate between steps 6 and 7: only mapped deployments stay eligible, fallback cannot leave the allowlist, and denials happen before execution with stable reasons. The SabiChat backend traverses this same numbered path in process — it is a client of the gateway, not a parallel router.
+
+The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition. The authoritative roadmap milestones and production gates live in the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations) sections below (a standalone architecture-decision record is planned).
+
+---
+
+## 🧠 Routing intelligence
+
+Routing intelligence is built in layers, each resting on a trustworthy one below it.
+
+**Layer 1 — Deterministic routing.** Configured policy and priority, healthy candidates, bounded fallback. Verified and the operational baseline.
+
+**Layer 2 — Capability-aware routing.** Required capabilities are explicit and filter candidates before selection. Unknown capability values never count as confirmed support, and capabilities are never inferred from provider or model names. Implemented with tests; deployment-specific evidence remains incomplete for most deployments (Phase 11).
+
+**Layer 3 — Measured deterministic scoring.** For the current measured-routing baseline, the established formula is:
+
+```text
+score = 0.7 * success_rate + 0.3 * latency_normalized
+```
+
+The scoring version is `deterministic-v1` (weights and thresholds live in `config/config.yaml`). This formula is a preserved baseline; changing it requires a separately reviewed design and benchmark. Signals are process-local (operational success rate and mean observed latency); on cold start, missing, or stale signals the scorer falls back to configured route order rather than inventing evidence. (A standalone routing-scoring guide is planned.)
+
+**Layer 4 — ML-assisted routing (future, gated).** The first target is attempt-level operational success. Every executed provider attempt must have its own observed outcome — a logical request that fell back contains several attempts, and they are not all labeled by the final result. Hard constraints on the data:
+
+- HTTP success is an operational outcome, not answer quality.
+- An unselected deployment has no observed outcome; no counterfactual labels are invented.
+- API-level failures before provider execution are not fabricated into provider-attempt failures.
+- Timeout labels are not inferred from generic transport errors.
+- Cost values, quality labels, and counterfactual outcomes are never invented.
+- Observational data is selection-biased; training requires trustworthy pairing, temporal provenance, outcome variation, coverage, and a defensible chronological evaluation design.
+
+The model must never override capability, health, security, budget, or policy constraints.
+
+---
+
+## 🌐 Provider strategy
+
+`config/config.yaml` is the runtime deployment catalog for both SabiRoute and LiteLLM. Fourteen aliases are configured across providers such as OpenAI, Google Gemini, Groq, Together AI, DeepInfra, Moonshot/Kimi, MiniMax, Cloudflare Workers AI, OpenRouter, Hugging Face, Cerebras, NVIDIA NIM, Cohere, and Pollinations AI. The full alias → model → credential table lives in [docs/providers.md](docs/providers.md).
+
+Runtime evidence is deployment-specific and deliberately narrow:
+
+| Deployment | Verified capabilities | Evidence |
+|---|---|---|
+| `sabiroute-gemini` | `chat` | Non-empty text completion through SabiRoute → LiteLLM |
+| `sabiroute-groq` | `chat`, `streaming` | Non-empty completion and incremental SSE chunks end to end |
+| `sabiroute-openrouter` | `chat` | Non-empty text completion through the configured OpenRouter deployment |
+
+All other configured deployments remain **configured but unverified** (`sabiroute-openai` has a prior request that returned no credits). The full capability matrix is documented alongside the capability declarations in `config/config.yaml` (a standalone evidence-matrix guide is planned).
+
+> **Configured ≠ operational.** A provider appearing in configuration proves only that the alias and credential reference exist. A deployment becomes operational after: configuration → credentials → provider access → health test → real request → streaming test → fallback test.
+
+Planned expansion may include DeepSeek, Mistral, xAI, and Ollama. Note that the fragments under `config/models/` are **not** loaded by the current runtime — `config/config.yaml` is the single catalog. Never put credential values in YAML, reports, or terminal output.
+
+---
+
+## 🛣️ Engineering roadmap
+
+> **Code exists ≠ feature works.** A phase is complete only with implementation + tests + integration + real execution + failure validation. A unit-test pass is evidence — but it does not prove live provider behavior or production readiness.
+
+**Legend:** **Complete** — implemented, tested, and exercised on a documented live path · **Implemented** — code and tests exist, required verification incomplete · **In progress** — active work, scope remains · **Blocked** — waiting on a data, evaluation, or dependency gate · **Planned** — not started
+
+These labels are not interchangeable. *Implemented* is not *Complete*, and a green unit-test suite is not integration evidence. Status evidence comes from the linked phase records and capability matrix. The documented live-path evidence is **success-only** and was not re-run while updating this README; automated tests do not establish live provider behavior.
+
+| Phase | Focus | Status | Evidence / notes |
+|---:|---|---|---|
+| 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green |
+| 01 | Basic LiteLLM gateway | Complete | Non-streaming and streaming requests documented on the live path; fallback covered by tests only |
+| 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence (recorded 2026-10-08; evidence matrix documented with the capability declarations in `config/config.yaml`); the 2026-10-10 harness run recorded a Together authentication failure |
+| 03 | Model registry | Complete | Registry and aliases in place; `config/config.yaml` is the runtime catalog |
+| 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup; `research` exercised on the live path |
+| 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`, unit-tested; no live failure-injection evidence; see [limitations](#-known-limitations) |
+| 06 | Health monitoring | Implemented | Passive cooldown and recovery unit-tested; the former active `ProviderHealthChecker` was removed (see `docs/routing.md`) |
+| 07 | Observability | Implemented | Trackers wired into gateway state and admin endpoints; no stored failure-metric evidence |
+| 08 | PostgreSQL | Complete | `PostgresApiKeyStore` exercised by the documented live run |
+| 09 | Authentication and API keys | Complete | Client/admin boundary; a key was issued and revoked during that run |
+| 10 | Budgets and rate limits | Implemented | Unit and API tests cover admission and rejection (text-only estimator contract); rejection paths not exercised on the live path |
+| 11 | Capability-aware deterministic routing | Implemented | Routing and tests in place; capability evidence missing for most deployments |
+| 12 | Measured deterministic scoring | Implemented | `deterministic-v1` live on measured routes; benchmark evidence is synthetic only |
+| 13 | ML-assisted routing | In progress | 13.1 committed; live sub-gate passed; aggregate integrity failed; 13.3 blocked — see [below](#-ml-readiness-status-phase-13) |
+| 14 | Benchmarking | Planned | Compare against the unchanged deterministic baseline |
+| 15 | Admin dashboard | Planned | — |
+| 16 | Private remote access / Tailscale | Planned | — |
+| 17 | Security hardening | Planned | Baseline controls maintained throughout earlier phases |
+| 18 | Testing and regression | Planned | Tests are required throughout earlier phases |
+| 19 | CI/CD | Planned | — |
+| 20 | Production architecture | Planned | — |
+
+Phase 11 note: unknown capabilities are never treated as verified support; only the deployment-specific evidence declared in `config/config.yaml` is enabled. Phase 12 note: `scripts/benchmark_routing.py` runs a fixed synthetic comparison of `priority` vs `measured` — it is a methodology check, **not** proof of warm live-routing performance against real providers.
+
+Cross-cutting workstreams (not phases — numbers, names, and gates above are unchanged): Free Pool runtime enforcement and usage attribution are implemented and API-tested (stub execution, file-backed database); the SabiChat backend (auth, sessions, conversations, gateway chat) is implemented and API-tested the same way; the SabiChat frontend is planned; catalogue mapping, quotas, and shared inference remain gated behind Phase 20. None of this alters the Phase 13 training gates.
+
+---
+
+## 📊 ML readiness status (Phase 13)
+
+Five status dimensions, kept deliberately separate:
+
+| Dimension | Status |
+|---|---|
+| ML data-foundation implementation | Implemented — schema `1.1` feature snapshots and a read-only audit tool, committed as `71271fc` (phase-13.1 routing data foundation) |
+| Live request-path verification | Passed for two bounded requests — one non-streaming (`research` policy → OpenRouter) and one streaming (Groq, SSE frames terminated with `[DONE]`); schema `1.1` records persisted |
+| Aggregate dataset integrity | **Failed** — one feature/outcome count mismatch and one outcome without a feature snapshot remain visible by design |
+| Training readiness (13.3) | **Blocked** — no outcome variation and no defensible chronological split |
+| Commit isolation (2026-10-10) | Every phase-scoped group is committed on `feat/sabiroute-routing-foundation` — foundation, capabilities, scoring, registry, route-loading, security primitives, request-path wiring, dataset foundation, README, and the provider harness. No source, configuration, or test file is left modified or uncommitted; the only open tracked change in the working tree is this documentation reconciliation. |
+
+The latest read-only database audit **succeeded** and reported:
+
+- 7 logical requests · 6 provider attempts · 5 feature snapshots · 6 labeled outcomes;
+- all six provider attempts successful → **no outcome variation**;
+- 2 attempts with verified temporal provenance; 4 with unknown or unavailable provenance;
+- 1 feature/outcome count mismatch; 1 outcome without a feature snapshot;
+- **no usable chronological evaluation split** (at least one attempt lacks a decision timestamp).
+
+An earlier audit attempt was blocked by the execution environment (`Operation not permitted`); that was an environment access limitation, **not** a PostgreSQL outage. The historical unmatched observation has a successful provider outcome but no feature snapshot or attempt timestamps — it is left unrepaired on purpose. Do not fabricate timestamps or reconstructed features for it; a future training export must exclude it unless an authoritative original snapshot is recovered.
+
+Phase status: **13.1** data foundation — implemented · **13.2** target/labels/provenance/audit — in progress (live sub-gate passed, aggregate closure pending) · **13.3** training and evaluation — **blocked** · **13.4** guarded inference — blocked pending a valid trained artifact · **13.5** ML selector integration — blocked pending validated inference. **No model has been trained or deployed.**
+
+Training stays locked until a fresh audit establishes sound feature/outcome pairing and temporal provenance, meaningful outcome variation, adequate coverage, and a leakage-safe chronological evaluation design — and even then, automated checks lead to human review, not automatic authorization to train. Observations should come from normal authorized traffic; never manufacture failures or randomize selection to grow the dataset. (A standalone Phase 13 data-foundation guide is planned.)
+
+---
+
+## 🚀 Getting started
+
+> **Local development setup.** Use `.env.example` as the environment template and keep `.env` local — never commit API keys, provider credentials, or database secrets.
+
+**Prerequisites:** Python 3.11–3.13, [uv](https://docs.astral.sh/uv/), and Docker (for the Compose stack).
+
+```bash
+# 1. Install dependencies into .venv
+uv sync
+
+# 2. Configure the environment (fill in values locally)
+cp .env.example .env
+
+# 3. Start LiteLLM, PostgreSQL, and Redis
+docker compose up -d
+
+# 4. Run the gateway on the host (default 127.0.0.1:8000)
+./.venv/bin/sabiroute
+```
+
+Key environment variables (names only — see `.env.example` for the full list): `DATABASE_URL`, `SABIROUTE_ADMIN_KEY`, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `LITELLM_PORT`, `REDIS_URL`, plus per-provider credentials (`GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, …). The gateway honors `SABIROUTE_HOST` and `SABIROUTE_API_PORT`, and `SABIROUTE_ROUTES_PATH` for a custom route directory.
+
+Two supported topologies: **host-run SabiRoute** beside the Compose stack, or the **SabiRoute container** (`docker build -t sabiroute .`, non-root, health-checked; SabiChat UI at `/app/`) — including via `docker compose up --build`, which now defines the API service with loopback-only ports. When running on the host, point `DATABASE_URL` at `127.0.0.1` with the published port — the Compose service names only resolve inside the Compose network. CI (`.github/workflows/ci.yml`) runs the suite, Ruff, mypy, a JS syntax check, and the container build. Full topology, PostgreSQL TLS, migration, and rollback notes: [docs/deployment.md](docs/deployment.md).
+
+### API usage
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `POST /v1/chat/completions` | client key | OpenAI-compatible chat completions (streaming supported) |
+| `GET /health`, `GET /health/live` | public | Liveness |
+| `POST /admin/api-keys` (+ rotate / revoke) | admin key | Client key lifecycle |
+| `PUT/GET/DELETE /admin/api-keys/{id}/rate-limit` | admin key | Per-key request rate and burst |
+| `PUT/GET/DELETE /admin/api-keys/{id}/budget` | admin key | Daily/monthly token and cost budgets |
+| `GET /admin/api-keys/{id}/usage` | admin key | Per-key usage |
+| `GET /admin/metrics`, `/admin/latency`, `/admin/errors`, `/admin/usage` | admin key | Telemetry |
+
+```bash
+# Create a client key (admin key required; the plaintext key is returned once)
+curl -s http://127.0.0.1:8000/admin/api-keys \
+  -H "Authorization: Bearer $SABIROUTE_ADMIN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"project_id":"project-a","name":"local-dev"}'
+```
+
+```bash
+# OpenAI-compatible chat completion through a virtual policy
+curl -s http://127.0.0.1:8000/v1/chat/completions \
+  -H "Authorization: Bearer $SABIROUTE_CLIENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "research",
+    "messages": [{"role": "user", "content": "Summarize the trade-offs of HTTP/2 multiplexing."}],
+    "max_tokens": 256
+  }'
+```
+
+`model` accepts a deployment alias (for example `sabiroute-gemini`) or a virtual route name (`ultimate`, `coding`, `research`, `reasoning`, `fast`, `cheap`). Add `"stream": true` for SSE streaming — streaming requires a deployment with verified `streaming` support.
+
+---
+
+## 🧪 Testing and validation
+
+```bash
+# Unit and API tests (local development)
+./.venv/bin/python -m pytest
+
+# Lint and type checks (configured in pyproject.toml)
+./.venv/bin/ruff check src tests scripts config
+./.venv/bin/mypy src
+```
+
+The Ruff command is scoped to the maintained tree on purpose: `pyproject.toml` defines no excludes, so a whole-tree `ruff check .` also scans untracked local tool artifacts (for example vendored skill scripts under `.claude/`), which currently report hundreds of findings unrelated to this project. `ruff check src tests scripts config` is the reliable gate — it passes on the maintained code, and nothing in that scope is suppressed.
+
+Operational and verification tooling:
+
+| Script | Purpose | Notes |
+|---|---|---|
+| `scripts/audit_routing_dataset.py` | Read-only routing dataset audit; `--export` is readiness-gated candidate JSON and `--diagnostic-export` is diagnostic-only JSON | Requires `DATABASE_URL`; never trains or writes to the database |
+| `scripts/verify_postgres.py` | Temporary-key PostgreSQL lifecycle check, self-cleaning | Prints database/role names, never passwords |
+| `scripts/verify_phase10.py` | Exercises request accounting and rate limits against local services | Local services only |
+| `scripts/benchmark_routing.py` | Synthetic `priority` vs `measured` comparison | No provider calls — methodology check, not provider evidence |
+| `scripts/test_providers.py` | Live provider verification | Makes **real** provider requests; writes `reports/provider_verification.json` — review and sanitize before sharing |
+
+An HTTP 200 is not acceptance. Validation covers the layers that actually fail:
+
+- **Provider:** credentials, request behavior, streaming, supported capabilities.
+- **Gateway:** authentication, policy, eligibility, routing, fallback, response handling, telemetry persistence.
+- **Data:** request/attempt/snapshot linkage, temporal provenance, schema compatibility, audit correctness.
+- **Failure paths:** 429/5xx, timeouts, connection failures, invalid credentials, ineligible candidates, interrupted streams, persistence failures.
+- **Client workflow:** verify the real client path whenever a claim depends on IDE/CLI/client compatibility.
+
+Exercise failure cases with isolated fixtures or controlled test doubles — never deliberately break production providers to manufacture training labels.
+
+---
+
+## 🔬 What makes this an ML systems project?
+
+SabiRoute is built so the machine-learning component has a real systems problem to solve. The eventual dataset observes request shape (type, prompt/context size, required capabilities), execution (provider, deployment, latency, TTFT, tokens, cost when calculable), and outcome (success, failure type, retries):
+
+```text
+        ROUTING DATA
+             │
+             ▼
+      Feature Engineering
+             │
+             ▼
+       Model Scoring
+             │
+             ▼
+  ML Router Training → Offline Evaluation
+             │
+             ▼
+   Shadow Deployment → Controlled Online Routing
+```
+
+That progression — and the honesty about selection bias, missing outcomes, and provenance along the way — is what makes this a genuine ML systems project rather than an API wrapper. The benchmarking objective follows the same spirit: not *"Model X is always best,"* but **"which eligible deployment is best for this request, under these constraints?"** ML-assisted routing must beat the unchanged deterministic baseline on evidence before it earns a place in the request path.
+
+---
+
+## ⚠️ Known limitations
+
+- **Aggregate dataset integrity is invalid:** one historical feature/outcome count mismatch and one outcome without a feature snapshot remain, deliberately unrepaired.
+- **Training is blocked:** no outcome variation (all attempts successful), incomplete temporal provenance, and no usable chronological split.
+- **Capability evidence is narrow:** only `sabiroute-gemini`, `sabiroute-groq`, and `sabiroute-openrouter` have runtime evidence; most deployments' capability metadata is `unknown`.
+- **Phase 12 evidence is synthetic:** warm live-routing performance under real provider telemetry is not yet established.
+- **Scoring telemetry is process-local:** reliability and latency signals reset on restart; the request path does not read history from the database.
+- **Token estimation is text-only:** multimodal token estimation stays null; cost appears only when calculable from configured pricing.
+- **Lightweight migrations, managed-PostgreSQL validation outstanding:** schema evolves through an ordered additive revision ledger (`sabiroute_schema_versions`, currently `0001-usage-source`, `0002-sabichat-backend`) — no Alembic, no destructive changes — validated against disposable local PostgreSQL 16 (fresh init, upgrade, idempotent re-run, backup/restore), but never against live or managed PostgreSQL.
+- **SabiChat is interim-grade:** one memory-held service key (re-minted on restart), single-process rate limits, fixed history/response caps, in-memory session token (reload signs out); per-user gateway keys and quotas are explicit future work. The browser UI is minimal and has no automated browser test suite — it was smoke-tested manually in a real browser session.
+- **Deployment foundation, not production:** the container, CI, and Compose service exist and are smoke-tested without providers; local disposable-PostgreSQL migration and backup/restore are verified, but there has been no managed-database test and no staging deployment — Phase 20 review still gates any public exposure.
+- **No separate fallback engine exists:** there is no `FallbackEngine` or `routing/fallback.py` in the tree (verified by search) — the retry/fallback loop lives in `src/sabiroute/api/completions.py` and routes every attempt through `Router.choose_deployment`.
+- **Active health checking was removed:** `providers/healthcheck.py` (`ProviderHealthChecker`) was deleted after verification that nothing referenced it (see `docs/routing.md`). Runtime health is the passive success/failure and cooldown registry in `routing/health.py`.
+- **Live evidence is documentary and success-only:** the stored isolated live-path run is the evidence on record; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
+- Some root files (`Makefile`, `CHANGELOG.md`) are placeholders awaiting their phases; `Dockerfile` is implemented (Sprint 5).
+
+---
+
+## Code of Conduct
+
+SabiRoute welcomes respectful, constructive participation. Everyone taking part in project spaces is expected to follow the project's [Code of Conduct](CODE_OF_CONDUCT.md). To report harmful behavior, contact the maintainer privately through the [project owner’s GitHub profile](https://github.com/yourfavCHEFP); do not post personal or sensitive details in a public issue.
+
+## 🤝 Contributing
+
+Read the project’s [contribution guidelines](CONTRIBUTING.md) before proposing a change. They explain the development setup, review expectations, and the evidence required for routing or security changes.
+
+SabiRoute is currently a solo engineering project in active development. Ideas, issues, architecture discussions, and reproducible bug reports are welcome. As the gateway and intelligence layers mature, the project can grow toward broader community contributions.
+
+The authoritative development branch is `feat/sabiroute-routing-foundation`. The earlier `setup/claude-code-action` branch and its pull request were deleted; do not resurrect or target it.
+
+Engineering work progresses phase by phase:
+
+1. inspect the current implementation and dependencies;
+2. implement one coherent phase scope;
+3. add or update tests and run the relevant suites;
+4. verify integration or live behavior where required;
+5. review the exact diff and protect unrelated work;
+6. commit only when that phase's acceptance criteria are met — never stage everything indiscriminately or merge unrelated phases into one commit.
+
+Do not commit secrets or local artifacts, mark a phase complete because it compiles, or push without explicit authorization.
+
+## Security
+
+SabiRoute is alpha software. Review the [Security Policy](SECURITY.md) for supported reporting channels and safe disclosure guidance. Do not report vulnerabilities in a public issue.
+
+---
+
+## 🆓 Free Pool
+
+**Status: runtime enforcement implemented behind a disabled-by-default flag; catalogue, quotas, and shared inference still ahead.** The design below stands; the enforcement subsection after it describes what actually runs today.
+
+### What is Free Pool?
+
+Two goals, in order:
+
+A. **Free Model Discovery** — a trustworthy catalogue where developers discover models, free-tier conditions, capabilities, access requirements, and restrictions, each claim source-linked and verification-stamped.
+B. **Shared Free Inference** — a possible future SabiRoute service through which users obtain inference without supplying their own provider API keys.
+
+Discovery comes first; shared inference is a later, separately gated direction. Both remain subordinate to SabiRoute's original purpose: Free Pool expands the gateway's value without becoming a separate platform with its own routing engine.
+
+### One platform, three experiences, one routing foundation
+
+The long-term product is one platform with three top-level experiences over a single shared routing foundation:
+
+1. **SabiRoute Gateway** — the core local-first gateway, policy engine, and routing system (this repository's focus today).
+2. **SabiRoute Free Pool** — the evidence-backed model discovery and access-information layer.
+3. **SabiRoute Web Platform** — the public website, documentation, catalogue interface, developer onboarding, and eventual playground/chat experiences.
+
+The dashboard, playground, and chat are capabilities *of the Web Platform*, not separate routing backends. All request execution — local or hosted, BYOK or platform-managed — stays governed by the same SabiRoute routing, eligibility, security, and telemetry rules.
+
+### Catalogue, registry, router: three distinct concepts
+
+- **Free Pool catalogue** — discovered models, provider information, published allowances, access arrangements, restrictions, evidence, and verification status. Informational.
+- **Runtime deployment registry** — the deployments actually configured for a SabiRoute instance to attempt (`config/config.yaml` today).
+- **Routing and policy engine** — decides which configured deployments are eligible for a request and selects among them.
+
+These may share validated data contracts, but they are not one undifferentiated source of truth. **A model listed in Free Pool is not thereby configured, accessible, healthy, or usable** through any particular SabiRoute instance.
+
+### Free access, stated accurately
+
+Free-tier claims differ by access arrangement:
+
+- **BYOK** — the user supplies their own provider credentials; that provider's terms apply to that user.
+- **Platform-managed access** — SabiRoute uses credentials it controls (future; requires explicit provider-terms acceptance, server-side credential handling, and quota/budget enforcement).
+- **Local inference** — execution depends on the user's own runtime and hardware.
+- Anything else only when explicitly identified and supported.
+
+Quotas, restrictions, account eligibility, geography, and terms vary by arrangement — and a provider's free tier must never be assumed to permit shared platform usage. One-time promotional credits are not recurring capacity; request-rate limits do not imply monthly token allowances; identifiers sharing a quota pool are counted once. Only five distinct things may be claimed, each on its own evidence: the **published allowance**, the **access actually configured** under a specific arrangement, the **estimated aggregate capacity** (assumptions explicit), the **observed consumption**, and the **current runtime health**. Provider credentials are never exposed to the browser.
+
+### Current versus future
+
+**Now (discovery track):** source-linked provider/model information, published free-tier conditions, explicit capability evidence, access-mode distinctions, quota/restriction metadata, verification status, and mapping between catalogue entries and configured deployments — all without requiring ML.
+
+**Later (shared inference track, gated):** a hosted inference service with explicit acceptance criteria covering provider terms and permissions, server-side credential handling, authentication, quota and budget enforcement, abuse controls, privacy and data retention, cost exposure, observability, incident handling, and operational capacity. Shared hosted inference is ambition, not an implemented feature.
+
+### Runtime enforcement status
+
+Implemented, unit- and API-tested (stub execution, file-backed database — no live providers yet):
+
+- `src/sabiroute/freepool/` — an explicit allowlist policy (`SABIROUTE_FREEPOOL_ENABLED`, `SABIROUTE_FREEPOOL_DEPLOYMENTS`), **disabled by default**; a disabled gateway fails closed on Free Chat requests rather than pretending to serve them.
+- a pre-execution gate in `api/completions.py` that narrows candidates to mapped deployments through the existing `Router` — no parallel ranking, no execution duplication; denial happens before any LiteLLM call with stable reasons (`free_pool_unmapped_deployment`, `free_pool_no_capable_deployment`, `free_pool_no_healthy_deployment`, …).
+- durable usage-source attribution (`unknown` / `free_pool` / `byok` / `paid`): admission starts `unknown` and becomes `free_pool` only when the gate allows; denied or spoofed requests stay `unknown`; legacy rows are never backfilled. Only `free_pool` is assigned today.
+
+Still unimplemented: catalogue-to-registry mapping data, runtime quota enforcement, provider-terms validation, and shared inference itself.
+
+### Fit with the existing roadmap
+
+Free Pool is a cross-cutting workstream, not a roadmap replacement — phases keep their numbers, names, and gates:
+
+- Phases 09–10 governance (auth, rate limits, budgets) underpins any future shared access.
+- Phase 11 capability filtering constrains which catalogue-mapped deployments are ever eligible.
+- Phase 12 `deterministic-v1` stays the measured baseline; Phase 14 benchmarks against it unchanged.
+- Phase 13 gates stand: discovery needs no training data, and any future ML ranks only already-eligible candidates.
+- Phase 15 dashboard work may surface verified catalogue, health, routing, and usage information.
+- Phase 20 production architecture carries the operational, financial, and security controls shared inference would require.
+
+---
+
+## 🌍 Long-term direction
+
+The longer-term product may grow toward local-first developer tooling, IDE and coding-agent integrations, automatic client configuration (for example, a future `sabiroute setup --all`), private remote access, team governance, usage analytics, centralized budgets, and a cloud control plane. A self-contained Go core remains a possible future direction, not a current plan of record.
+
+These are roadmap objectives, not claims about the current release. The order matters: a reliable routing foundation first, trustworthy telemetry second, defensible ML only after the data earns it.
+
+---
+
+## 📄 License
+
+SabiRoute is released under the [MIT License](./LICENSE).
+
+Use it, fork it, improve it, route through it.
+
+## 👤 Author
+
+**Olumide "CHEF_P" Oladosu** — machine learning / AI engineering journey.
+
+SabiRoute is a practical systems project at the intersection of machine learning, AI infrastructure, model routing, reliability, and developer tooling.
+
+- [GitHub — @yourfavCHEFP](https://github.com/yourfavCHEFP)
+- [X — @yourfavCHEF_P](https://x.com/yourfavCHEF_P)
+- [LinkedIn — Olumide Oladosu](https://www.linkedin.com/in/olumide-oladosu-336a2b40a/)
+- [SabiRoute repository](https://github.com/yourfavCHEFP/SabiRoute)
+
+---
+
+*Built because developers shouldn't have to manually babysit every AI provider.*
+
+**One endpoint. Multiple providers. Smarter, evidence-based routing.**
+
+*Built incrementally. Measured carefully. Improved with evidence.*
