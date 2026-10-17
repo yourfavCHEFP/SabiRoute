@@ -213,7 +213,7 @@ SabiRoute decides which deployment should be attempted; LiteLLM executes the pro
 
 ### Request flow
 
-Client requests pass through access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome recording; retryable failures return to bounded route selection. (A request-flow diagram is planned under `docs/diagrams/`.)
+![Request flow: client request, access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome. Retryable failures return to bounded route selection.](docs/diagrams/readme-request-flow.svg)
 
 The request path implemented today:
 
