@@ -1,8 +1,0 @@
-name: coding
-required_capabilities:
-  - coding
-deployments:
-  - sabiroute-openai
-  - sabiroute-gemini
-strategy: measured
-max_attempts: 2

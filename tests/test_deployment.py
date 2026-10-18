@@ -14,8 +14,6 @@ import yaml
 from conftest import InMemoryApiKeyStore, StubLiteLLMClient, make_config
 from fastapi.testclient import TestClient
 
-from sabiroute.chat.store import SabiChatStore
-from sabiroute.freepool.eligibility import FreePoolPolicy
 from sabiroute.gateway import build_gateway_state
 from sabiroute.main import create_app
 from sabiroute.security.store import PostgresApiKeyStore
@@ -28,16 +26,13 @@ def make_state(**kwargs):
         "config": make_config(),
         "client": StubLiteLLMClient(),
         "key_store": InMemoryApiKeyStore(),
-        "free_pool": FreePoolPolicy(),
     }
     defaults.update(kwargs)
     return build_gateway_state(**defaults)
 
 
 def test_readiness_reports_ready_without_providers(tmp_path):
-    state = make_state(
-        chat_store=SabiChatStore(f"sqlite:///{tmp_path / 'ready.sqlite'}")
-    )
+    state = make_state()
     with TestClient(create_app(state=state)) as client:
         live = client.get("/health/live")
         assert live.status_code == 200
@@ -58,10 +53,8 @@ def test_readiness_fails_without_request_accounting(monkeypatch):
     state = build_gateway_state(
         config=make_config(),
         client=StubLiteLLMClient(),
-        free_pool=FreePoolPolicy(),
     )
     assert state.key_store is None
-    assert state.chat_store is None
     with TestClient(create_app(state=state)) as client:
         ready = client.get("/health/ready")
         assert ready.status_code == 503
@@ -69,21 +62,15 @@ def test_readiness_fails_without_request_accounting(monkeypatch):
         assert "key_store" in ready.json()["failing"]
 
 
-def test_lifespan_closes_chat_store(tmp_path, monkeypatch):
+def test_lifespan_closes_key_store(tmp_path, monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
-    chat_store = SabiChatStore(f"sqlite:///{tmp_path / 'lifespan.sqlite'}")
-    closed: list[str] = []
-    original_close = chat_store.close
-    chat_store.close = lambda: (closed.append("chat_store"), original_close())  # type: ignore[method-assign]
-
-    state = make_state(chat_store=chat_store)
-    with TestClient(create_app(state=state)):
-        pass
-
-    assert closed == ["chat_store"]
     key_store = PostgresApiKeyStore(
         f"sqlite:///{tmp_path / 'lifespan.sqlite'}"
     )
+    state = make_state(key_store=key_store)
+    with TestClient(create_app(state=state)):
+        pass
+
     try:
         assert key_store.applied_revisions() == [
             "0001-usage-source",
@@ -93,20 +80,6 @@ def test_lifespan_closes_chat_store(tmp_path, monkeypatch):
         ]
     finally:
         key_store.close()
-
-
-def test_chat_unavailable_without_persistence_but_app_serves(monkeypatch):
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    state = make_state()
-    assert state.chat_store is None
-    with TestClient(create_app(state=state)) as client:
-        assert client.get("/app/").status_code == 200
-        register = client.post(
-            "/v1/auth/register",
-            json={"email": "a@example.com", "password": "long-enough-password-1"},
-        )
-        assert register.status_code == 503
-        assert register.json()["detail"]["error"]["type"] == "chat_unavailable"
 
 
 def test_web_dir_override(monkeypatch, tmp_path):

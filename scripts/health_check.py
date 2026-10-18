@@ -1,1 +1,0 @@
-"""Health check entry point for SabiRoute."""
