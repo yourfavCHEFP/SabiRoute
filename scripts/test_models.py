@@ -1,1 +1,0 @@
-"""Model test entry point for SabiRoute."""

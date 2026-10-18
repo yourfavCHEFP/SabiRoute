@@ -79,6 +79,25 @@ class ApiKeyBudget:
             raise ValueError("Monetary budgets must be positive.")
 
 
+#: Allowed usage-source attributions. ``unknown`` is the default for every
+#: request and the permanent value for historical rows: attribution is never
+#: backfilled or invented. ``byok`` and ``paid`` are reserved for future
+#: arrangements that do not exist yet; only ``free_pool`` is assigned today.
+USAGE_SOURCES = frozenset({"unknown", "free_pool", "byok", "paid"})
+
+#: Internal request-body field carrying the canonical SabiChat user ID from
+#: the chat backend to the gateway over the in-process call. It is popped
+#: like the Free Chat marker and is NEVER trusted from ordinary API-key
+#: callers: only a request bearing the server-held SabiChat service key may
+#: establish it, and it is never forwarded to LiteLLM, logs, or usage rows.
+SABI_USER_ID_FIELD = "sabi_route_user_id"
+
+#: Bounds for a trusted internal user ID. Anything else on the service path
+#: is a server-side bug and fails the request loudly instead of proceeding
+#: without identity.
+MAX_USER_ID_CHARS = 128
+
+
 @dataclass(frozen=True, slots=True)
 class RequestUsageEvent:
     """One durable accounting row for one authenticated client request."""
@@ -101,6 +120,7 @@ class RequestUsageEvent:
     routing_decisions: tuple[dict[str, Any], ...] = ()
     feature_schema_version: str | None = "1.0"
     pre_routing_features: tuple[dict[str, Any], ...] = ()
+    usage_source: str = "unknown"
 
 
 class UsageEventValidationError(ValueError):
@@ -136,6 +156,8 @@ def validate_usage_event_finalization(event: RequestUsageEvent) -> None:
         or not 100 <= event.final_status <= 599
     ):
         raise UsageEventValidationError("finalized request requires an HTTP final_status")
+    if event.usage_source not in USAGE_SOURCES:
+        raise UsageEventValidationError("finalized request has an unknown usage_source")
 
     features = event.pre_routing_features
     outcomes = event.routing_decisions
@@ -324,6 +346,29 @@ class ApiKeyStore(Protocol):
     def list_usage_events(
         self, key_id: str, *, limit: int, offset: int
     ) -> tuple[list[RequestUsageEvent], int]: ...
+
+    def get_shared_inference(self) -> bool | None: ...
+
+    def set_shared_inference(self, enabled: bool, actor: str) -> None: ...
+
+    def shared_inference_status(self) -> dict[str, Any]: ...
+
+    def check_and_reserve_quota(
+        self,
+        user_id: str,
+        request_id: str,
+        estimate: int,
+        window_start: datetime,
+        quota: int,
+    ) -> bool: ...
+
+    def settle_quota(
+        self, user_id: str, request_id: str, actual_tokens: int | None
+    ) -> None: ...
+
+    def release_quota(self, user_id: str, request_id: str) -> None: ...
+
+    def get_quota_usage(self, user_id: str, window_start: datetime) -> dict[str, int]: ...
 
 
 def _new_key_record(

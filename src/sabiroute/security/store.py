@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Column,
     DateTime,
     ForeignKey,
@@ -26,6 +27,7 @@ from sqlalchemy import (
     update,
 )
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 from .keys import (
     ApiKeyBudget,
@@ -77,8 +79,162 @@ _REQUEST_USAGE = Table(
     Column("routing_decisions", JSON, nullable=False, default=list),
     Column("feature_schema_version", String(16), nullable=True, default="1.0"),
     Column("pre_routing_features", JSON, nullable=False, default=list),
+    Column("usage_source", String(16), nullable=True),
 )
 Index("ix_sabiroute_request_usage_key_time", _REQUEST_USAGE.c.key_id, _REQUEST_USAGE.c.created_at)
+_SCHEMA_VERSIONS = Table(
+    "sabiroute_schema_versions",
+    _METADATA,
+    Column("revision", String(64), primary_key=True),
+    Column("description", String(256), nullable=False),
+    Column("applied_at", DateTime(timezone=True), nullable=False),
+)
+#: Ordered schema revisions. Each revision must be idempotent and purely
+#: additive: existing tables and rows are never rewritten or dropped.
+#: Application order is the list order; applied revisions are recorded in
+#: ``sabiroute_schema_versions`` so re-running is a no-op.
+_SHARED_INFERENCE = Table(
+    "sabiroute_shared_inference_policy",
+    _METADATA,
+    Column("id", String(16), primary_key=True),
+    Column("enabled", Boolean, nullable=True),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    Column("updated_by", String(128), nullable=False),
+)
+_QUOTA_WINDOWS = Table(
+    "sabichat_quota_windows",
+    _METADATA,
+    Column("user_id", String(36), primary_key=True),
+    Column("window_start", DateTime(timezone=True), primary_key=True),
+    Column("reserved_tokens", Integer, nullable=False, default=0),
+    Column("consumed_tokens", Integer, nullable=False, default=0),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+)
+_QUOTA_RESERVATIONS = Table(
+    "sabichat_quota_reservations",
+    _METADATA,
+    Column("user_id", String(36), primary_key=True),
+    Column("request_id", String(36), primary_key=True),
+    Column("window_start", DateTime(timezone=True), nullable=False),
+    Column("estimated_tokens", Integer, nullable=False),
+    Column("status", String(16), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+)
+SCHEMA_MIGRATIONS: tuple[tuple[str, str], ...] = (
+    ("0001-usage-source", "Add nullable sabiroute_request_usage.usage_source."),
+    ("0002-sabichat-backend", "Add sabichat_users/sessions/conversations/messages."),
+    ("0003-shared-inference-switch", "Add sabiroute_shared_inference_policy."),
+    ("0004-user-quota-ledger", "Add sabichat_quota_windows/reservations."),
+)
+
+
+def _connect(database_url: str, engine: Engine | None) -> Engine:
+    """Build a SQLAlchemy engine with the project's URL conventions."""
+    if engine is not None:
+        return engine
+    url = database_url
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    elif url.startswith("postgres://"):
+        url = "postgresql+psycopg://" + url.removeprefix("postgres://")
+    return create_engine(url, pool_pre_ping=True)
+
+
+def migrate_usage_columns(engine: Engine) -> None:
+    """Add nullable accounting and routing telemetry fields to usage tables."""
+    from sqlalchemy import inspect
+
+    existing = {
+        column["name"] for column in inspect(engine).get_columns(_REQUEST_USAGE.name)
+    }
+    additions = {
+        "estimated_input_tokens": "INTEGER",
+        "reserved_tokens": "INTEGER",
+        "estimated_cost_usd": "NUMERIC(20, 10)",
+        "actual_cost_usd": "NUMERIC(20, 10)",
+        "routing_decisions": "JSON",
+        "feature_schema_version": "VARCHAR(16)",
+        "pre_routing_features": "JSON NOT NULL DEFAULT '[]'",
+        "usage_source": "VARCHAR(16)",
+    }
+    dialect = engine.dialect.name
+    with engine.begin() as connection:
+        for name, sql_type in additions.items():
+            if name not in existing:
+                if dialect == "postgresql":
+                    connection.exec_driver_sql(
+                        f"ALTER TABLE {_REQUEST_USAGE.name} ADD COLUMN IF NOT EXISTS "
+                        f"{name} {sql_type}"
+                    )
+                    continue
+                connection.exec_driver_sql(
+                    f"ALTER TABLE {_REQUEST_USAGE.name} ADD COLUMN {name} {sql_type}"
+                )
+
+
+def apply_schema_migrations(engine: Engine) -> None:
+    """Record ordered schema revisions idempotently.
+
+    Column changes themselves are applied by ``create_all`` (fresh installs)
+    and ``migrate_usage_columns`` (existing databases); this ledger only
+    records *which* revisions the database has seen, in order, so application
+    order is explicit and re-running is a no-op. Rollback is out of scope by
+    design: every revision is additive, so a downgrade is at most an ignored
+    column, never lost rows.
+    """
+    with engine.begin() as connection:
+        applied = {
+            row[0] for row in connection.execute(select(_SCHEMA_VERSIONS.c.revision))
+        }
+        for revision, description in SCHEMA_MIGRATIONS:
+            if revision in applied:
+                continue
+            connection.execute(
+                insert(_SCHEMA_VERSIONS).values(
+                    revision=revision,
+                    description=description,
+                    applied_at=datetime.now(UTC),
+                )
+            )
+
+
+def applied_schema_revisions(engine: Engine) -> list[str]:
+    """Revisions recorded in application order (by applied timestamp)."""
+    with engine.begin() as connection:
+        rows = connection.execute(
+            select(_SCHEMA_VERSIONS.c.revision).order_by(
+                _SCHEMA_VERSIONS.c.applied_at, _SCHEMA_VERSIONS.c.revision
+            )
+        )
+        return [row[0] for row in rows]
+
+
+def ensure_schema(engine: Engine) -> None:
+    """Bring one database to the current schema: tables, columns, ledger.
+
+    Shared by every store entry point so initialization order never matters:
+    whichever store opens the database first performs the full upgrade.
+    """
+    _METADATA.create_all(
+        engine,
+        tables=[
+            _API_KEYS,
+            _API_KEY_RATE_LIMITS,
+            _REQUEST_USAGE,
+            _API_KEY_BUDGETS,
+            _BUDGET_RESERVATIONS,
+            _SCHEMA_VERSIONS,
+            _SABICHAT_USERS,
+            _SABICHAT_SESSIONS,
+            _SABICHAT_CONVERSATIONS,
+            _SABICHAT_MESSAGES,
+            _SHARED_INFERENCE,
+            _QUOTA_WINDOWS,
+            _QUOTA_RESERVATIONS,
+        ],
+    )
+    migrate_usage_columns(engine)
+    apply_schema_migrations(engine)
 _API_KEY_BUDGETS = Table(
     "sabiroute_api_key_budgets",
     _METADATA,
@@ -101,6 +257,61 @@ _BUDGET_RESERVATIONS = Table(
     Column("estimated_cost_usd", Numeric(20, 10), nullable=True),
     Column("accounted_cost_usd", Numeric(20, 10), nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
+)
+_SABICHAT_USERS = Table(
+    "sabichat_users",
+    _METADATA,
+    Column("user_id", String(36), primary_key=True),
+    Column("email", String(320), nullable=False, unique=True),
+    Column("password_hash", String(256), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("disabled_at", DateTime(timezone=True), nullable=True),
+)
+_SABICHAT_SESSIONS = Table(
+    "sabichat_sessions",
+    _METADATA,
+    Column("session_id", String(36), primary_key=True),
+    Column("user_id", String(36), ForeignKey("sabichat_users.user_id"), nullable=False),
+    Column("token_hash", String(64), nullable=False, unique=True),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("expires_at", DateTime(timezone=True), nullable=False),
+    Column("revoked_at", DateTime(timezone=True), nullable=True),
+)
+_SABICHAT_CONVERSATIONS = Table(
+    "sabichat_conversations",
+    _METADATA,
+    Column("conversation_id", String(36), primary_key=True),
+    Column("user_id", String(36), ForeignKey("sabichat_users.user_id"), nullable=False),
+    Column("title", String(120), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+)
+_SABICHAT_MESSAGES = Table(
+    "sabichat_messages",
+    _METADATA,
+    Column("message_id", String(36), primary_key=True),
+    Column(
+        "conversation_id",
+        String(36),
+        ForeignKey("sabichat_conversations.conversation_id"),
+        nullable=False,
+    ),
+    Column("role", String(16), nullable=False),
+    Column("content", String(8000), nullable=False),
+    Column("model", String(256), nullable=True),
+    Column("deployment", String(256), nullable=True),
+    Column("error_type", String(64), nullable=True),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+)
+Index(
+    "ix_sabichat_messages_conversation_time",
+    _SABICHAT_MESSAGES.c.conversation_id,
+    _SABICHAT_MESSAGES.c.created_at,
+)
+Index(
+    "ix_sabichat_conversations_user_time",
+    _SABICHAT_CONVERSATIONS.c.user_id,
+    _SABICHAT_CONVERSATIONS.c.created_at,
 )
 
 
@@ -133,39 +344,30 @@ class PostgresApiKeyStore:
                 _REQUEST_USAGE,
                 _API_KEY_BUDGETS,
                 _BUDGET_RESERVATIONS,
+                _SCHEMA_VERSIONS,
+                _SABICHAT_USERS,
+                _SABICHAT_SESSIONS,
+                _SABICHAT_CONVERSATIONS,
+                _SABICHAT_MESSAGES,
+                _SHARED_INFERENCE,
+                _QUOTA_WINDOWS,
+                _QUOTA_RESERVATIONS,
             ],
         )
         self._migrate_usage_columns()
+        self._apply_schema_migrations()
 
     def _migrate_usage_columns(self) -> None:
         """Add nullable accounting and routing telemetry fields to usage tables."""
-        from sqlalchemy import inspect
+        migrate_usage_columns(self._engine)
 
-        existing = {
-            column["name"] for column in inspect(self._engine).get_columns(_REQUEST_USAGE.name)
-        }
-        additions = {
-            "estimated_input_tokens": "INTEGER",
-            "reserved_tokens": "INTEGER",
-            "estimated_cost_usd": "NUMERIC(20, 10)",
-            "actual_cost_usd": "NUMERIC(20, 10)",
-            "routing_decisions": "JSON",
-            "feature_schema_version": "VARCHAR(16)",
-            "pre_routing_features": "JSON NOT NULL DEFAULT '[]'",
-        }
-        dialect = self._engine.dialect.name
-        with self._engine.begin() as connection:
-            for name, sql_type in additions.items():
-                if name not in existing:
-                    if dialect == "postgresql":
-                        connection.exec_driver_sql(
-                            f"ALTER TABLE {_REQUEST_USAGE.name} ADD COLUMN IF NOT EXISTS "
-                            f"{name} {sql_type}"
-                        )
-                        continue
-                    connection.exec_driver_sql(
-                        f"ALTER TABLE {_REQUEST_USAGE.name} ADD COLUMN {name} {sql_type}"
-                    )
+    def _apply_schema_migrations(self) -> None:
+        """Record ordered schema revisions idempotently (see module runner)."""
+        apply_schema_migrations(self._engine)
+
+    def applied_revisions(self) -> list[str]:
+        """Revisions recorded in application order (by applied timestamp)."""
+        return applied_schema_revisions(self._engine)
 
     def create(self, record: ApiKeyRecord) -> None:
         with self._engine.begin() as connection:
@@ -288,6 +490,65 @@ class PostgresApiKeyStore:
                     )
                 )
         return True
+
+    def get_shared_inference(self) -> bool | None:
+        """Read the shared-inference kill-switch state.
+
+        Returns True only when an administrator explicitly enabled it, False
+        when explicitly disabled, and None when no valid record exists.
+        Callers treat anything but True as disabled (fail closed).
+        """
+        with self._engine.connect() as connection:
+            row = (
+                connection.execute(
+                    select(_SHARED_INFERENCE).where(_SHARED_INFERENCE.c.id == "shared")
+                )
+                .mappings()
+                .first()
+            )
+        if row is None:
+            return None
+        value = row["enabled"]
+        return value if isinstance(value, bool) else None
+
+    def set_shared_inference(self, enabled: bool, actor: str) -> None:
+        """Upsert the kill-switch state with audit metadata (no secrets)."""
+        now = datetime.now(UTC)
+        with self._engine.begin() as connection:
+            result = connection.execute(
+                update(_SHARED_INFERENCE)
+                .where(_SHARED_INFERENCE.c.id == "shared")
+                .values(enabled=enabled, updated_at=now, updated_by=actor[:128])
+            )
+            if result.rowcount == 0:
+                connection.execute(
+                    insert(_SHARED_INFERENCE).values(
+                        id="shared",
+                        enabled=enabled,
+                        updated_at=now,
+                        updated_by=actor[:128],
+                    )
+                )
+
+    def shared_inference_status(self) -> dict[str, Any]:
+        """Safe status snapshot for the admin endpoint (no secrets)."""
+        with self._engine.connect() as connection:
+            row = (
+                connection.execute(
+                    select(_SHARED_INFERENCE).where(_SHARED_INFERENCE.c.id == "shared")
+                )
+                .mappings()
+                .first()
+            )
+        if row is None:
+            return {"enabled": False, "configured": False, "updated_at": None, "updated_by": None}
+        value = row["enabled"]
+        return {
+            "enabled": value is True,
+            "configured": isinstance(value, bool),
+            "updated_at": row["updated_at"],
+            "updated_by": row["updated_by"],
+        }
 
     def get_budget(self, key_id: str) -> ApiKeyBudget | None:
         with self._engine.connect() as connection:
@@ -468,6 +729,205 @@ class PostgresApiKeyStore:
                 )
             )
 
+    def check_and_reserve_quota(
+        self,
+        user_id: str,
+        request_id: str,
+        estimate: int,
+        window_start: datetime,
+        quota: int,
+    ) -> bool:
+        """Atomically verify allowance and reserve estimate for one request.
+
+        Single transaction: upsert the day aggregate, lock it, deny when
+        consumed + reserved + estimate exceeds the quota, otherwise bump the
+        reservation and record this request. Returns True when admitted.
+        A repeated call with the same ``request_id`` is a no-op success
+        (already counted), so retries of the admission itself cannot
+        double-charge. Non-positive estimates are rejected by the caller;
+        a non-positive estimate here admits nothing and reserves nothing.
+        """
+        if estimate < 1 or quota < 1:
+            return False
+        now = datetime.now(UTC)
+        with self._engine.begin() as connection:
+            # Portable upsert: the savepoint keeps the outer transaction
+            # alive on PostgreSQL when the row already exists (a bare failing
+            # INSERT would abort it); SQLite takes the same path.
+            try:
+                with connection.begin_nested():
+                    connection.execute(
+                        insert(_QUOTA_WINDOWS).values(
+                            user_id=user_id,
+                            window_start=window_start,
+                            reserved_tokens=0,
+                            consumed_tokens=0,
+                            updated_at=now,
+                        )
+                    )
+            except IntegrityError:
+                pass
+            window = (
+                connection.execute(
+                    select(_QUOTA_WINDOWS)
+                    .where(
+                        _QUOTA_WINDOWS.c.user_id == user_id,
+                        _QUOTA_WINDOWS.c.window_start == window_start,
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .one()
+            )
+            existing = connection.execute(
+                select(_QUOTA_RESERVATIONS.c.status).where(
+                    _QUOTA_RESERVATIONS.c.user_id == user_id,
+                    _QUOTA_RESERVATIONS.c.request_id == request_id,
+                )
+            ).first()
+            if existing is not None:
+                # Same logical request admitted before: no-op success so a
+                # retry of the admission itself cannot double-charge.
+                return True
+            if window["reserved_tokens"] + window["consumed_tokens"] + estimate > quota:
+                return False
+            connection.execute(
+                update(_QUOTA_WINDOWS)
+                .where(
+                    _QUOTA_WINDOWS.c.user_id == user_id,
+                    _QUOTA_WINDOWS.c.window_start == window_start,
+                )
+                .values(
+                    reserved_tokens=_QUOTA_WINDOWS.c.reserved_tokens + estimate,
+                    updated_at=now,
+                )
+            )
+            connection.execute(
+                insert(_QUOTA_RESERVATIONS).values(
+                    user_id=user_id,
+                    request_id=request_id,
+                    window_start=window_start,
+                    estimated_tokens=estimate,
+                    status="reserved",
+                    created_at=now,
+                )
+            )
+            return True
+
+    def settle_quota(
+        self, user_id: str, request_id: str, actual_tokens: int | None
+    ) -> None:
+        """Settle one reservation exactly once (idempotent).
+
+        With actuals, consumed grows by actuals and the estimate is released
+        from reserved. Without actuals (unknown provider usage), the estimate
+        moves reserved → consumed so the capacity stays conservatively held —
+        never silently freed, never assumed zero.
+        """
+        with self._engine.begin() as connection:
+            row = (
+                connection.execute(
+                    select(_QUOTA_RESERVATIONS).where(
+                        _QUOTA_RESERVATIONS.c.user_id == user_id,
+                        _QUOTA_RESERVATIONS.c.request_id == request_id,
+                        _QUOTA_RESERVATIONS.c.status == "reserved",
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .first()
+            )
+            if row is None:
+                return
+            estimate = row["estimated_tokens"]
+            settled = actual_tokens if actual_tokens is not None else estimate
+            connection.execute(
+                update(_QUOTA_WINDOWS)
+                .where(
+                    _QUOTA_WINDOWS.c.user_id == user_id,
+                    _QUOTA_WINDOWS.c.window_start == row["window_start"],
+                )
+                .values(
+                    reserved_tokens=_QUOTA_WINDOWS.c.reserved_tokens - estimate,
+                    consumed_tokens=_QUOTA_WINDOWS.c.consumed_tokens + settled,
+                    updated_at=datetime.now(UTC),
+                )
+            )
+            connection.execute(
+                update(_QUOTA_RESERVATIONS)
+                .where(
+                    _QUOTA_RESERVATIONS.c.user_id == user_id,
+                    _QUOTA_RESERVATIONS.c.request_id == request_id,
+                    _QUOTA_RESERVATIONS.c.status == "reserved",
+                )
+                .values(status="settled")
+            )
+
+    def release_quota(self, user_id: str, request_id: str) -> None:
+        """Release a reservation that never executed (idempotent).
+
+        Only ``reserved`` rows convert; settled rows are never touched, so a
+        release racing a settle cannot erase consumed usage.
+        """
+        with self._engine.begin() as connection:
+            row = (
+                connection.execute(
+                    select(_QUOTA_RESERVATIONS).where(
+                        _QUOTA_RESERVATIONS.c.user_id == user_id,
+                        _QUOTA_RESERVATIONS.c.request_id == request_id,
+                        _QUOTA_RESERVATIONS.c.status == "reserved",
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .first()
+            )
+            if row is None:
+                return
+            connection.execute(
+                update(_QUOTA_WINDOWS)
+                .where(
+                    _QUOTA_WINDOWS.c.user_id == user_id,
+                    _QUOTA_WINDOWS.c.window_start == row["window_start"],
+                )
+                .values(
+                    reserved_tokens=_QUOTA_WINDOWS.c.reserved_tokens - row["estimated_tokens"],
+                    updated_at=datetime.now(UTC),
+                )
+            )
+            connection.execute(
+                update(_QUOTA_RESERVATIONS)
+                .where(
+                    _QUOTA_RESERVATIONS.c.user_id == user_id,
+                    _QUOTA_RESERVATIONS.c.request_id == request_id,
+                    _QUOTA_RESERVATIONS.c.status == "reserved",
+                )
+                .values(status="released")
+            )
+
+    def get_quota_usage(self, user_id: str, window_start: datetime) -> dict[str, int]:
+        """Current reserved/consumed totals for one user-day (tests/admin)."""
+        with self._engine.connect() as connection:
+            row = (
+                connection.execute(
+                    select(
+                        _QUOTA_WINDOWS.c.reserved_tokens,
+                        _QUOTA_WINDOWS.c.consumed_tokens,
+                    ).where(
+                        _QUOTA_WINDOWS.c.user_id == user_id,
+                        _QUOTA_WINDOWS.c.window_start == window_start,
+                    )
+                )
+                .mappings()
+                .first()
+            )
+        if row is None:
+            return {"reserved_tokens": 0, "consumed_tokens": 0}
+        return {
+            "reserved_tokens": row["reserved_tokens"],
+            "consumed_tokens": row["consumed_tokens"],
+        }
+
     def create_usage_event(self, event: RequestUsageEvent) -> None:
         with self._engine.begin() as connection:
             connection.execute(insert(_REQUEST_USAGE).values(**_usage_values(event)))
@@ -590,6 +1050,7 @@ def _usage_values(event: RequestUsageEvent) -> dict[str, Any]:
         "routing_decisions": list(event.routing_decisions),
         "feature_schema_version": event.feature_schema_version,
         "pre_routing_features": list(event.pre_routing_features),
+        "usage_source": event.usage_source,
     }
 
 
@@ -613,6 +1074,9 @@ def _usage_from_row(row: Any) -> RequestUsageEvent:
         routing_decisions=tuple(row.get("routing_decisions") or ()),
         feature_schema_version=row.get("feature_schema_version"),
         pre_routing_features=tuple(row.get("pre_routing_features") or ()),
+        # Legacy rows predate the column (NULL): they stay "unknown".
+        # Attribution is never backfilled or invented.
+        usage_source=row.get("usage_source") or "unknown",
     )
 
 

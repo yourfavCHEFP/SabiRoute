@@ -1,1 +1,0 @@
-"""Benchmark entry point for SabiRoute."""
