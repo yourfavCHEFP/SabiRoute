@@ -1,0 +1,7278 @@
+{
+ "access_routes": [
+  {
+   "canonical_id": "amazon/nova-2-lite-v1",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "amazon/nova-2-lite-v1",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-32",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "amazon/nova-micro-v1",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 128000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. Reasoning flag absent.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "amazon/nova-micro-v1",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-37",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "reasoning support"
+   ]
+  },
+  {
+   "canonical_id": "apodex/apodex-1.1-mini",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "apodex/apodex-1.1-mini:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-02",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "canopylabs/orpheus-arabic-saudi",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Audio model; capability not verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "canopylabs/orpheus-arabic-saudi",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-07",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "canopylabs/orpheus-v1-english",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Audio model; capability not verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "canopylabs/orpheus-v1-english",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-08",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "cerebras/llama3-70b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "unknown",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Free-trial tier existence official; allowance unquantified. Version ambiguous vs meta/llama-3.3-70b-instruct; kept distinct.",
+   "evidence_ids": [
+    "E09",
+    "E34"
+   ],
+   "provider": "cerebras",
+   "provider_model_id": "cerebras/llama3-70b-instruct",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-cer-03",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-cerebras",
+    "configured": true
+   },
+   "unknowns": [
+    "trial allowance",
+    "rate limits",
+    "quota scope",
+    "version equivalence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/apertus-v1.5-8b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/apertus-v1.5-8b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-01",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/clef",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/clef",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-02",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/clef-flash",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/clef-flash",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-03",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/clef-omni",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/clef-omni",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-04",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-r1-distill-qwen-32b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/deepseek-r1-distill-qwen-32b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-05",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-v4-flash-0731",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Dated snapshot; distinct from deepseek-v4-flash. Shared pool; capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/deepseek-v4-flash-0731",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-06",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-v4-pro-0813",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Dated snapshot; no evidenced equivalent elsewhere. Shared pool; capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/deepseek-v4-pro-0813",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-07",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/eurollm-9b-it",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/eurollm-9b-it",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-08",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/gemma-2b-it-lora",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gemma-2b-it-lora",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-09",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/gemma-7b-it-lora",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gemma-7b-it-lora",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-11",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/gemma-sea-lion-v4-27b-it",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gemma-sea-lion-v4-27b-it",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-12",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/glm-4.7-flash",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "No evidenced equivalent on Pollinations; kept distinct. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/glm-4.7-flash",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-13",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/granite-4.0-h-micro",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/granite-4.0-h-micro",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-19",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/kimi-k2.7-code",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Distinct from kimi-k2.6. Coding capability suggested by name only \u2014 not verified.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/kimi-k2.7-code",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-21",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-2-7b-chat-hf-lora",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-2-7b-chat-hf-lora",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-22",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.1-8b-instruct-fp8",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Quant distinct from Groq llama-3.1-8b-instant; kept distinct. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-3.1-8b-instruct-fp8",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-23",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-11b-vision-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Vision suggested by ID only \u2014 capability NOT verified per no-inference rule. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-3.2-11b-vision-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-24",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-1b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-3.2-1b-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-25",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-3b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-3.2-3b-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-26",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.3-70b-instruct-fp8-fast",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Quant distinct from meta/llama-3.3-70b-instruct; kept distinct. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11",
+    "E34"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-27",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-cloudflare",
+    "configured": true
+   },
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence",
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-4-scout-17b-16e-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-4-scout-17b-16e-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-28",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/llama-guard-3-8b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Safety suggested by ID only \u2014 capability NOT verified per no-inference rule. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/llama-guard-3-8b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-29",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/mistral-7b-instruct-v0.2-lora",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/mistral-7b-instruct-v0.2-lora",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-30",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/mistral-small-3.1-24b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Distinct from mistral-large-3. Shared pool; capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/mistral-small-3.1-24b-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-31",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/nemotron-3-120b-a12b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Distinct from nemotron-3-ultra/super; kept distinct. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/nemotron-3-120b-a12b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-32",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/qwen2.5-coder-32b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Version-qualified; distinct from Ollama qwen2.5-coder family row. Coding NOT verified per no-inference rule.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/qwen2.5-coder-32b-instruct",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-33",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/qwen3-30b-a3b-fp8",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "No evidenced equivalent on Pollinations/Ollama lists; kept distinct. Shared pool.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/qwen3-30b-a3b-fp8",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-34",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/qwq-32b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/qwq-32b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-36",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-a-03-2025",
+   "capabilities": [
+    "text_generation",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13",
+    "E34"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "cohere_chat/command-a-03-2025",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-02",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-cohere",
+    "configured": true
+   },
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope",
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-a-plus-05-2026",
+   "capabilities": [
+    "text_generation",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-a-plus-05-2026",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-01",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-a-reasoning-08-2025",
+   "capabilities": [
+    "text_generation",
+    "reasoning"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-a-reasoning-08-2025",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-05",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-a-translate-08-2025",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Dedicated translation, 23 languages per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-a-translate-08-2025",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-04",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-a-vision-07-2025",
+   "capabilities": [
+    "text_generation",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Image-aware variant per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-a-vision-07-2025",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-06",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-r-08-2024",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-r-08-2024",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-07",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-r-plus-08-2024",
+   "capabilities": [
+    "text_generation",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-r-plus-08-2024",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-08",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/command-r7b-12-2024",
+   "capabilities": [
+    "text_generation",
+    "tool_calling",
+    "reasoning"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "command-r7b-12-2024",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-03",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-english-light-v3.0",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "384 dims per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-english-light-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-13",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-english-v3.0",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "1024 dims per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-english-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-12",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-multilingual-light-v3.0",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "384 dims per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-multilingual-light-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-15",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-multilingual-v3.0",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "1024 dims per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-multilingual-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-14",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-v4.0",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Text+image vectors per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-v4.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-11",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-v5.0-fast",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Text+image vectors per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-v5.0-fast",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-10",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/embed-v5.0-pro",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Text+image vectors per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "embed-v5.0-pro",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-09",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/rerank-english-v3.0",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "English-only, 4k window per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "rerank-english-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-19",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/rerank-multilingual-v3.0",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Trial key free, non-production; no numeric allowance published.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "rerank-multilingual-v3.0",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-20",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/rerank-v3.5",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "English-only, 4k window per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "rerank-v3.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-18",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/rerank-v4.0-fast",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Low-latency multilingual per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "rerank-v4.0-fast",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-17",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "cohere/rerank-v4.0-pro",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Multilingual incl. JSON per official docs. Trial terms as above.",
+   "evidence_ids": [
+    "E12",
+    "E13"
+   ],
+   "provider": "cohere",
+   "provider_model_id": "rerank-v4.0-pro",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-coh-16",
+   "unknowns": [
+    "trial allowance amounts",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "deepinfra/meta-llama-3-70B",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "PAID_ONLY",
+   "display_note": "No free tier: card or pre-pay mandatory. Informational record; excluded from free counts.",
+   "evidence_ids": [
+    "E16",
+    "E34"
+   ],
+   "provider": "deepinfra",
+   "provider_model_id": "deepinfra/meta-llama/Meta-Llama-3-70B-Instruct",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-paid-01",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-deepinfra",
+    "configured": true
+   },
+   "unknowns": [
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4-pro",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "PAID_ONLY",
+   "display_note": "Official pricing lists per-token prices; 'granted balance' unquantified; top-up required. Excluded from free counts.",
+   "evidence_ids": [
+    "E28"
+   ],
+   "provider": "deepseek",
+   "provider_model_id": "deepseek-v4-pro",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-paid-02",
+   "unknowns": [
+    "granted-balance amount/eligibility",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "dots-studio/dots-3-note-preview",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 512000,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "dots-studio/dots-3-note-preview:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-03",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "fireworks/qwen3-8b-embedding",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "PAID_ONLY",
+   "display_note": "Prepaid-only; no trial disclosed. $0.1/M embedding rate. Excluded from free counts.",
+   "evidence_ids": [
+    "E27"
+   ],
+   "provider": "fireworks",
+   "provider_model_id": "accounts/fireworks/models/qwen3-8b-embedding",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-paid-03",
+   "unknowns": [
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "google/gemini-3.5-flash-lite",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free tier existence official; per-model numeric limits unmapped. Pool scope per-project.",
+   "evidence_ids": [
+    "E05",
+    "E06",
+    "E35"
+   ],
+   "provider": "google",
+   "provider_model_id": "gemini/gemini-3.5-flash-lite",
+   "quota_pool_id": "gemini-project",
+   "route_id": "R-gem-03",
+   "unknowns": [
+    "per-model RPM/RPD/TPM",
+    "account access verification",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "google/gemini-3.6-flash",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free tier existence official; per-model numeric limits unmapped. Pool scope per-project.",
+   "evidence_ids": [
+    "E05",
+    "E06"
+   ],
+   "provider": "google",
+   "provider_model_id": "gemini/gemini-3.6-flash",
+   "quota_pool_id": "gemini-project",
+   "route_id": "R-gem-02",
+   "unknowns": [
+    "per-model RPM/RPD/TPM",
+    "account access verification",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "google/gemini-3.8-flash",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free tier existence official; per-model numeric limits unmapped. Chat verified via repo runtime evidence (probe_ref).",
+   "evidence_ids": [
+    "E05",
+    "E06",
+    "E34",
+    "E35"
+   ],
+   "provider": "google",
+   "provider_model_id": "gemini/gemini-3.8-flash",
+   "quota_pool_id": "gemini-project",
+   "route_id": "R-gem-01",
+   "sabiroute_binding": {
+    "access_verified": true,
+    "alias": "sabiroute-gemini",
+    "configured": true,
+    "last_check": "2026-10-10",
+    "probe_ref": "docs/capabilities.md runtime evidence (2026-10-10)"
+   },
+   "unknowns": [
+    "per-model RPM/RPD/TPM",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "google/gemma-4-26b-a4b-it",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "google/gemma-4-26b-a4b-it:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-14",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "google/gemma-4-31b-it",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "google/gemma-4-31b-it:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-15",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "groq/llama-3.1-8b-instant",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan caps official. Capabilities unmapped from excerpts; not inferred.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "limits": {
+    "reset": "daily",
+    "rpm": 30,
+    "rpd": 14400,
+    "tpm": 15000,
+    "tpd": 500000
+   },
+   "provider": "groq",
+   "provider_model_id": "llama-3.1-8b-instant",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-01",
+   "unknowns": [
+    "capabilities",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "inclusionai/ling-3.1-flash",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps. Caps verified on Pollinations record.",
+   "evidence_ids": [
+    "E01",
+    "E02",
+    "E07"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "inclusionai/ling-3.1-flash",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-01",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "pool independence across OR/Pollinations/Groq"
+   ]
+  },
+  {
+   "canonical_id": "jaredpalmer/kev-4b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 8192,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. No capability flags in catalog.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "jaredpalmer/kev-4b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-03",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "jina/clip-v2",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated. Multimodal per official page.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-clip-v2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-07",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/code-embeddings-0.5b",
+   "capabilities": [
+    "embeddings",
+    "coding"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-code-embeddings-0.5b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-09",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/colbert-v2",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-colbert-v2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-08",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v3",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-03",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v4",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-04",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-omni-nano",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated. Multimodal per official page.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v5-omni-nano",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-06",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-omni-small",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated. Multimodal per official page.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v5-omni-small",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-05",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-text-nano",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v5-text-nano",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-02",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-text-small",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-embeddings-v5-text-small",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-01",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "jina/reranker-v3",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free key with velocity caps; cumulative total unstated.",
+   "evidence_ids": [
+    "E24"
+   ],
+   "limits": {
+    "reset": "unknown",
+    "rpm": 100,
+    "tpm": 100000
+   },
+   "provider": "jina",
+   "provider_model_id": "jina-reranker-v3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-jina-10",
+   "unknowns": [
+    "cumulative free total",
+    "reset period",
+    "quota scope",
+    "card requirement"
+   ]
+  },
+  {
+   "canonical_id": "liquid/lfm-2.5-2.6b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 65536,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "liquid/lfm-2.5-2.6b:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-04",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "meta/llama-prompt-guard-2-22m",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Capability not verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "meta-llama/llama-prompt-guard-2-22m",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-09",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "meta/llama-prompt-guard-2-86m",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Capability not verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "meta-llama/llama-prompt-guard-2-86m",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-10",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "minimax/minimax-m2.7",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Version distinct from minimax-m3.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "minimaxai/minimax-m2.7",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-11",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "minimax/minimax-m3",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 524288,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "minimax/minimax-m3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-24",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "mistralai/mistral-large-3",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 256000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "mistralai/mistral-large-3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-30",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "mistralai/mistral-large-api",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "PAID_ONLY",
+   "display_note": "No API trial credits evidenced; API credits bundled with paid subs only. Le Chat consumer free is not API access.",
+   "evidence_ids": [
+    "E29"
+   ],
+   "provider": "mistral",
+   "provider_model_id": "mistral-large (La Plateforme API)",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-paid-04",
+   "unknowns": [
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "moonshotai/kimi-k2.6",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "moonshotai/kimi-k2.6",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-29",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "moonshotai/kimi-k3",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "moonshotai/kimi-k3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-18",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-5-lightning",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 1000000,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps. Caps verified on Pollinations record (262144 there; OR reports 1000000).",
+   "evidence_ids": [
+    "E01",
+    "E02",
+    "E07"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "nvidia/nemotron-3.5-lightning:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-05",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "pool independence across OR/Pollinations",
+    "context-length discrepancy (262144 vs 1000000)"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-content-safety",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 128000,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "nvidia/nemotron-3.5-content-safety:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-11",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-nano-omni-30b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 256000,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-13",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-super-120b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "nvidia/nemotron-3-super-120b-a12b:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-18",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-ultra",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262144,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "nvidia/nemotron-3-ultra",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-17",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-ultra-550b-a55b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 1000000,
+   "display_note": "Version-qualified; distinct from nemotron-3-ultra; possible duplicate flagged, not merged.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-12",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities",
+    "version equivalence"
+   ]
+  },
+  {
+   "canonical_id": "ollama/deepseek-r1",
+   "capabilities": [
+    "text_generation",
+    "reasoning"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "verified",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row; license unknown; RAM requirements not documented \u2014 not estimated.",
+   "evidence_ids": [
+    "E19",
+    "E21"
+   ],
+   "local_artifact": {
+    "disk_size": "1.1GB-404GB by tag (1.5b-671b)",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "deepseek-r1",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-02",
+   "unknowns": [
+    "license",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/gemma2",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (2b/9b/27b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "gemma2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-07",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/gemma3",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (270m-27b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "gemma3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-05",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/gemma4",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row; distinct from version-qualified gemma-4-26b/31b. License/hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "gemma4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-09",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/gpt-oss",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (20b/120b); distinct from version-qualified hosted routes. License/hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "gpt-oss",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-15",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/llama3",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "partial",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (8b/70b). License: Llama Community (v2-text served caveat).",
+   "evidence_ids": [
+    "E19",
+    "E23"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "Llama Community License (v2 text served; 3.x presumed same family)",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "llama3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-10",
+   "unknowns": [
+    "disk size",
+    "RAM/hardware requirements",
+    "3.x license text confirmation"
+   ]
+  },
+  {
+   "canonical_id": "ollama/llama3.1",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "verified",
+    "identity": "verified",
+    "license": "partial",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (8b/70b/405b). License: Llama Community (v2-text served caveat).",
+   "evidence_ids": [
+    "E19",
+    "E20",
+    "E23"
+   ],
+   "local_artifact": {
+    "disk_size": "4.9GB/43GB/243GB (8b/70b/405b)",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "Llama Community License (v2 text served; 3.x presumed same family)",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "llama3.1",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-01",
+   "unknowns": [
+    "RAM/hardware requirements",
+    "3.x license text confirmation"
+   ]
+  },
+  {
+   "canonical_id": "ollama/llama3.2",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "partial",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (1b/3b). License: Llama Community (v2-text served caveat).",
+   "evidence_ids": [
+    "E19",
+    "E23"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "Llama Community License (v2 text served; 3.x presumed same family)",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "llama3.2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-03",
+   "unknowns": [
+    "disk size",
+    "RAM/hardware requirements",
+    "3.x license text confirmation"
+   ]
+  },
+  {
+   "canonical_id": "ollama/llava",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (7b/13b/34b). Vision suggested by family only \u2014 NOT verified.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "llava",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-14",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "ollama/mistral",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (7b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "mistral",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-08",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/phi3",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (3.8b/14b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "phi3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-13",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/qwen2.5",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (0.5b-72b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "qwen2.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-04",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/qwen2.5-coder",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (0.5b-32b). Coding suggested by family only \u2014 NOT verified. License/hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "qwen2.5-coder",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-11",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "ollama/qwen3",
+   "capabilities": [
+    "text_generation",
+    "reasoning"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "verified",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (0.6b-235b); tools+thinking flags official; text-only rows. License unknown; RAM not documented.",
+   "evidence_ids": [
+    "E19",
+    "E22"
+   ],
+   "local_artifact": {
+    "disk_size": "523MB-142GB by tag",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "qwen3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-06",
+   "unknowns": [
+    "license",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "ollama/qwen3.5",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "partial",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "LOCAL_INFERENCE",
+   "display_note": "Local family row (0.8b-122b). License, disk, hardware unknown.",
+   "evidence_ids": [
+    "E19"
+   ],
+   "local_artifact": {
+    "disk_size": "unknown",
+    "format": "gguf",
+    "hardware_minimum": "unknown",
+    "license": "unknown",
+    "runtime": "ollama"
+   },
+   "provider": "ollama",
+   "provider_model_id": "qwen3.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "unmapped",
+   "route_id": "R-oll-12",
+   "unknowns": [
+    "license",
+    "disk size",
+    "RAM/hardware requirements"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5-nano",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 400000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5-nano",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-38",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.4",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-39",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.4-mini",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 400000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.4-mini",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-26",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.4-nano",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 400000,
+   "display_note": "Pollen-metered with published per-token pollen prices; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.4-nano",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-01",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.5",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-27",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-luna",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.6-luna",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-21",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-sol",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.6-sol",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-22",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-terra",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.6-terra",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-23",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-5.3-codex",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling",
+    "coding"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 400000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. Coding per catalog description.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-5.3-codex",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-06",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-6-astra",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-6-astra",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-11",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-6-luna",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Exact ID verified in Pollinations catalog 2026-10-10; placeholder suspicion dismissed. Pollen-metered; free quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08",
+    "E34"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-6-luna",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-07",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-pollinations",
+    "configured": true
+   },
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "account access verification"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-6-sol",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-6-sol",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-08",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-6.1-sol",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1050000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-6.1-sol",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-04",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-audio-1.5",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 128000,
+   "display_note": "Audio-adjacent; capability unmapped beyond catalog flags. Reasoning flag absent.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-audio-1.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-31",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "audio capabilities"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-audio-mini",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 128000,
+   "display_note": "Audio-adjacent; capability unmapped beyond catalog flags. Reasoning flag absent.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-audio-mini",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-40",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "audio capabilities"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "capabilities": [
+    "text_generation",
+    "reasoning"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 131072,
+   "display_note": "Pollen-metered route; cross-provider pool relations UNKNOWN. Distinct from Together/Cerebras/Groq/Cloudflare routes.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-oss-120b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-19",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-20b",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 131072,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "openai/gpt-oss-20b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-19b",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-safeguard-20b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. Safety capability NOT verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "openai/gpt-oss-safeguard-20b",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-12",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "pollinations/midijourney",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "pollinations/midijourney",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-41",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "pollinations/midijourney-large",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. Reasoning flag absent.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "pollinations/midijourney-large",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-33",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "reasoning support"
+   ]
+  },
+  {
+   "canonical_id": "poolside/laguna-s-2.1",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "poolside/laguna-s-2.1:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-07",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "poolside/laguna-xs-2.1",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 262144,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "poolside/laguna-xs-2.1:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-09",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-2.4t-a95b",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262144,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "qwen/qwen3.8-2.4t-a95b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-15",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-27b",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Cross-provider pool relations UNKNOWN. Capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/qwen3.8-27b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-35",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "qwen/qwen3guard-gen-8b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. No capability flags in catalog.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "qwen/qwen3guard-gen-8b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-34",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "respan/span-01-lite",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. No capability flags or ctx in catalog.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "respan/span-01-lite",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-05",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "capabilities",
+    "context length"
+   ]
+  },
+  {
+   "canonical_id": "thinkingmachines/inkling",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 1048576,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "thinkingmachines/inkling:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-08",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "thinkingmachines/inkling-small",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "context_length": 1048576,
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "credit_threshold_usd": 10,
+    "reset": "daily",
+    "rpm": 20,
+    "rpd_with_credits": 1000,
+    "rpd_standard": 50
+   },
+   "provider": "openrouter",
+   "provider_model_id": "thinkingmachines/inkling-small:free",
+   "quota_pool_id": "openrouter-acct",
+   "route_id": "R-or-06",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "typesafe/jev-1.13",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 64000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. No capability flags in catalog.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "typesafe/jev-1.13",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-09",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "voyage/code-2",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 50M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-code-2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-08",
+   "trial_grant": {
+    "tokens": 50000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/code-4",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "Prose names code-3 with 200M grant; table lists code-4. Recorded as code-4 with ambiguity flagged.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-code-4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-05",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "code-3 vs code-4 identity",
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/context-4",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-context-4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-04",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/finance-2",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 50M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-finance-2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-06",
+   "trial_grant": {
+    "tokens": 50000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/law-2",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 50M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-law-2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-07",
+   "trial_grant": {
+    "tokens": 50000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/multilingual-2",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 50M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-multilingual-2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-09",
+   "trial_grant": {
+    "tokens": 50000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/multimodal-3",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M text tokens + 150B pixels per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-multimodal-3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-11",
+   "trial_grant": {
+    "pixels": 150000000000,
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/multimodal-3.5",
+   "capabilities": [
+    "embeddings",
+    "vision"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M text tokens + 150B pixels per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-multimodal-3.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-10",
+   "trial_grant": {
+    "pixels": 150000000000,
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/rerank-2",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "rerank-2",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-13",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/rerank-2-lite",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "rerank-2-lite",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-14",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/rerank-2.5",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "rerank-2.5",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-12",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/rerank-2.5-lite",
+   "capabilities": [
+    "reranking"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "rerank-2.5-lite",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-12b",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/voyage-4",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-4",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-02",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/voyage-4-large",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-4-large",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-01",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "voyage/voyage-4-lite",
+   "capabilities": [
+    "embeddings"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_QUANTIFIED_TRIAL",
+   "display_note": "One-time 200M-token grant per official pricing; expiry/card unstated.",
+   "evidence_ids": [
+    "E25"
+   ],
+   "provider": "voyage",
+   "provider_model_id": "voyage-4-lite",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-voy-03",
+   "trial_grant": {
+    "tokens": 200000000,
+    "type": "one_time"
+   },
+   "unknowns": [
+    "expiry",
+    "card requirement",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "whisper/large-v3",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. STT capability NOT verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "whisper-large-v3",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-05",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "whisper/large-v3-turbo",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped. STT capability NOT verified from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "whisper-large-v3-turbo",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-06",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "x-ai/grok-4.20",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262144,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "x-ai/grok-4.20",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-35",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "x-ai/grok-4.3",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 200000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "x-ai/grok-4.3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-25",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "x-ai/grok-4.6",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 200000,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "x-ai/grok-4.6",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-20",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "z-ai/glm-5.3",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "z-ai/glm-5.3",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-14",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "z-ai/glm-5.3-flash",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "z-ai/glm-5.3-flash",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-12",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "inclusionai/ling-3.1-flash",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262144,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "inclusionai/ling-3.1-flash",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-02",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4.1-flash",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "deepseek/deepseek-v4.1-flash",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-10",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-5-lightning",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 262144,
+   "display_note": "Pollen-metered route; OR-route ctx discrepancy recorded on R-or-05.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "nvidia/nemotron-3.5-lightning",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-13",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "meta/llama-3.3-70b-instruct",
+   "capabilities": [
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 131072,
+   "display_note": "Pollen-metered; reasoning flag absent in catalog record.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "meta/llama-3.3-70b-instruct",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-28",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits",
+    "reasoning support"
+   ]
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4-flash",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "context_length": 1048576,
+   "display_note": "Pollen-metered; free Pollen quantum undocumented.",
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "provider": "pollinations",
+   "provider_model_id": "deepseek/deepseek-v4-flash",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-pol-36",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "canonical_id": "google/gemma-4-26b-a4b-it",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Same canonical as OR route R-or-14; shared-pool member, never summed. Capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gemma-4-26b-a4b-it",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-10",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.2",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/glm-5.2",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-14",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.3",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/glm-5.3",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-15",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.3-flash",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Covered by shared 10,000 Neurons/day pool. Capabilities unmapped; not inferred.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/glm-5.3-flash",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-16",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "groq/llama-3.3-70b-versatile",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped for this ID. Provider-versioned label kept distinct.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "llama-3.3-70b-versatile",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-02",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "meta/llama-3.3-70b-instruct",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "BYOK_REQUIRED",
+   "display_note": "BYOK arrangement record: custom third-party keys consume no HF credits; billed by the key's provider. No allowance verified.",
+   "evidence_ids": [
+    "E15"
+   ],
+   "provider": "huggingface-custom-key",
+   "provider_model_id": "meta-llama/Llama-3.3-70B-Instruct via custom key",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-byok-01",
+   "unknowns": [
+    "provider-side allowance",
+    "rate limits",
+    "quota scope"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Same canonical as Pollinations/Cerebras/Groq routes; shared-pool member here, never summed. Capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gpt-oss-120b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-17",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-20b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Same canonical as Pollinations route; shared-pool member here, never summed. Capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/gpt-oss-20b",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-18",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "moonshotai/kimi-k2.6",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Same canonical as Pollinations route; shared-pool member here, never summed. Capabilities unmapped.",
+   "evidence_ids": [
+    "E10",
+    "E11"
+   ],
+   "provider": "cloudflare",
+   "provider_model_id": "cloudflare/@cf/kimi-k2.6",
+   "quota_pool_id": "cloudflare-neurons",
+   "route_id": "R-cf-20",
+   "unknowns": [
+    "capabilities",
+    "per-model neuron cost",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "capabilities": [
+    "text_generation"
+   ],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Chat+streaming verified via repo runtime evidence (probe_ref). Cross-provider pool relations UNKNOWN.",
+   "evidence_ids": [
+    "E03",
+    "E04",
+    "E34",
+    "E35"
+   ],
+   "limits": {
+    "reset": "daily",
+    "rpm": 30,
+    "rpd": 1000,
+    "tpm": 8000,
+    "tpd": 200000
+   },
+   "provider": "groq",
+   "provider_model_id": "groq/openai/gpt-oss-120b",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-03",
+   "sabiroute_binding": {
+    "access_verified": true,
+    "alias": "sabiroute-groq",
+    "configured": true,
+    "last_check": "2026-10-10",
+    "probe_ref": "docs/capabilities.md runtime evidence (2026-10-10)"
+   },
+   "unknowns": [
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-20b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "verified",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan caps official (shared excerpt figures with 120b). Capabilities unmapped from excerpts.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "limits": {
+    "reset": "daily",
+    "rpm": 30,
+    "rpd": 1000,
+    "tpm": 8000,
+    "tpd": 200000
+   },
+   "provider": "groq",
+   "provider_model_id": "openai/gpt-oss-20b",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-04",
+   "unknowns": [
+    "capabilities",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-27b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "verified",
+    "allowance": "partial",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_RECURRING_FREE",
+   "display_note": "Free-plan listed; per-model numeric caps unmapped for this ID. Cross-provider pool relations UNKNOWN.",
+   "evidence_ids": [
+    "E03",
+    "E04"
+   ],
+   "provider": "groq",
+   "provider_model_id": "qwen/qwen3.8-27b",
+   "quota_pool_id": "groq-org",
+   "route_id": "R-groq-13",
+   "unknowns": [
+    "per-model numeric caps",
+    "capabilities",
+    "pool independence"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "unknown",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Free-trial tier existence official; allowance unquantified. Cross-provider pool relations UNKNOWN.",
+   "evidence_ids": [
+    "E09"
+   ],
+   "provider": "cerebras",
+   "provider_model_id": "cerebras/gpt-oss-120b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-cer-01",
+   "unknowns": [
+    "trial allowance",
+    "rate limits",
+    "quota scope",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-27b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "unknown",
+    "quota_relation": "unknown"
+   },
+   "classification": "VERIFIED_UNQUANTIFIED_TRIAL",
+   "display_note": "Free-trial tier existence official; allowance unquantified. Cross-provider pool relations UNKNOWN.",
+   "evidence_ids": [
+    "E09"
+   ],
+   "provider": "cerebras",
+   "provider_model_id": "cerebras/qwen-3.8-27b",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-cer-02",
+   "unknowns": [
+    "trial allowance",
+    "rate limits",
+    "quota scope",
+    "capabilities"
+   ]
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "capabilities": [],
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "unknown",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "unknown",
+    "quota_relation": "unknown"
+   },
+   "classification": "ACCESS_UNKNOWN",
+   "display_note": "Vague 'start for free' language only; per amendment rule this cannot establish a verified trial. Last stored probe: AUTHENTICATION_ERROR (invalid key).",
+   "evidence_ids": [
+    "E14",
+    "E34"
+   ],
+   "provider": "together",
+   "provider_model_id": "together_ai/openai/gpt-oss-120B",
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "route_id": "R-tog-01",
+   "sabiroute_binding": {
+    "access_verified": false,
+    "alias": "sabiroute-together",
+    "configured": true
+   },
+   "unknowns": [
+    "trial amount",
+    "expiry",
+    "card requirement",
+    "rate limits",
+    "quota scope",
+    "account access verification",
+    "capabilities"
+   ]
+  },
+  {
+   "route_id": "R-pol-16",
+   "canonical_id": "cohere/command-a-plus",
+   "provider": "pollinations",
+   "provider_model_id": "cohere/command-a-plus",
+   "classification": "EARNED_OR_PROMOTIONAL_CREDITS",
+   "capabilities": [
+    "text_generation",
+    "reasoning",
+    "tool_calling"
+   ],
+   "context_length": 128000,
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "unknown",
+    "capability": "verified",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "partial",
+    "quota_relation": "unknown"
+   },
+   "evidence_ids": [
+    "E07",
+    "E08"
+   ],
+   "quota_pool_id": null,
+   "pool_unknown_reason": "provider_undisclosed",
+   "display_note": "Pollen-metered; free Pollen quantum undocumented. Version distinct from command-a-plus-05-2026.",
+   "unknowns": [
+    "free Pollen allowance",
+    "quota scope",
+    "rate limits"
+   ]
+  },
+  {
+   "route_id": "R-or-10",
+   "canonical_id": "cohere/north-mini-code",
+   "provider": "openrouter",
+   "provider_model_id": "cohere/north-mini-code:free",
+   "classification": "VERIFIED_RECURRING_FREE",
+   "capabilities": [
+    "text_generation",
+    "coding"
+   ],
+   "context_length": 256000,
+   "claim_confidence": {
+    "access_terms": "partial",
+    "allowance": "verified",
+    "capability": "partial",
+    "hardware": "unknown",
+    "identity": "verified",
+    "license": "unknown",
+    "pricing": "verified",
+    "quota_relation": "unknown"
+   },
+   "evidence_ids": [
+    "E01",
+    "E02"
+   ],
+   "limits": {
+    "rpm": 20,
+    "rpd_standard": 50,
+    "rpd_with_credits": 1000,
+    "credit_threshold_usd": 10,
+    "reset": "daily"
+   },
+   "quota_pool_id": "openrouter-acct",
+   "display_note": "$0 prompt/completion via public models API; subject to OR free-tier caps.",
+   "unknowns": [
+    "per-model eligibility confirmation",
+    "pool independence"
+   ]
+  }
+ ],
+ "canonical_models": [
+  {
+   "canonical_id": "amazon/nova-2-lite-v1",
+   "display_name": "Amazon Nova 2 Lite",
+   "family": "nova"
+  },
+  {
+   "canonical_id": "amazon/nova-micro-v1",
+   "display_name": "Amazon Nova Micro",
+   "family": "nova"
+  },
+  {
+   "canonical_id": "apodex/apodex-1.1-mini",
+   "display_name": "Apodex 1.1 Mini",
+   "family": "apodex"
+  },
+  {
+   "canonical_id": "canopylabs/orpheus-arabic-saudi",
+   "display_name": "Orpheus Arabic Saudi TTS",
+   "family": "orpheus",
+   "notes": "Audio model; capability unmapped from official Groq docs excerpts."
+  },
+  {
+   "canonical_id": "canopylabs/orpheus-v1-english",
+   "display_name": "Orpheus English TTS",
+   "family": "orpheus",
+   "notes": "Audio model; capability unmapped from official Groq docs excerpts."
+  },
+  {
+   "canonical_id": "cerebras/llama3-70b-instruct",
+   "display_name": "Llama 3 70B Instruct (Cerebras)",
+   "family": "llama",
+   "notes": "Version ambiguous vs meta/llama-3.3-70b-instruct; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/apertus-v1.5-8b",
+   "display_name": "Apertus 1.5 8B",
+   "family": "apertus"
+  },
+  {
+   "canonical_id": "cloudflare/clef",
+   "display_name": "Clef",
+   "family": "clef"
+  },
+  {
+   "canonical_id": "cloudflare/clef-flash",
+   "display_name": "Clef Flash",
+   "family": "clef"
+  },
+  {
+   "canonical_id": "cloudflare/clef-omni",
+   "display_name": "Clef Omni",
+   "family": "clef"
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-r1-distill-qwen-32b",
+   "display_name": "DeepSeek R1 Distill Qwen 32B (CF)",
+   "family": "deepseek",
+   "notes": "Version distinct from deepseek-r1 family; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-v4-flash-0731",
+   "display_name": "DeepSeek V4 Flash 0731 (CF)",
+   "family": "deepseek",
+   "notes": "Dated snapshot; distinct from deepseek-v4-flash."
+  },
+  {
+   "canonical_id": "cloudflare/deepseek-v4-pro-0813",
+   "display_name": "DeepSeek V4 Pro 0813 (CF)",
+   "family": "deepseek",
+   "notes": "Dated snapshot; no evidenced equivalent elsewhere."
+  },
+  {
+   "canonical_id": "cloudflare/eurollm-9b-it",
+   "display_name": "EuroLLM 9B IT",
+   "family": "eurollm"
+  },
+  {
+   "canonical_id": "cloudflare/gemma-2b-it-lora",
+   "display_name": "Gemma 2B IT LoRA",
+   "family": "gemma"
+  },
+  {
+   "canonical_id": "cloudflare/gemma-7b-it-lora",
+   "display_name": "Gemma 7B IT LoRA",
+   "family": "gemma"
+  },
+  {
+   "canonical_id": "cloudflare/gemma-sea-lion-v4-27b-it",
+   "display_name": "Sea Lion v4 27B IT",
+   "family": "gemma"
+  },
+  {
+   "canonical_id": "cloudflare/glm-4.7-flash",
+   "display_name": "GLM 4.7 Flash (CF)",
+   "family": "glm",
+   "notes": "No evidenced equivalent on Pollinations; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.2",
+   "display_name": "GLM 5.2 (CF)",
+   "family": "glm"
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.3",
+   "display_name": "GLM 5.3 (CF)",
+   "family": "glm"
+  },
+  {
+   "canonical_id": "cloudflare/glm-5.3-flash",
+   "display_name": "GLM 5.3 Flash (CF)",
+   "family": "glm"
+  },
+  {
+   "canonical_id": "groq/llama-3.3-70b-versatile",
+   "display_name": "Llama 3.3 70B Versatile (Groq)",
+   "family": "llama",
+   "notes": "Provider-versioned label; distinct from meta/llama-3.3-70b-instruct and CF FP8 variant; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/granite-4.0-h-micro",
+   "display_name": "Granite 4.0 H Micro",
+   "family": "granite"
+  },
+  {
+   "canonical_id": "cloudflare/kimi-k2.7-code",
+   "display_name": "Kimi K2.7 Code (CF)",
+   "family": "kimi",
+   "notes": "Distinct from kimi-k2.6; community kimi-k2-7-code excluded."
+  },
+  {
+   "canonical_id": "cloudflare/llama-2-7b-chat-hf-lora",
+   "display_name": "Llama 2 7B Chat LoRA",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.1-8b-instruct-fp8",
+   "display_name": "Llama 3.1 8B Instruct FP8 (CF)",
+   "family": "llama",
+   "notes": "Quant/version distinct from Groq llama-3.1-8b-instant; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-11b-vision-instruct",
+   "display_name": "Llama 3.2 11B Vision",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-1b-instruct",
+   "display_name": "Llama 3.2 1B",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.2-3b-instruct",
+   "display_name": "Llama 3.2 3B",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "cloudflare/llama-3.3-70b-instruct-fp8-fast",
+   "display_name": "Llama 3.3 70B FP8 Fast (CF)",
+   "family": "llama",
+   "notes": "Quant distinct from meta/llama-3.3-70b-instruct; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/llama-4-scout-17b-16e-instruct",
+   "display_name": "Llama 4 Scout (CF)",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "cloudflare/llama-guard-3-8b",
+   "display_name": "Llama Guard 3 8B (CF)",
+   "family": "llama-guard"
+  },
+  {
+   "canonical_id": "cloudflare/mistral-7b-instruct-v0.2-lora",
+   "display_name": "Mistral 7B Instruct v0.2 LoRA",
+   "family": "mistral"
+  },
+  {
+   "canonical_id": "cloudflare/mistral-small-3.1-24b-instruct",
+   "display_name": "Mistral Small 3.1 24B",
+   "family": "mistral",
+   "notes": "Distinct from mistral-large-3."
+  },
+  {
+   "canonical_id": "cloudflare/nemotron-3-120b-a12b",
+   "display_name": "Nemotron 3 120B A12B (CF)",
+   "family": "nemotron",
+   "notes": "Distinct from nemotron-3-ultra/super; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/qwen2.5-coder-32b-instruct",
+   "display_name": "Qwen2.5 Coder 32B (CF)",
+   "family": "qwen",
+   "notes": "Version-qualified; distinct from Ollama qwen2.5-coder family row."
+  },
+  {
+   "canonical_id": "cloudflare/qwen3-30b-a3b-fp8",
+   "display_name": "Qwen3 30B A3B FP8 (CF)",
+   "family": "qwen",
+   "notes": "No evidenced equivalent on Pollinations/Ollama lists; kept distinct."
+  },
+  {
+   "canonical_id": "cloudflare/qwq-32b",
+   "display_name": "QwQ 32B (CF)",
+   "family": "qwq"
+  },
+  {
+   "canonical_id": "cohere/command-a-03-2025",
+   "display_name": "Command A 03-2025",
+   "family": "command",
+   "notes": "Flagship chat/agents, 256k input per official docs. Bound to sabiroute-cohere alias."
+  },
+  {
+   "canonical_id": "cohere/command-a-plus",
+   "display_name": "Command A Plus (Pollinations)",
+   "family": "command",
+   "notes": "Version distinct from command-a-plus-05-2026; kept distinct."
+  },
+  {
+   "canonical_id": "cohere/command-a-plus-05-2026",
+   "display_name": "Command A Plus 05-2026",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-a-reasoning-08-2025",
+   "display_name": "Command A Reasoning",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-a-translate-08-2025",
+   "display_name": "Command A Translate",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-a-vision-07-2025",
+   "display_name": "Command A Vision",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-r-08-2024",
+   "display_name": "Command R 08-2024",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-r-plus-08-2024",
+   "display_name": "Command R Plus 08-2024",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/command-r7b-12-2024",
+   "display_name": "Command R7B",
+   "family": "command"
+  },
+  {
+   "canonical_id": "cohere/embed-english-light-v3.0",
+   "display_name": "Embed English Light v3",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-english-v3.0",
+   "display_name": "Embed English v3 (1024d)",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-multilingual-light-v3.0",
+   "display_name": "Embed Multilingual Light v3 (384d)",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-multilingual-v3.0",
+   "display_name": "Embed Multilingual v3 (1024d)",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-v4.0",
+   "display_name": "Embed v4",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-v5.0-fast",
+   "display_name": "Embed v5 Fast",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/embed-v5.0-pro",
+   "display_name": "Embed v5 Pro",
+   "family": "embed"
+  },
+  {
+   "canonical_id": "cohere/north-mini-code",
+   "display_name": "North Mini Code",
+   "family": "north"
+  },
+  {
+   "canonical_id": "cohere/rerank-english-v3.0",
+   "display_name": "Rerank English v3 (4k)",
+   "family": "rerank"
+  },
+  {
+   "canonical_id": "cohere/rerank-multilingual-v3.0",
+   "display_name": "Rerank Multilingual v3",
+   "family": "rerank"
+  },
+  {
+   "canonical_id": "cohere/rerank-v3.5",
+   "display_name": "Rerank v3.5 (4k)",
+   "family": "rerank"
+  },
+  {
+   "canonical_id": "cohere/rerank-v4.0-fast",
+   "display_name": "Rerank v4 Fast",
+   "family": "rerank"
+  },
+  {
+   "canonical_id": "cohere/rerank-v4.0-pro",
+   "display_name": "Rerank v4 Pro",
+   "family": "rerank"
+  },
+  {
+   "canonical_id": "deepinfra/meta-llama-3-70B",
+   "display_name": "Meta Llama 3 70B (DeepInfra)",
+   "family": "llama",
+   "notes": "Paid-only record. Bound to sabiroute-deepinfra alias (informational)."
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4-flash",
+   "display_name": "DeepSeek V4 Flash",
+   "family": "deepseek"
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4-pro",
+   "display_name": "DeepSeek V4 Pro (API)",
+   "family": "deepseek",
+   "notes": "Paid-only record; no free amount evidenced in official pricing."
+  },
+  {
+   "canonical_id": "deepseek/deepseek-v4.1-flash",
+   "display_name": "DeepSeek V4.1 Flash",
+   "family": "deepseek"
+  },
+  {
+   "canonical_id": "dots-studio/dots-3-note-preview",
+   "display_name": "Dots3-Note Preview",
+   "family": "dots"
+  },
+  {
+   "canonical_id": "fireworks/qwen3-8b-embedding",
+   "display_name": "Qwen3 8B Embedding (Fireworks)",
+   "family": "qwen",
+   "notes": "Paid-only record; $0.1/M per official pricing."
+  },
+  {
+   "canonical_id": "google/gemini-3.5-flash-lite",
+   "display_name": "Gemini 3.5 Flash Lite",
+   "family": "gemini",
+   "notes": "Free-tier per-model limits unmapped."
+  },
+  {
+   "canonical_id": "google/gemini-3.6-flash",
+   "display_name": "Gemini 3.6 Flash",
+   "family": "gemini",
+   "notes": "Free-tier per-model limits unmapped."
+  },
+  {
+   "canonical_id": "google/gemini-3.8-flash",
+   "display_name": "Gemini 3.8 Flash",
+   "family": "gemini",
+   "notes": "Free-tier per-model limits unmapped. Bound to sabiroute-gemini alias."
+  },
+  {
+   "canonical_id": "google/gemma-4-26b-a4b-it",
+   "display_name": "Gemma 4 26B A4B IT",
+   "family": "gemma"
+  },
+  {
+   "canonical_id": "google/gemma-4-31b-it",
+   "display_name": "Gemma 4 31B IT",
+   "family": "gemma"
+  },
+  {
+   "canonical_id": "groq/llama-3.1-8b-instant",
+   "display_name": "Llama 3.1 8B Instant (Groq)",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "inclusionai/ling-3.1-flash",
+   "display_name": "Ling 3.1 Flash",
+   "family": "ling"
+  },
+  {
+   "canonical_id": "jaredpalmer/kev-4b",
+   "display_name": "Kev 4B",
+   "family": "kev"
+  },
+  {
+   "canonical_id": "jina/clip-v2",
+   "display_name": "Jina CLIP v2",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/code-embeddings-0.5b",
+   "display_name": "Jina Code Embeddings 0.5B",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/colbert-v2",
+   "display_name": "Jina ColBERT v2",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v3",
+   "display_name": "Jina Embeddings v3",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v4",
+   "display_name": "Jina Embeddings v4",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-omni-nano",
+   "display_name": "Jina Embeddings v5 Omni Nano",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-omni-small",
+   "display_name": "Jina Embeddings v5 Omni Small",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-text-nano",
+   "display_name": "Jina Embeddings v5 Text Nano",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/embeddings-v5-text-small",
+   "display_name": "Jina Embeddings v5 Text Small",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "jina/reranker-v3",
+   "display_name": "Jina Reranker v3",
+   "family": "jina"
+  },
+  {
+   "canonical_id": "liquid/lfm-2.5-2.6b",
+   "display_name": "LFM 2.5 2.6B",
+   "family": "lfm"
+  },
+  {
+   "canonical_id": "meta/llama-3.3-70b-instruct",
+   "display_name": "Llama 3.3 70B Instruct",
+   "family": "llama"
+  },
+  {
+   "canonical_id": "meta/llama-prompt-guard-2-22m",
+   "display_name": "Prompt Guard 2 22M",
+   "family": "llama-guard",
+   "notes": "Classification model; capability unmapped from official excerpts."
+  },
+  {
+   "canonical_id": "meta/llama-prompt-guard-2-86m",
+   "display_name": "Prompt Guard 2 86M",
+   "family": "llama-guard",
+   "notes": "Classification model; capability unmapped from official excerpts."
+  },
+  {
+   "canonical_id": "minimax/minimax-m2.7",
+   "display_name": "MiniMax M2.7 (Groq)",
+   "family": "minimax",
+   "notes": "Version distinct from minimax-m3; kept distinct."
+  },
+  {
+   "canonical_id": "minimax/minimax-m3",
+   "display_name": "MiniMax M3",
+   "family": "minimax"
+  },
+  {
+   "canonical_id": "mistralai/mistral-large-3",
+   "display_name": "Mistral Large 3",
+   "family": "mistral",
+   "notes": "Via Pollinations Pollen metering; Mistral La Plateforme API has no evidenced free arrangement."
+  },
+  {
+   "canonical_id": "mistralai/mistral-large-api",
+   "display_name": "Mistral Large (La Plateforme API)",
+   "family": "mistral",
+   "notes": "Paid-only record: official pricing shows paid tiers and subscription-bundled credits only; Le Chat consumer free is not API access."
+  },
+  {
+   "canonical_id": "moonshotai/kimi-k2.6",
+   "display_name": "Kimi K2.6",
+   "family": "kimi"
+  },
+  {
+   "canonical_id": "moonshotai/kimi-k3",
+   "display_name": "Kimi K3",
+   "family": "kimi"
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-5-lightning",
+   "display_name": "Nemotron 3.5 Lightning",
+   "family": "nemotron",
+   "notes": "Provider slug normalized to nemotron-3-5-lightning; see provider_model_id verbatim."
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-content-safety",
+   "display_name": "Nemotron 3.5 Content Safety",
+   "family": "nemotron"
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-nano-omni-30b",
+   "display_name": "Nemotron 3 Nano Omni 30B",
+   "family": "nemotron"
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-super-120b",
+   "display_name": "Nemotron 3 Super 120B",
+   "family": "nemotron"
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-ultra",
+   "display_name": "Nemotron 3 Ultra",
+   "family": "nemotron"
+  },
+  {
+   "canonical_id": "nvidia/nemotron-3-ultra-550b-a55b",
+   "display_name": "Nemotron 3 Ultra 550B A55B (OR)",
+   "family": "nemotron",
+   "notes": "Version-qualified; distinct from nemotron-3-ultra; possible duplicate flagged."
+  },
+  {
+   "canonical_id": "ollama/deepseek-r1",
+   "display_name": "DeepSeek R1 (local)",
+   "family": "deepseek",
+   "notes": "Local family row; sizes 1.5b-671b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/gemma2",
+   "display_name": "Gemma 2 (local)",
+   "family": "gemma",
+   "notes": "Local family row; sizes 2b/9b/27b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/gemma3",
+   "display_name": "Gemma 3 (local)",
+   "family": "gemma",
+   "notes": "Local family row; sizes 270m-27b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/gemma4",
+   "display_name": "Gemma 4 (local)",
+   "family": "gemma",
+   "notes": "Local family row; distinct from version-qualified gemma-4-26b/31b."
+  },
+  {
+   "canonical_id": "ollama/gpt-oss",
+   "display_name": "GPT-OSS (local)",
+   "family": "gpt-oss",
+   "notes": "Local family row 20b/120b; distinct from version-qualified hosted routes."
+  },
+  {
+   "canonical_id": "ollama/llama3",
+   "display_name": "Llama 3 (local)",
+   "family": "llama",
+   "notes": "Local family row 8b/70b. License: Llama Community (v2-text served caveat)."
+  },
+  {
+   "canonical_id": "ollama/llama3.1",
+   "display_name": "Llama 3.1 (local)",
+   "family": "llama",
+   "notes": "Local family row 8b/70b/405b. License: Llama Community (v2-text served caveat)."
+  },
+  {
+   "canonical_id": "ollama/llama3.2",
+   "display_name": "Llama 3.2 (local)",
+   "family": "llama",
+   "notes": "Local family row 1b/3b. License: Llama Community (v2-text served caveat)."
+  },
+  {
+   "canonical_id": "ollama/llava",
+   "display_name": "LLaVA (local)",
+   "family": "llava",
+   "notes": "Local family row 7b/13b/34b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/mistral",
+   "display_name": "Mistral 7B (local)",
+   "family": "mistral",
+   "notes": "Local family row 7b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/phi3",
+   "display_name": "Phi 3 (local)",
+   "family": "phi",
+   "notes": "Local family row 3.8b/14b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/qwen2.5",
+   "display_name": "Qwen2.5 (local)",
+   "family": "qwen",
+   "notes": "Local family row 0.5b-72b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/qwen2.5-coder",
+   "display_name": "Qwen2.5 Coder (local)",
+   "family": "qwen",
+   "notes": "Local family row 0.5b-32b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/qwen3",
+   "display_name": "Qwen3 (local)",
+   "family": "qwen",
+   "notes": "Local family row 0.6b-235b. License unknown."
+  },
+  {
+   "canonical_id": "ollama/qwen3.5",
+   "display_name": "Qwen3.5 (local)",
+   "family": "qwen",
+   "notes": "Local family row 0.8b-122b. License unknown."
+  },
+  {
+   "canonical_id": "openai/gpt-5-nano",
+   "display_name": "GPT-5 Nano",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.4",
+   "display_name": "GPT-5.4",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.4-mini",
+   "display_name": "GPT-5.4 Mini",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.4-nano",
+   "display_name": "GPT-5.4 Nano",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.5",
+   "display_name": "GPT-5.5",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-luna",
+   "display_name": "GPT-5.6 Luna",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-sol",
+   "display_name": "GPT-5.6 Sol",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.6-terra",
+   "display_name": "GPT-5.6 Terra",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-5.3-codex",
+   "display_name": "GPT-5.3 Codex",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-6-astra",
+   "display_name": "GPT-6 Astra",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-6-luna",
+   "display_name": "GPT-6 Luna",
+   "family": "gpt",
+   "notes": "Exact ID verified in Pollinations catalog 2026-10-10; placeholder suspicion dismissed. Bound to sabiroute-pollinations alias."
+  },
+  {
+   "canonical_id": "openai/gpt-6-sol",
+   "display_name": "GPT-6 Sol",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-6.1-sol",
+   "display_name": "GPT-6.1 Sol",
+   "family": "gpt"
+  },
+  {
+   "canonical_id": "openai/gpt-audio-1.5",
+   "display_name": "GPT Audio 1.5",
+   "family": "gpt",
+   "notes": "Audio-adjacent; capability unmapped beyond catalog flags."
+  },
+  {
+   "canonical_id": "openai/gpt-audio-mini",
+   "display_name": "GPT Audio Mini",
+   "family": "gpt",
+   "notes": "Audio-adjacent; capability unmapped beyond catalog flags."
+  },
+  {
+   "canonical_id": "openai/gpt-oss-120b",
+   "display_name": "GPT-OSS 120B",
+   "family": "gpt-oss"
+  },
+  {
+   "canonical_id": "openai/gpt-oss-20b",
+   "display_name": "GPT-OSS 20B",
+   "family": "gpt-oss"
+  },
+  {
+   "canonical_id": "openai/gpt-oss-safeguard-20b",
+   "display_name": "GPT-OSS Safeguard 20B",
+   "family": "gpt-oss",
+   "notes": "Safety model; capability unmapped from official excerpts."
+  },
+  {
+   "canonical_id": "pollinations/midijourney",
+   "display_name": "Midijourney",
+   "family": "midijourney"
+  },
+  {
+   "canonical_id": "pollinations/midijourney-large",
+   "display_name": "Midijourney Large",
+   "family": "midijourney"
+  },
+  {
+   "canonical_id": "poolside/laguna-s-2.1",
+   "display_name": "Laguna S 2.1",
+   "family": "laguna"
+  },
+  {
+   "canonical_id": "poolside/laguna-xs-2.1",
+   "display_name": "Laguna XS 2.1",
+   "family": "laguna"
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-2.4t-a95b",
+   "display_name": "Qwen3.8 2.4T A95B",
+   "family": "qwen"
+  },
+  {
+   "canonical_id": "qwen/qwen3.8-27b",
+   "display_name": "Qwen3.8 27B",
+   "family": "qwen",
+   "notes": "Routes: Groq, Cerebras, Cloudflare. All cross-provider pool relations UNKNOWN."
+  },
+  {
+   "canonical_id": "qwen/qwen3guard-gen-8b",
+   "display_name": "Qwen3Guard 8B",
+   "family": "qwen-guard",
+   "notes": "Safety model; capability unmapped from official excerpts."
+  },
+  {
+   "canonical_id": "respan/span-01-lite",
+   "display_name": "Span 01 Lite",
+   "family": "span"
+  },
+  {
+   "canonical_id": "thinkingmachines/inkling",
+   "display_name": "Inkling",
+   "family": "inkling"
+  },
+  {
+   "canonical_id": "thinkingmachines/inkling-small",
+   "display_name": "Inkling Small",
+   "family": "inkling"
+  },
+  {
+   "canonical_id": "typesafe/jev-1.13",
+   "display_name": "Jev 1.13",
+   "family": "jev"
+  },
+  {
+   "canonical_id": "voyage/code-2",
+   "display_name": "Voyage Code 2",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/code-4",
+   "display_name": "Voyage Code 4",
+   "family": "voyage",
+   "notes": "Prose names code-3 with 200M grant; table lists code-4. Recorded as code-4 with ambiguity flagged."
+  },
+  {
+   "canonical_id": "voyage/context-4",
+   "display_name": "Voyage Context 4",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/finance-2",
+   "display_name": "Voyage Finance 2",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/law-2",
+   "display_name": "Voyage Law 2",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/multilingual-2",
+   "display_name": "Voyage Multilingual 2",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/multimodal-3",
+   "display_name": "Voyage Multimodal 3",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/multimodal-3.5",
+   "display_name": "Voyage Multimodal 3.5",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/rerank-2",
+   "display_name": "Voyage Rerank 2",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/rerank-2-lite",
+   "display_name": "Voyage Rerank 2 Lite",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/rerank-2.5",
+   "display_name": "Voyage Rerank 2.5",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/rerank-2.5-lite",
+   "display_name": "Voyage Rerank 2.5 Lite",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/voyage-4",
+   "display_name": "Voyage 4",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/voyage-4-large",
+   "display_name": "Voyage 4 Large",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "voyage/voyage-4-lite",
+   "display_name": "Voyage 4 Lite",
+   "family": "voyage"
+  },
+  {
+   "canonical_id": "whisper/large-v3",
+   "display_name": "Whisper Large v3 (Groq)",
+   "family": "whisper",
+   "notes": "STT model; capability unmapped from official Groq excerpts (not inferred)."
+  },
+  {
+   "canonical_id": "whisper/large-v3-turbo",
+   "display_name": "Whisper Large v3 Turbo (Groq)",
+   "family": "whisper",
+   "notes": "STT model; capability unmapped from official Groq excerpts (not inferred)."
+  },
+  {
+   "canonical_id": "x-ai/grok-4.20",
+   "display_name": "Grok 4.20",
+   "family": "grok"
+  },
+  {
+   "canonical_id": "x-ai/grok-4.3",
+   "display_name": "Grok 4.3",
+   "family": "grok"
+  },
+  {
+   "canonical_id": "x-ai/grok-4.6",
+   "display_name": "Grok 4.6",
+   "family": "grok"
+  },
+  {
+   "canonical_id": "z-ai/glm-5.3",
+   "display_name": "GLM 5.3",
+   "family": "glm"
+  },
+  {
+   "canonical_id": "z-ai/glm-5.3-flash",
+   "display_name": "GLM 5.3 Flash",
+   "family": "glm"
+  }
+ ],
+ "catalogue_version": "0.1-draft",
+ "evidence": [
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Free-model list with $0 prompt/completion pricing, ids, context lengths",
+   "claim_type": "listing",
+   "confidence": "verified",
+   "evidence_id": "E01",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://openrouter.ai/api/v1/models",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Free-model rate limits: 20 RPM; 50/1000 RPD by lifetime credits; 402 on negative balance incl. free models",
+   "claim_type": "access_terms",
+   "confidence": "verified",
+   "evidence_id": "E02",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://openrouter.ai/docs/api-reference/limits",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Free-plan per-model caps (RPM/RPD/TPM/TPD table excerpts)",
+   "claim_type": "allowance",
+   "confidence": "verified",
+   "evidence_id": "E03",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://console.groq.com/docs/rate-limits",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Model catalogue IDs incl. llama, gpt-oss, qwen, whisper, guard, orpheus families",
+   "claim_type": "identity",
+   "confidence": "verified",
+   "evidence_id": "E04",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://console.groq.com/docs/models",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Model IDs incl. gemini-3.8-flash, 3.6-flash, 3.5-flash-lite; tiers unmapped",
+   "claim_type": "identity",
+   "confidence": "verified",
+   "evidence_id": "E05",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://ai.google.dev/gemini-api/docs/models",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Limits applied per project; RPD reset midnight Pacific; capacity not guaranteed",
+   "claim_type": "access_terms",
+   "confidence": "verified",
+   "evidence_id": "E06",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://ai.google.dev/gemini-api/docs/rate-limits",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Model catalog with paid_only flags, per-model pollen pricing, tool/reasoning flags, context lengths (350 entries directly counted 2026-10-11; count drifts over time, so no fixed total is asserted)",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E07",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://gen.pollinations.ai/v1/models",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "OpenAI-compatible endpoint gen.pollinations.ai/v1; keys via enter.pollinations.ai/keys; $1~1 Pollen; Pollen earned via quests",
+   "claim_type": "access_terms",
+   "confidence": "partial",
+   "evidence_id": "E08",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://github.com/pollinations/pollinations",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Model entries incl. gpt-oss-120b, qwen-3.8-27b with free-vs-subscription windows; trial+paygo tiers mentioned, no amounts",
+   "claim_type": "identity",
+   "confidence": "partial",
+   "evidence_id": "E09",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://inference-docs.cerebras.ai/models/overview",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Workers AI text-model catalog IDs (dozens of entries confirmed; exact total not recounted on 2026-10-11 re-check)",
+   "claim_type": "identity",
+   "confidence": "verified",
+   "evidence_id": "E10",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://developers.cloudflare.com/workers-ai/models/",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "10,000 Neurons/day free on Free and Paid Workers plans; $0.011/1K overage",
+   "claim_type": "allowance",
+   "confidence": "verified",
+   "evidence_id": "E11",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "8 Command + 7 Embed + 5 Rerank IDs with documented purposes",
+   "claim_type": "capability",
+   "confidence": "verified",
+   "evidence_id": "E12",
+   "evidence_type": "capability",
+   "publisher": "official",
+   "source_url": "https://docs.cohere.com/docs/models",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Trial API key auto-created per account; trial calls free, rate-limited, non-production",
+   "claim_type": "access_terms",
+   "confidence": "verified",
+   "evidence_id": "E13",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://cohere.com/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "'Start for free, scale on demand'; no amounts, minimums, expiry, or card terms quotable",
+   "claim_type": "access_terms",
+   "confidence": "partial",
+   "evidence_id": "E14",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://www.together.ai/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Free users: no included monthly credits; PRO $2/mo; custom keys consume no HF credits",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E15",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://huggingface.co/docs/inference-providers/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "No free tier: card or pre-pay mandatory before any use",
+   "claim_type": "access_terms",
+   "confidence": "verified",
+   "evidence_id": "E16",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://deepinfra.com/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Free NIM API access for unlimited prototyping, development/testing only; no amounts quotable",
+   "claim_type": "access_terms",
+   "confidence": "partial",
+   "evidence_id": "E17",
+   "evidence_type": "terms",
+   "publisher": "official",
+   "source_url": "https://developer.nvidia.com/nim",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Pay-as-you-go per 1M tokens, no subscription; no free tier on pricing page (kimi-k3 $3 in/$15 out)",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E18",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://platform.kimi.ai/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "15 library families with size tags and pull counts",
+   "claim_type": "identity",
+   "confidence": "verified",
+   "evidence_id": "E19",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://ollama.com/library",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "llama3.1 sizes 4.9/43/243GB, 128K ctx; no license on page",
+   "claim_type": "hardware",
+   "confidence": "verified",
+   "evidence_id": "E20",
+   "evidence_type": "hardware",
+   "publisher": "official",
+   "source_url": "https://ollama.com/library/llama3.1",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "deepseek-r1 tags 1.1-404GB, 128-160K ctx, tools+thinking flags",
+   "claim_type": "hardware",
+   "confidence": "verified",
+   "evidence_id": "E21",
+   "evidence_type": "hardware",
+   "publisher": "official",
+   "source_url": "https://ollama.com/library/deepseek-r1",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "qwen3 tags 523MB-142GB, 40-256K ctx, tools+thinking, text-only rows",
+   "claim_type": "hardware",
+   "confidence": "verified",
+   "evidence_id": "E22",
+   "evidence_type": "hardware",
+   "publisher": "official",
+   "source_url": "https://ollama.com/library/qwen3",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Llama Community License; >700M MAU requires Meta grant; attribution + no-improve-others clauses (page served v2 text)",
+   "claim_type": "license",
+   "confidence": "partial",
+   "evidence_id": "E23",
+   "evidence_type": "license",
+   "publisher": "official",
+   "source_url": "https://dev.meta.ai/license/",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Free auto key; 100 RPM/100K TPM embed+rerank; 10 model IDs; commercial use covered by service terms for hosted API",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E24",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://jina.ai/embeddings/",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "One-time grants: 200M (voyage-4 family, current rerank generation, multimodal text+150B px) / 50M (named older models only); post-grant prices; free credits exclude Batch API use",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E25",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://docs.voyageai.com/docs/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Plan names incl. Free; no allowance/limits/model IDs quotable",
+   "claim_type": "identity",
+   "confidence": "partial",
+   "evidence_id": "E26",
+   "evidence_type": "listing",
+   "publisher": "official",
+   "source_url": "https://docs.nomic.ai/",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Prepaid-only ('add a payment method to buy credits'); no trial disclosed; Qwen3-8B embed $0.1/M",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E27",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://fireworks.ai/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-11",
+   "claim": "Per-token prices (flash/pro); 'granted balance' mentioned with no amount; top-up advised, spend drawn from topped-up or granted balance",
+   "claim_type": "pricing",
+   "confidence": "partial",
+   "evidence_id": "E28",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://api-docs.deepseek.com/quick_start/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "No API trial credits evidenced; API credits bundled with paid subs only; Le Chat consumer free is not API access",
+   "claim_type": "pricing",
+   "confidence": "verified",
+   "evidence_id": "E29",
+   "evidence_type": "pricing",
+   "publisher": "official",
+   "source_url": "https://mistral.ai/pricing",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "14 configured aliases with provider model IDs and credential env names",
+   "claim_type": "identity",
+   "confidence": "verified",
+   "evidence_id": "E34",
+   "evidence_type": "listing",
+   "publisher": "repository",
+   "source_url": "config/config.yaml (repository, 2026-10-10)",
+   "status": "current"
+  },
+  {
+   "checked_date": "2026-10-10",
+   "claim": "Runtime capability evidence: gemini/groq/openrouter chat (+groq streaming); all other deployments unknown",
+   "claim_type": "capability",
+   "confidence": "verified",
+   "evidence_id": "E35",
+   "evidence_type": "capability",
+   "publisher": "repository",
+   "source_url": "docs/capabilities.md (repository, 2026-10-10)",
+   "status": "current"
+  }
+ ],
+ "generated": "2026-10-11",
+ "quota_pools": [
+  {
+   "allowance": "10,000 Neurons/day free on Free and Paid Workers plans (see E11)",
+   "pool_id": "cloudflare-neurons",
+   "scope": "shared_pool",
+   "sharing": "VERIFIED_SHARED"
+  },
+  {
+   "pool_id": "gemini-project",
+   "scope": "project",
+   "sharing": "UNKNOWN"
+  },
+  {
+   "allowance": "per-model RPM/RPD/TPM/TPD caps (see route limits)",
+   "pool_id": "groq-org",
+   "scope": "organization",
+   "sharing": "UNKNOWN"
+  },
+  {
+   "pool_id": "openrouter-acct",
+   "scope": "account",
+   "sharing": "UNKNOWN"
+  }
+ ],
+ "schema_version": "v0.1-unfrozen",
+ "status": "research-grade draft v0.1; NOT runtime truth. Catalogue presence never implies configuration, access, health, or eligibility. Counts are artifact-exact; research estimates (~126/~149 etc.) are superseded by the validator output for this file."
+}

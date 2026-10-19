@@ -82,15 +82,17 @@ def test_lifespan_closes_key_store(tmp_path, monkeypatch):
         key_store.close()
 
 
-def test_web_dir_override(monkeypatch, tmp_path):
-    from sabiroute.main import _web_dir
+def test_app_route_not_served_by_core():
+    """Core-only app serves no /app static UI (SabiChat product surface)."""
+    from sabiroute.main import create_app
 
-    monkeypatch.setenv("SABIROUTE_WEB_DIR", str(tmp_path))
-    assert _web_dir() == tmp_path
-    monkeypatch.setenv("SABIROUTE_WEB_DIR", str(tmp_path / "missing"))
-    assert _web_dir() is None
-    monkeypatch.delenv("SABIROUTE_WEB_DIR", raising=False)
-    assert (_web_dir() / "index.html").is_file()
+    state = make_state()
+    with TestClient(create_app(state=state)) as client:
+        for path in ("/app/", "/app/index.html", "/app/app.js"):
+            assert client.get(path).status_code == 404, path
+        # Core API still intact without the UI mount.
+        assert client.get("/health/live").status_code == 200
+        assert client.get("/health/ready").status_code == 200
 
 
 def test_dockerfile_matches_runtime_contract():
@@ -105,11 +107,11 @@ def test_dockerfile_matches_runtime_contract():
     assert 'CMD ["sabiroute"]' in text
     assert "COPY src/ ./src/" in text
     assert "COPY config/ ./config/" in text
-    assert "COPY web/ ./web/" in text
     assert "COPY pyproject.toml uv.lock README.md LICENSE ./" in text
     assert "SABIROUTE_CONFIG_PATH=/srv/sabiroute/config/config.yaml" in text
     assert "SABIROUTE_ROUTES_PATH=/srv/sabiroute/config/routes" in text
-    assert "SABIROUTE_WEB_DIR=/srv/sabiroute/web" in text
+    assert "SABIROUTE_WEB_DIR" not in text
+    assert "COPY web/" not in text
     assert ".env" not in text
 
 
@@ -119,7 +121,7 @@ def test_dockerignore_protects_secrets_and_keeps_runtime():
 
     for excluded in (".env", ".venv/", "__pycache__/", "*.sqlite", ".git/", "tests/", "docs/"):
         assert excluded in entries, excluded
-    for required in ("src/", "web/", "config/", "pyproject.toml", "uv.lock"):
+    for required in ("src/", "config/", "pyproject.toml", "uv.lock"):
         assert not any(entry.rstrip("/") == required.rstrip("/") for entry in entries), required
 
 
@@ -133,7 +135,7 @@ def test_ci_workflow_is_valid_and_secret_free():
     steps = workflow["jobs"]["checks"]["steps"]
     run_lines = [step.get("run", "") for step in steps if "run" in step]
     blob = "\n".join(run_lines)
-    for expected in ("pytest", "ruff check", "mypy src", "node --check web/app.js", "docker build"):
+    for expected in ("pytest", "ruff check", "mypy src", "docker build"):
         assert expected in blob, expected
     assert "services" in workflow["jobs"]["checks"]
     assert "SABIROUTE_TEST_REDIS_URL" in text

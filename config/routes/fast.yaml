@@ -1,0 +1,6 @@
+name: fast
+deployments:
+  - sabiroute-gemini
+  - sabiroute-openai
+strategy: measured
+max_attempts: 2

@@ -7,11 +7,9 @@ import logging
 import os
 from collections.abc import Sequence
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from .api.admin import router as admin_router
 from .api.completions import router as completions_router
@@ -24,28 +22,6 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 logger = logging.getLogger(__name__)
-
-
-def _web_dir() -> Path | None:
-    """Locate the static UI directory, or None when it is absent.
-
-    ``SABIROUTE_WEB_DIR`` wins when set (containers set it explicitly).
-    Otherwise the repository layout is probed. A wheel install relocates the
-    package without its sibling directories, so no single relative path is
-    correct everywhere — hence the explicit override plus probing, and no
-    silent mount of a wrong directory.
-    """
-    override = (os.environ.get("SABIROUTE_WEB_DIR") or "").strip()
-    if override:
-        candidate = Path(override)
-        return candidate if candidate.is_dir() else None
-    here = Path(__file__).resolve()
-    for base in (here.parents[2], Path("/srv/sabiroute")):
-        candidate = base / "web"
-        if candidate.is_dir():
-            return candidate
-    return None
-
 
 def create_app(state: GatewayState | None = None) -> FastAPI:
     """Create the SabiRoute app.
@@ -97,18 +73,11 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
     app.include_router(admin_router)
     app.include_router(shutdown_router)
 
-    web_dir = _web_dir()
-    if web_dir is not None:
-        # Zero-build static UI (HTML/CSS/vanilla JS, no bundler, no secrets).
-        # Mounted under /app so API routes and docs are untouched; the same
-        # directory deploys to static hosting unchanged.
-        app.mount("/app", StaticFiles(directory=web_dir, html=True), name="sabichat-web")
     app.add_middleware(
         DeadlineMiddleware, deadline_seconds=request_deadline_seconds()
     )
 
     return app
-
 
 CLI_USAGE = """Usage: sabiroute [OPTIONS]
 
@@ -118,7 +87,6 @@ variables (see .env.example); this command takes no positional arguments.
 Options:
   -h, --help   Show this message without starting the server.
 """
-
 
 def main(argv: Sequence[str] | None = None) -> None:
     """Console-script entry point (``sabiroute``): run the API with uvicorn."""
@@ -139,6 +107,5 @@ def main(argv: Sequence[str] | None = None) -> None:
         host=os.environ.get("SABIROUTE_HOST", "127.0.0.1"),
         port=int(os.environ.get("SABIROUTE_API_PORT", "8000")),
     )
-
 
 app = create_app()

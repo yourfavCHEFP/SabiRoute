@@ -1,0 +1,28 @@
+# Keep secrets, local state, caches, and dev-only bulk out of the image.
+# src/, config/, pyproject.toml, uv.lock, and LICENSE must stay
+# included — the runtime needs all of them.
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite
+*.sqlite-journal
+.git/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+.playwright-cli/
+.claude/
+artifacts/
+brag-output/
+reports/
+docs/
+tests/
+monitoring/
+sprint13-429-drill/

@@ -1,0 +1,7 @@
+name: ultimate
+deployments:
+  - sabiroute-openai
+  - sabiroute-gemini
+  - sabiroute-groq
+strategy: measured
+max_attempts: 3
