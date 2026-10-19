@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -209,12 +209,29 @@ class SabiChatStore:
             )
         return result.rowcount
 
-    def purge_expired_sessions(self, now: datetime | None = None) -> int:
-        """Delete sessions past expiry. Returns rows removed; safe to re-run."""
+    def purge_expired_sessions(
+        self,
+        now: datetime | None = None,
+        *,
+        revoked_retention_days: int = 30,
+    ) -> int:
+        """Delete sessions past expiry plus long-revoked sessions.
+
+        Removes rows whose expiry passed, plus revoked rows older than
+        ``revoked_retention_days`` (audit window for recent logouts).
+        Returns rows removed; safe to re-run. Never touches live rows.
+        """
         cutoff = now or _utcnow()
+        revoked_cutoff = cutoff - timedelta(days=revoked_retention_days)
         with self._engine.begin() as connection:
             result = connection.execute(
-                delete(_SABICHAT_SESSIONS).where(_SABICHAT_SESSIONS.c.expires_at < cutoff)
+                delete(_SABICHAT_SESSIONS).where(
+                    (_SABICHAT_SESSIONS.c.expires_at < cutoff)
+                    | (
+                        _SABICHAT_SESSIONS.c.revoked_at.is_not(None)
+                        & (_SABICHAT_SESSIONS.c.revoked_at < revoked_cutoff)
+                    )
+                )
             )
         return result.rowcount
 

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from .api.admin import router as admin_router
+from .api.body_limit import BodySizeMiddleware, request_max_body_bytes
 from .api.completions import router as completions_router
 from .api.deadline import DeadlineMiddleware, request_deadline_seconds
 from .api.health import router as health_router
@@ -30,6 +31,28 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
     otherwise state is built from configuration when the server starts.
     """
 
+    async def _purge_expired_sessions_once() -> None:
+        """Best-effort purge of expired chat sessions at startup/shutdown.
+
+        Runs the store's idempotent purge on a bounded worker via the
+        gateway store executor so event-loop blocking is avoided. Never
+        raises: purge is hygiene, not admission — failures are logged.
+        """
+        gateway_obj = getattr(app.state, "gateway", None)
+        store = getattr(gateway_obj, "chat_store", None)
+        purge = getattr(store, "purge_expired_sessions", None)
+        if not callable(purge):
+            return
+        executor = getattr(gateway_obj, "store_executor", None)
+        run = getattr(executor, "run", None)
+        try:
+            if callable(run):
+                await run(purge)
+            else:
+                purge()
+        except Exception as exc:  # noqa: BLE001 — hygiene must not break lifespan
+            logger.warning("Session purge skipped: %s", type(exc).__name__)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if state is not None:
@@ -45,8 +68,10 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
                 degraded.startup_error = str(exc)
                 app.state.gateway = degraded
         try:
+            await _purge_expired_sessions_once()
             yield
         finally:
+            await _purge_expired_sessions_once()
             gateway = getattr(app.state, "gateway", None)
             for resource_name in ("key_store", "rate_limiter", "chat_store"):
                 resource = getattr(gateway, resource_name, None)
@@ -56,11 +81,27 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
                     if inspect.isawaitable(result):
                         await result
 
+    docs_enabled = (os.environ.get("SABIROUTE_DOCS_ENABLED") or "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    doc_kwargs: dict[str, object] = (
+        {}
+        if docs_enabled
+        else {
+            "docs_url": None,
+            "redoc_url": None,
+            "openapi_url": None,
+        }
+    )
     app = FastAPI(
         title="SabiRoute",
         description="Intelligent LLM routing gateway.",
         version="0.1.0",
         lifespan=lifespan,
+        **doc_kwargs,  # type: ignore[arg-type]
     )
 
     if state is not None:
@@ -75,6 +116,9 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
 
     app.add_middleware(
         DeadlineMiddleware, deadline_seconds=request_deadline_seconds()
+    )
+    app.add_middleware(
+        BodySizeMiddleware, max_body_bytes=request_max_body_bytes()
     )
 
     return app

@@ -63,13 +63,21 @@ class UnknownModelError(KeyError):
     """Raised when a requested model matches neither alias nor policy."""
 
 
+#: Hard caps on user-controlled request shape. Conservative values that
+#: admit every supported use case while bounding validation, telemetry, and
+#: provider payloads. Operators cannot raise these via environment; they are
+#: release constants, not tuning knobs.
+MAX_MESSAGES_PER_REQUEST = 256
+MAX_MESSAGE_CHARS = 500_000
+
+
 class ChatCompletionRequest(BaseModel):
     """OpenAI-compatible request body; unknown fields pass through."""
 
     model_config = ConfigDict(extra="allow")
 
-    model: str = Field(min_length=1)
-    messages: list[dict[str, Any]] = Field(min_length=1)
+    model: str = Field(min_length=1, max_length=256)
+    messages: list[dict[str, Any]] = Field(min_length=1, max_length=MAX_MESSAGES_PER_REQUEST)
     sabi_route_request_type: RequestType | None = None
 
 
@@ -245,6 +253,17 @@ async def chat_completions(
             "usage_store_unavailable",
         )
 
+    for _msg in payload.messages:
+        try:
+            _content = _msg.get("content") if isinstance(_msg, dict) else None
+        except AttributeError:
+            _content = None
+        if isinstance(_content, str) and len(_content) > MAX_MESSAGE_CHARS:
+            return _error_response(
+                413,
+                f"Message content exceeds the {MAX_MESSAGE_CHARS}-character limit.",
+                "message_content_too_large",
+            )
     request_id = str(uuid4())
     # Usage-source attribution starts as "unknown" for every request. It becomes
     # "free_pool" only below, when the Free Pool gate actually allows the

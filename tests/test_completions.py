@@ -1114,6 +1114,8 @@ def test_cli_unknown_arguments_fail_without_starting_server(capsys):
 
 
 def test_large_text_body_handled_without_error():
+    # ~300KB stays under the 1 MiB body cap AND the per-message char cap:
+    # proves ordinary large payloads still succeed after F-05 limits.
     stub = StubLiteLLMClient()
     client, state = make_client(stub)
     big_text = "hello world, this is a large payload. " * 8192  # ~300KB

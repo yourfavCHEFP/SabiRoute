@@ -138,7 +138,14 @@ def test_ci_workflow_is_valid_and_secret_free():
     for expected in ("pytest", "ruff check", "mypy src", "docker build"):
         assert expected in blob, expected
     assert "services" in workflow["jobs"]["checks"]
+    services = workflow["jobs"]["checks"]["services"]
+    assert "redis" in services and "postgres" in services
+    assert services["postgres"]["image"] == "postgres:16-alpine"
+    assert workflow["jobs"]["checks"]["env"].get("SABIROUTE_TEST_PG_URL", "").startswith(
+        "postgresql://"
+    )
     assert "SABIROUTE_TEST_REDIS_URL" in text
+    assert "SABIROUTE_TEST_PG_URL" in text
     assert "secrets." not in text
     assert "${{" not in text
     assert "sk-" not in text
@@ -149,6 +156,8 @@ def test_env_template_documents_free_pool_and_placeholders():
 
     assert "SABIROUTE_FREEPOOL_ENABLED=" in text
     assert "SABIROUTE_FREEPOOL_DEPLOYMENTS=" in text
+    assert "SABIROUTE_DOCS_ENABLED=" in text
+    assert "SABIROUTE_MAX_REQUEST_BODY_BYTES=" in text
     assert "DATABASE_URL=" in text
     # Assigned sk- values are obvious placeholders, never real secrets.
     assigned = [

@@ -52,6 +52,15 @@ def validate_config(config: SabiRouteConfig) -> SabiRouteConfig:
                     f"Invalid environment reference in "
                     f"{deployment.model_name!r}: {api_key!r}"
                 )
+        elif api_key is not None and not _is_test_credential(api_key):
+            # Production configuration must not embed literal provider
+            # secrets. Only explicitly marked test credentials are
+            # accepted; everything else must be an os.environ/ reference.
+            # The offending value is never echoed (name only).
+            raise ConfigValidationError(
+                f"Deployment {deployment.model_name!r} embeds a literal "
+                f"api_key; use an 'os.environ/VAR_NAME' reference instead."
+            )
 
     if config.litellm_settings.request_timeout <= 0:
         raise ConfigValidationError(
@@ -59,3 +68,16 @@ def validate_config(config: SabiRouteConfig) -> SabiRouteConfig:
         )
 
     return config
+
+
+def _is_test_credential(value: str) -> bool:
+    """Recognize explicitly marked non-secret test credentials.
+
+    Only values that cannot be confused with a real provider secret are
+    accepted: the ``sk-test-`` / ``sk-literal-test`` prefixes used by this
+    repository's own test suite. Anything else is treated as a secret.
+    """
+    candidate = value.strip()
+    if candidate != value:
+        return False
+    return candidate.startswith(("sk-test-", "sk-test_", "sk-literal-test"))

@@ -1,9 +1,11 @@
 # SabiRoute CI: tests, lint, types, frontend syntax, container build.
 #
-# No provider credentials, no secrets, no deployments. Redis runs as a
-# service so the environment-gated rate-limit tests execute here instead of
-# skipping (local runs without SABIROUTE_TEST_REDIS_URL still skip them —
-# the suite reports skips explicitly, never as passes).
+# No provider credentials, no secrets, no deployments. Redis and PostgreSQL
+# run as services so the environment-gated integration tests execute here
+# instead of skipping (local runs without SABIROUTE_TEST_REDIS_URL /
+# SABIROUTE_TEST_PG_URL still skip them — the suite reports skips explicitly,
+# never as passes). Both service passwords below are disposable CI-only
+# values for throwaway job containers, never real credentials.
 
 name: CI
 
@@ -26,8 +28,22 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: sabiroute_ci_test_only
+          POSTGRES_DB: sabiroute_ci_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sabiroute_ci_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       SABIROUTE_TEST_REDIS_URL: redis://localhost:6379/0
+      SABIROUTE_TEST_PG_URL: postgresql://postgres:sabiroute_ci_test_only@localhost:5432/sabiroute_ci_test
 
     steps:
       - name: Check out repository

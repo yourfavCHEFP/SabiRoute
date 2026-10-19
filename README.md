@@ -1,3 +1,10 @@
+## Rate-limit topology (Batch 2)
+
+- Single process: per-key limits enforced via Redis Lua bucket (server clock, atomic admit/deny, per-key TTL). No in-process limiter exists in the candidate.
+- Multi-process / multi-instance: SHARED enforcement when all instances point at the same Redis (key prefix `sabiroute:rate:v1`, isolated by purpose+identity). Server-side atomicity holds under contention (proven by concurrent integration test).
+- Redis outage/timeout: fail-CLOSED — 503 `rate_limiter_unavailable` (category `redis_unavailable`); readiness reports `rate_limiter: configured|absent` but never probes. Configured limit without a limiter also 503s.
+- Cleanup: tests use UUID/pid-scoped keys with prefix-scoped delete + leak assertion; never FLUSHDB.
+
 <div align="center">
 
 <img src="docs/diagrams/readme-hero.svg" alt="SabiRoute routing control plane: client requests pass through SabiRoute policy and eligibility checks, LiteLLM execution, configured providers, and operational data stores" width="100%" />
