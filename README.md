@@ -14,7 +14,7 @@
 
 **One gateway. Multiple providers. Deterministic, health-aware routing.**
 
-[Architecture](#-architecture) · [Routing](#-routing-intelligence) · [Providers](#-provider-strategy) · [Roadmap](#-engineering-roadmap) · [Getting started](#-getting-started) · [Code of Conduct](#code-of-conduct) · [Contributing](#-contributing) · [Security](#security) · [MIT License](#-license)
+[Architecture](#️-architecture) · [Routing](#-routing-intelligence) · [Providers](#-provider-strategy) · [Roadmap](#️-engineering-roadmap) · [Getting started](#-getting-started) · [Code of Conduct](#code-of-conduct) · [Contributing](#-contributing) · [Security](#security) · [MIT License](#-license)
 
 </div>
 
@@ -77,11 +77,11 @@ SabiRoute is in active alpha development (package version `0.1.0`). The determin
   - [Security](#security)
   - [🆓 Free Pool](#-free-pool)
     - [What is Free Pool?](#what-is-free-pool)
-    - [Runtime enforcement status](#runtime-enforcement-status)
     - [One platform, three experiences, one routing foundation](#one-platform-three-experiences-one-routing-foundation)
     - [Catalogue, registry, router: three distinct concepts](#catalogue-registry-router-three-distinct-concepts)
     - [Free access, stated accurately](#free-access-stated-accurately)
     - [Current versus future](#current-versus-future)
+    - [Runtime enforcement status](#runtime-enforcement-status)
     - [Fit with the existing roadmap](#fit-with-the-existing-roadmap)
   - [🌍 Long-term direction](#-long-term-direction)
   - [📄 License](#-license)
@@ -117,11 +117,19 @@ Workload classes narrow the candidate pool before selection:
 | `chat` | Quality and context |
 | `coding_agent` | Reasoning and tool capability |
 
-Classes come from explicit request metadata (`sabi_route_request_type`) and route requirements — prompt wording is never treated as evidence of a coding or reasoning task. Deployment-specific capability metadata drives filtering; the classification rules and evidence matrix are documented alongside the capability declarations in `config/config.yaml` (a standalone capabilities guide is planned).
+Classes come from explicit request metadata and route requirements — prompt wording is never treated as evidence of a coding or reasoning task. Capability-aware filtering is the approved design ([docs/capabilities.md](docs/capabilities.md) carries the classification rules and evidence matrix from the newer line), but this checkout's `choose_deployment` filters only on prior attempts and health availability — there is no `sabi_route_request_type` handling or capability-metadata filtering in the candidate tree. Re-verify before relying on it.
 
 ### 🛡️ Health-aware fallback
 
-A provider failure becomes a controlled routing event, not an application outage. Unhealthy deployments are excluded from the eligible pool, deterministic fallback tries the next eligible candidate, and cooldown lets failed deployments recover. Retryable failures (eligible 429/5xx responses, timeouts, connection failures) are distinguished from errors that must not be blindly retried. Fallback and cooldown recovery are implemented and unit-tested (Phases 05–06); the failure paths have not been exercised against live providers, and the former active `ProviderHealthChecker` smoke test was removed after verification that nothing referenced it (see `docs/routing.md`) — it was never wired into the request path.
+A provider failure becomes a controlled routing event, not an application outage. Unhealthy deployments are excluded from the eligible pool, deterministic fallback tries the next eligible candidate, and cooldown lets failed deployments recover. Retryable failures (eligible 429/5xx responses, timeouts, connection failures) are distinguished from errors that must not be blindly retried. Fallback and cooldown recovery are implemented and unit-tested (Phases 05–06); the failure paths have not been exercised against live providers, and the former active `ProviderHealthChecker` was removed after verification that nothing referenced it — it was never wired into the request path. On this branch the bounded-fallback loop lives in the completions request path (`src/sabiroute/api/completions.py`), which selects each attempt through `Router.choose_deployment` with `FallbackEngine` (`routing/fallback.py`) as the router's default fallback handler (see `docs/proxy-retry-visibility.md`).
+
+![Fallback flow (reference illustration): validate the request, attempt an eligible target, and only step to the next eligible target when the failure is recoverable and policy permits.](media-library/sabiroute-media-library-v2.4-readme-supplement-20261019-091911/03-diagrams/fallback-flow-reference.svg)
+
+*Reference illustration — retry counts and exact fallback semantics are defined by code and `docs/proxy-retry-visibility.md`, not by this diagram.*
+
+![Bounded fallback (illustrative animation loop): the gateway attempts eligible deployments in turn, excluding each failed candidate, until success or exhaustion.](media-library/SabiRoute-Media-Library-v2.3/13-production-assets/08-motion-and-gifs/sabiroute-bounded-fallback-loop.gif)
+
+*Illustrative animation loop — a conceptual visualization, not a recording of live traffic. Static frame: `08-motion-and-gifs/frames/bounded-fallback/bounded-fallback-frame-01.png`.*
 
 ### 🧩 Virtual model policies
 
@@ -129,28 +137,37 @@ Clients request a virtual route instead of hard-coding provider/model pairs — 
 
 ### 🔐 Governance on the request path
 
-Authentication, budgets, and rate limits run on the real request path, not in side configuration (Phase 09 exercised on the documented live run; Phase 10 unit- and API-tested):
+**Planned governance (not implemented on this branch):** API-key lifecycle with create/rotate/revoke, an admin bootstrap credential, per-key token-bucket rate limits, and per-key token/cost budgets are the approved Phase 09–10 design, but the candidate tree contains no key store, no budget/rate-limit enforcement, and no `/admin/api-keys` management endpoints — `src/sabiroute/api/admin.py` exposes read-only telemetry (`/admin/health|metrics|latency|errors|usage`) only. Do not present key issuance, SHA-256 digest storage, Redis-backed limits, or transactional budget reservation as current behavior; re-verify each against the implementation before relying on it.
 
-- client API keys with create / rotate / revoke lifecycle, stored as SHA-256 digests only;
-- a separate admin bootstrap credential for `/admin/*`;
-- per-key token-bucket rate limits (atomic in Redis, fail-closed when Redis is unsafe);
-- per-key daily and monthly token/cost budgets with transactional reservation.
-
-Details: [docs/security.md](docs/security.md) (a standalone limits-and-usage guide is planned).
+Details of the approved design: [docs/security.md](docs/security.md), [docs/limits-and-usage.md](docs/limits-and-usage.md).
 
 ### 💬 SabiChat
 
-User-facing chat over the same gateway — not a second router. Backend implemented and API-tested (stub execution, file-backed database; no live providers yet), with a zero-build browser UI (`web/`, served at `/app/`) verified in a real browser against the stub backend:
+**Planned chat experience (not implemented on this branch):** a user-facing chat over the same gateway — not a second router — is the approved design, but the candidate tree contains no chat backend (`src/sabiroute/chat/` absent), no auth/conversation/quota endpoints, no `web/` UI, and no `tests/test_sabichat_web.py`. The endpoint list, session/token mechanics, pagination/message caps, and in-process gateway-call design described below are **forward-looking specifications carried over from newer working-tree documentation**, not current behavior; do not present registration, login, conversations, quota summaries, or the browser UI as implemented. Re-verify each against the implementation before relying on it.
 
-- `POST /v1/auth/register|login|logout`, `GET /v1/auth/me` — PBKDF2-hashed passwords (never plaintext), opaque bearer sessions (digest-only storage, 7-day expiry, logout revocation), generic failures that do not reveal whether an account exists, per-IP sign-in rate limits;
-- `POST|GET /v1/conversations`, `GET|POST /v1/conversations/{id}[/messages]` — every read and write is owner-scoped (another user's ID looks identical to a nonexistent one), bounded pagination, message size caps;
-- chat invokes the gateway's own `POST /v1/chat/completions` in process with a server-held service key, forcing Free Chat mode itself — policy, budgets, Free Pool eligibility, and usage accounting apply unchanged, and gateway errors map to fixed public messages.
+Approved design (planned, not current):
 
-The UI keeps the session token in memory only (reload signs out), renders model output as text, guards double submits, and maps expiry/rate-limit/eligibility failures to clear states. Interim limits: one service key held only in memory (a restart re-mints it; old rows are retained), in-process rate limits (single-process semantics), history window of 20 messages with a fixed response cap. No BYOK, no billing — those are later phases.
+- `POST /v1/auth/register|login|logout`, `GET /v1/auth/me`, `GET /v1/chat/quota-summary` (session-authenticated; quota owner comes only from the validated session) — PBKDF2-hashed passwords (never plaintext), opaque bearer sessions (digest-only storage, 7-day expiry, logout revocation), generic failures that do not reveal whether an account exists, per-IP sign-in rate limits on register/login (generic `Too many attempts` responses);
+- `POST|GET /v1/conversations`, `GET|POST /v1/conversations/{id}[/messages]` — every read and write is owner-scoped (another user's ID looks identical to a nonexistent one), bounded pagination (default page of 20, max 50), message size caps (8,000 chars per message, 120-char titles);
+- chat invokes the gateway's own `POST /v1/chat/completions` in process with a server-held service key, forcing Free Chat mode itself — policy, budgets, Free Pool eligibility, and usage accounting apply unchanged, and gateway errors map to fixed public messages. A client-supplied Free Chat marker is ignored; only the server-held marker takes effect.
+
+![SabiChat interface (concept mockup): conversation list beside a chat thread served from the shared gateway.](media-library/sabiroute-media-library-v2.4-readme-supplement-20261019-091911/04-sabichat/sabichat-interface-concept.svg)
+
+*Concept mockup — an illustration of the planned experience, not a screenshot of the running application (the file itself carries this label). No browser UI ships on this branch.*
+
+The planned UI keeps the session token in memory only (reload signs out), renders model output as text, guards double submits, and maps expiry/rate-limit/eligibility failures to clear states. Interim limits: one service key held only in memory (a restart re-mints it; old rows are retained), in-process rate limits (single-process semantics), history window of 20 messages with a fixed response cap (`GATEWAY_MAX_TOKENS = 1024`). No BYOK, no billing — those are later phases. All of this paragraph describes the approved future design, not this checkout.
 
 ### 📊 Observability
 
-The gateway records latency, success/failure, provider/deployment, token usage, error category, and routing decisions with score breakdowns. Estimated and provider-reported tokens are kept separate; cost is recorded only when calculable from configured pricing — missing cost data is never presented as observed cost.
+The gateway tracks latency, success/failure, provider/deployment, token usage (as reported by the provider response; no estimator), error category, and routing decisions via in-memory trackers (`routing/health.py`, `monitoring/*`) exposed as read-only admin telemetry — no durable historical persistence and no cost calculation. On restart, signals reset; estimated and provider-reported tokens, where both exist, are kept separate only at read time.
+
+![Observability pulse (illustrative animation loop): attempts, outcomes, and usage evidence accumulate as requests flow through the gateway.](media-library/SabiRoute-Media-Library-v2.3/13-production-assets/08-motion-and-gifs/sabiroute-observability-pulse-loop.gif)
+
+*Illustrative animation loop — a conceptual visualization, not a live telemetry dashboard. Static frame: `08-motion-and-gifs/frames/observability-pulse/observability-pulse-frame-01.png`.*
+
+![Request lifecycle (reference illustration): ingress, identity and policy, routing, execution, and response.](media-library/sabiroute-media-library-v2.4-readme-supplement-20261019-091911/03-diagrams/request-lifecycle-reference.svg)
+
+*Reference illustration — exact ordering and guarantees are defined by `src/sabiroute/api/completions.py` and the request-path section below.*
 
 ### 🤖 Future ML-assisted routing
 
@@ -215,22 +232,26 @@ SabiRoute decides which deployment should be attempted; LiteLLM executes the pro
 
 ![Request flow: client request, access checks, candidate eligibility, route selection, LiteLLM execution, and observed outcome. Retryable failures return to bounded route selection.](docs/diagrams/readme-request-flow.svg)
 
-The request path implemented today:
+![Request routing (illustrative animation loop): a request passes admission, eligibility, selection, execution, and telemetry.](media-library/SabiRoute-Media-Library-v2.3/13-production-assets/08-motion-and-gifs/sabiroute-routing-flow-loop.gif)
+
+*Illustrative animation loop — a conceptual visualization of the stages above, not a recording of live traffic. Static frame: `08-motion-and-gifs/frames/route-flow-frame-01.png`.*
+
+The intended request path (planned architecture — not all stages exist on this branch; steps marked **planned** below have no implementation here):
 
 1. Receive the client request.
-2. Authenticate and authorize it (client key / admin key boundary).
-3. Apply rate-limit and budget admission checks.
-4. Classify the request and establish required capabilities.
+2. **Planned:** authenticate and authorize it (client key / admin key boundary — no key store on this branch).
+3. **Planned:** apply rate-limit and budget admission checks (no limiter/budget enforcement on this branch).
+4. **Planned:** classify the request and establish required capabilities (no `sabi_route_request_type` / capability filtering in this tree).
 5. Discover candidate deployments from the route policy.
-6. Exclude candidates that fail capability, health, or policy requirements.
-7. Select among eligible candidates (configured priority or measured scoring).
+6. Exclude candidates that fail health or policy requirements (**capability filtering planned**, not implemented).
+7. Select among eligible candidates (configured priority; **measured scoring is planned**, not implemented).
 8. Execute through LiteLLM.
 9. On retryable failure, fall back per the retry and eligibility rules.
-10. Normalize the response and persist operational telemetry.
+10. Normalize the response and record operational telemetry (in-memory; see observability note).
 
-Free Chat requests (the SabiChat mode) pass an additional explicit-allowlist gate between steps 6 and 7: only mapped deployments stay eligible, fallback cannot leave the allowlist, and denials happen before execution with stable reasons. The SabiChat backend traverses this same numbered path in process — it is a client of the gateway, not a parallel router.
+Free Chat requests (the planned SabiChat mode) would pass an additional explicit-allowlist gate between steps 6 and 7: only mapped deployments stay eligible, fallback cannot leave the allowlist, and denials happen before execution with stable reasons. The planned SabiChat backend would traverse this same numbered path in process — a client of the gateway, not a parallel router. Neither the Free Chat gate nor the SabiChat backend exists on this branch.
 
-The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition. The authoritative roadmap milestones and production gates live in the [roadmap](#-engineering-roadmap) and [known limitations](#-known-limitations) sections below (a standalone architecture-decision record is planned).
+The stages above are represented in code and automated tests. The documented live-path evidence covers successful requests; provider failure, fallback, budget exhaustion, and rate-limit rejection have not been live-verified against real services. See the [roadmap](#️-engineering-roadmap) and [known limitations](#️-known-limitations). ML scoring is deliberately absent from this flow — it is a future, gated addition. The authoritative architecture record, roadmap milestones, and production gates live in [docs/architecture-decision-record.md](docs/architecture-decision-record.md).
 
 ---
 
@@ -240,15 +261,9 @@ Routing intelligence is built in layers, each resting on a trustworthy one below
 
 **Layer 1 — Deterministic routing.** Configured policy and priority, healthy candidates, bounded fallback. Verified and the operational baseline.
 
-**Layer 2 — Capability-aware routing.** Required capabilities are explicit and filter candidates before selection. Unknown capability values never count as confirmed support, and capabilities are never inferred from provider or model names. Implemented with tests; deployment-specific evidence remains incomplete for most deployments (Phase 11).
+**Layer 2 — Capability-aware routing (planned, not implemented on this branch).** The approved design makes required capabilities explicit filters before selection, with unknown values never counting as confirmed support and nothing inferred from provider or model names — but the candidate tree has no capability filtering in `choose_deployment` and the `intelligence/` modules are empty placeholders. Treat the design and the Phase 11 note as specification, not current behavior.
 
-**Layer 3 — Measured deterministic scoring.** For the current measured-routing baseline, the established formula is:
-
-```text
-score = 0.7 * success_rate + 0.3 * latency_normalized
-```
-
-The scoring version is `deterministic-v1` (weights and thresholds live in `config/config.yaml`). This formula is a preserved baseline; changing it requires a separately reviewed design and benchmark. Signals are process-local (operational success rate and mean observed latency); on cold start, missing, or stale signals the scorer falls back to configured route order rather than inventing evidence. (A standalone routing-scoring guide is planned.)
+**Layer 3 — Measured deterministic scoring (planned, not implemented on this branch).** The approved design establishes the baseline formula `score = 0.7 * success_rate + 0.3 * latency_normalized` (`deterministic-v1`, weights in `config/config.yaml`), with fallback to configured route order on cold start, missing, or stale signals — but the candidate tree contains no scoring weights in config and no scorer implementation (`intelligence/scorer.py` is an empty placeholder). Treat the formula and the [docs/routing-scoring.md](docs/routing-scoring.md) semantics as the approved specification, not current behavior.
 
 **Layer 4 — ML-assisted routing (future, gated).** The first target is attempt-level operational success. Every executed provider attempt must have its own observed outcome — a logical request that fell back contains several attempts, and they are not all labeled by the final result. Hard constraints on the data:
 
@@ -267,19 +282,23 @@ The model must never override capability, health, security, budget, or policy co
 
 `config/config.yaml` is the runtime deployment catalog for both SabiRoute and LiteLLM. Fourteen aliases are configured across providers such as OpenAI, Google Gemini, Groq, Together AI, DeepInfra, Moonshot/Kimi, MiniMax, Cloudflare Workers AI, OpenRouter, Hugging Face, Cerebras, NVIDIA NIM, Cohere, and Pollinations AI. The full alias → model → credential table lives in [docs/providers.md](docs/providers.md).
 
-Runtime evidence is deployment-specific and deliberately narrow:
+Runtime evidence is deployment-specific and deliberately narrow — **on the newer working-tree line, not this checkout.** The table below records newer-line observations, preserved for continuity; the candidate tree has no live-provider verification harness output and no exercised request path to cite. Do not present these rows as observations of this branch.
 
-| Deployment | Verified capabilities | Evidence |
+| Deployment | Reported capabilities (newer line) | Reported evidence (newer line) |
 |---|---|---|
 | `sabiroute-gemini` | `chat` | Non-empty text completion through SabiRoute → LiteLLM |
 | `sabiroute-groq` | `chat`, `streaming` | Non-empty completion and incremental SSE chunks end to end |
 | `sabiroute-openrouter` | `chat` | Non-empty text completion through the configured OpenRouter deployment |
 
-All other configured deployments remain **configured but unverified** (`sabiroute-openai` has a prior request that returned no credits). The full capability matrix is documented alongside the capability declarations in `config/config.yaml` (a standalone evidence-matrix guide is planned).
+All other configured deployments remain **configured but unverified** on either line. Capability matrix (newer-line design): [docs/capabilities.md](docs/capabilities.md).
+
+![Provider network (illustrative animation loop): the gateway fans out across configured provider deployments and selects among the eligible ones.](media-library/SabiRoute-Media-Library-v2.3/13-production-assets/08-motion-and-gifs/sabiroute-provider-network-loop.gif)
+
+*Illustrative animation loop — deployment layout is conceptual, not a live provider-status view. Static frame: `08-motion-and-gifs/frames/provider-network/provider-network-frame-01.png`.*
 
 > **Configured ≠ operational.** A provider appearing in configuration proves only that the alias and credential reference exist. A deployment becomes operational after: configuration → credentials → provider access → health test → real request → streaming test → fallback test.
 
-Planned expansion may include DeepSeek, Mistral, xAI, and Ollama. Note that the fragments under `config/models/` are **not** loaded by the current runtime — `config/config.yaml` is the single catalog. Never put credential values in YAML, reports, or terminal output.
+Planned expansion may include DeepSeek, Mistral, xAI, and Ollama. Never put credential values in YAML, reports, or terminal output.
 
 ---
 
@@ -289,35 +308,35 @@ Planned expansion may include DeepSeek, Mistral, xAI, and Ollama. Note that the 
 
 **Legend:** **Complete** — implemented, tested, and exercised on a documented live path · **Implemented** — code and tests exist, required verification incomplete · **In progress** — active work, scope remains · **Blocked** — waiting on a data, evaluation, or dependency gate · **Planned** — not started
 
-These labels are not interchangeable. *Implemented* is not *Complete*, and a green unit-test suite is not integration evidence. Status evidence comes from the linked phase records and capability matrix. The documented live-path evidence is **success-only** and was not re-run while updating this README; automated tests do not establish live provider behavior.
+> **Branch-status scope note:** the phase table below is carried over from newer working-tree documentation. On this branch (`5044ef6`) the test suite is limited to `test_admin/completions/health/loader/registry/router` (no capability, scoring, Phase 10, SabiChat, dataset, or Redis-integration tests exist here), several referenced scripts (`audit_routing_dataset.py`, `verify_postgres.py`, `verify_phase10.py`, `benchmark_routing.py`) and `web/` are absent, and there has been no CI workflow. Treat every status above `Implemented` and every "exercised on the documented live run" statement as a **forward-looking claim from the newer line, not a verified fact about this checkout** — re-verify each phase against the implementation actually present before relying on it.
 
 | Phase | Focus | Status | Evidence / notes |
 |---:|---|---|---|
 | 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green |
 | 01 | Basic LiteLLM gateway | Complete | Non-streaming and streaming requests documented on the live path; fallback covered by tests only |
-| 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence (recorded 2026-10-08; evidence matrix documented with the capability declarations in `config/config.yaml`); the 2026-10-10 harness run recorded a Together authentication failure |
+| 02 | Provider expansion | Partial (design-stage) | Fourteen aliases are declared in `config/config.yaml`, but capability evidence wiring and live verification belong to the newer line — no verified deployments on this branch |
 | 03 | Model registry | Complete | Registry and aliases in place; `config/config.yaml` is the runtime catalog |
-| 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup; `research` exercised on the live path |
-| 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`, unit-tested; no live failure-injection evidence; see [limitations](#-known-limitations) |
-| 06 | Health monitoring | Implemented | Passive cooldown and recovery unit-tested; the former active `ProviderHealthChecker` was removed (see `docs/routing.md`) |
-| 07 | Observability | Implemented | Trackers wired into gateway state and admin endpoints; no stored failure-metric evidence |
-| 08 | PostgreSQL | Complete | `PostgresApiKeyStore` exercised by the documented live run |
-| 09 | Authentication and API keys | Complete | Client/admin boundary; a key was issued and revoked during that run |
-| 10 | Budgets and rate limits | Implemented | Unit and API tests cover admission and rejection (text-only estimator contract); rejection paths not exercised on the live path |
-| 11 | Capability-aware deterministic routing | Implemented | Routing and tests in place; capability evidence missing for most deployments |
-| 12 | Measured deterministic scoring | Implemented | `deterministic-v1` live on measured routes; benchmark evidence is synthetic only |
-| 13 | ML-assisted routing | In progress | 13.1 committed; live sub-gate passed; aggregate integrity failed; 13.3 blocked — see [below](#-ml-readiness-status-phase-13) |
+| 04 | Virtual models / policies | Partial (design-stage) | `routing/policies.py` defines `max_attempts`/`strategy` policy shapes, but `config/routes/*.yaml` are zero-byte placeholders on this branch — no loadable route policies exist here |
+| 05 | Fallback engine | Implemented (unit-tested on this branch) | Retry loop in the completions request path via `Router.choose_deployment` with `FallbackEngine` (`routing/fallback.py`) as default handler; covered by `test_router`/`test_completions`/`test_health`; no live failure-injection evidence; see [limitations](#️-known-limitations) |
+| 06 | Health monitoring | Implemented (unit-tested on this branch) | Passive cooldown and recovery (`test_health`: trip, half-open reset, success reset); the former active `ProviderHealthChecker` was removed (see `docs/routing.md`) |
+| 07 | Observability | Implemented (unit-tested on this branch) | Trackers wired into gateway state and admin endpoints; no stored failure-metric evidence |
+| 08 | PostgreSQL | Planned | No `PostgresApiKeyStore` or PostgreSQL-backed store exists on this branch — persistence is file-local (see persistence limitation) |
+| 09 | Authentication and API keys | Planned | No key lifecycle, admin-key boundary, or SHA-256 digest store exists on this branch |
+| 10 | Budgets and rate limits | Planned | No budget or rate-limit enforcement exists on this branch |
+| 11 | Capability-aware deterministic routing | Partial (design-stage) | Routing selects via `choose_deployment` with capability/health filtering intent, but `intelligence/` modules are empty placeholders and capability evidence is not wired — treat as planned |
+| 12 | Measured deterministic scoring | Planned | No scoring weights in config and no scorer implementation on this branch (see Layer 3 note) |
+| 13 | ML-assisted routing | Planned | No dataset, training, or inference exists on this branch — see [below](#-ml-readiness-status-phase-13) |
 | 14 | Benchmarking | Planned | Compare against the unchanged deterministic baseline |
 | 15 | Admin dashboard | Planned | — |
 | 16 | Private remote access / Tailscale | Planned | — |
 | 17 | Security hardening | Planned | Baseline controls maintained throughout earlier phases |
 | 18 | Testing and regression | Planned | Tests are required throughout earlier phases |
-| 19 | CI/CD | Planned | — |
+| 19 | CI/CD | Planned | No workflow exists on this branch (`.github/` holds no workflows here); CI is approved future work |
 | 20 | Production architecture | Planned | — |
 
-Phase 11 note: unknown capabilities are never treated as verified support; only the deployment-specific evidence declared in `config/config.yaml` is enabled. Phase 12 note: `scripts/benchmark_routing.py` runs a fixed synthetic comparison of `priority` vs `measured` — it is a methodology check, **not** proof of warm live-routing performance against real providers.
+Phase 11 note: unknown capabilities are never treated as verified support; capability evidence lives in `config/config.yaml` and [docs/capabilities.md](docs/capabilities.md) on the newer line. Phase 12 note: `scripts/benchmark_routing.py` (newer line only — absent here) runs a fixed synthetic comparison of `priority` vs `measured` — a methodology check, **not** proof of warm live-routing performance against real providers.
 
-Cross-cutting workstreams (not phases — numbers, names, and gates above are unchanged): Free Pool runtime enforcement and usage attribution are implemented and API-tested (stub execution, file-backed database); the SabiChat backend (auth, sessions, conversations, gateway chat) is implemented and API-tested the same way; the SabiChat frontend is planned; catalogue mapping, quotas, and shared inference remain gated behind Phase 20. None of this alters the Phase 13 training gates.
+Cross-cutting workstreams (not phases — numbers, names, and gates above are unchanged): Free Pool runtime enforcement, usage attribution, the SabiChat backend (auth, sessions, conversations, gateway chat), and the SabiChat zero-build frontend (`web/`, served at `/app/`) are **approved future work carried over from newer working-tree documentation — none exists on this branch** (no `freepool/` or `chat/` packages, no chat endpoints, no `web/` UI, no SabiChat tests). Only catalogue mapping, quotas, and shared inference were ever gated behind Phase 20; the enforcement/backend/frontend items above are not gated — they are absent. None of this alters the Phase 13 training gates.
 
 ---
 
@@ -327,25 +346,25 @@ Five status dimensions, kept deliberately separate:
 
 | Dimension | Status |
 |---|---|
-| ML data-foundation implementation | Implemented — schema `1.1` feature snapshots and a read-only audit tool, committed as `71271fc` (phase-13.1 routing data foundation) |
-| Live request-path verification | Passed for two bounded requests — one non-streaming (`research` policy → OpenRouter) and one streaming (Groq, SSE frames terminated with `[DONE]`); schema `1.1` records persisted |
-| Aggregate dataset integrity | **Failed** — one feature/outcome count mismatch and one outcome without a feature snapshot remain visible by design |
-| Training readiness (13.3) | **Blocked** — no outcome variation and no defensible chronological split |
-| Commit isolation (2026-10-10) | Every phase-scoped group is committed on `feat/sabiroute-routing-foundation` — foundation, capabilities, scoring, registry, route-loading, security primitives, request-path wiring, dataset foundation, README, and the provider harness. No source, configuration, or test file is left modified or uncommitted; the only open tracked change in the working tree is this documentation reconciliation. |
+| ML data-foundation implementation | **Planned — not present on this branch.** Schema `1.1` feature snapshots and a read-only audit tool exist on the newer working-tree line (commit `71271fc`) but the candidate tree has no dataset module, no snapshot schema, and no audit script |
+| Live request-path verification | **Not applicable to this checkout** — the two bounded requests (`research` → OpenRouter; Groq streaming with `[DONE]`) were observed on the newer line, not here |
+| Aggregate dataset integrity | **Not applicable** — no dataset exists on this branch to audit |
+| Training readiness (13.3) | **Blocked** — necessarily so: with no dataset implementation present, there is nothing to train or evaluate |
+| Commit isolation (2026-10-10) | Describes the newer feature-branch working tree, not this checkout |
 
-The latest read-only database audit **succeeded** and reported:
+The audit figures below (7 logical requests · 6 provider attempts · 5 feature snapshots · 6 labeled outcomes, no outcome variation, no usable chronological split) were recorded on the newer working-tree line and are preserved here for continuity — **they do not describe this checkout**, which has no dataset implementation and therefore no auditable telemetry. Do not present them as observations of this branch.
 
-- 7 logical requests · 6 provider attempts · 5 feature snapshots · 6 labeled outcomes;
-- all six provider attempts successful → **no outcome variation**;
-- 2 attempts with verified temporal provenance; 4 with unknown or unavailable provenance;
-- 1 feature/outcome count mismatch; 1 outcome without a feature snapshot;
-- **no usable chronological evaluation split** (at least one attempt lacks a decision timestamp).
+- ~~7 logical requests · 6 provider attempts · 5 feature snapshots · 6 labeled outcomes;~~ *(newer-line figures, not this checkout — see above)*
+- ~~all six provider attempts successful → **no outcome variation**;~~ *(ditto)*
+- ~~2 attempts with verified temporal provenance; 4 with unknown or unavailable provenance;~~ *(ditto)*
+- ~~1 feature/outcome count mismatch; 1 outcome without a feature snapshot;~~ *(ditto)*
+- ~~**no usable chronological evaluation split** (at least one attempt lacks a decision timestamp).~~ *(ditto)*
 
 An earlier audit attempt was blocked by the execution environment (`Operation not permitted`); that was an environment access limitation, **not** a PostgreSQL outage. The historical unmatched observation has a successful provider outcome but no feature snapshot or attempt timestamps — it is left unrepaired on purpose. Do not fabricate timestamps or reconstructed features for it; a future training export must exclude it unless an authoritative original snapshot is recovered.
 
-Phase status: **13.1** data foundation — implemented · **13.2** target/labels/provenance/audit — in progress (live sub-gate passed, aggregate closure pending) · **13.3** training and evaluation — **blocked** · **13.4** guarded inference — blocked pending a valid trained artifact · **13.5** ML selector integration — blocked pending validated inference. **No model has been trained or deployed.**
+Phase status on this branch: **13.1–13.5 all planned, none implemented** — no data foundation, no target/label pipeline, no training, no guarded inference, no selector integration. **No model has been trained or deployed.** The phase vocabulary below (13.1 implemented · 13.2 in progress · 13.3+ blocked) describes the newer working-tree line, not this checkout — and training remains locked behind the same gates wherever it is eventually attempted.
 
-Training stays locked until a fresh audit establishes sound feature/outcome pairing and temporal provenance, meaningful outcome variation, adequate coverage, and a leakage-safe chronological evaluation design — and even then, automated checks lead to human review, not automatic authorization to train. Observations should come from normal authorized traffic; never manufacture failures or randomize selection to grow the dataset. (A standalone Phase 13 data-foundation guide is planned.)
+Training stays locked until a fresh audit establishes sound feature/outcome pairing and temporal provenance, meaningful outcome variation, adequate coverage, and a leakage-safe chronological evaluation design — and even then, automated checks lead to human review, not automatic authorization to train. Observations should come from normal authorized traffic; never manufacture failures or randomize selection to grow the dataset. Details: [docs/phase13-data-foundation.md](docs/phase13-data-foundation.md).
 
 ---
 
@@ -369,34 +388,32 @@ docker compose up -d
 ./.venv/bin/sabiroute
 ```
 
-Key environment variables (names only — see `.env.example` for the full list): `DATABASE_URL`, `SABIROUTE_ADMIN_KEY`, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `LITELLM_PORT`, `REDIS_URL`, plus per-provider credentials (`GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, …). The gateway honors `SABIROUTE_HOST` and `SABIROUTE_API_PORT`, and `SABIROUTE_ROUTES_PATH` for a custom route directory.
+Key environment variables (names only — see `.env.example` for the full list; the candidate `.env.example` defines the LiteLLM, PostgreSQL, Redis, and provider-credential names): `DATABASE_URL`, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `LITELLM_PORT`, `REDIS_URL`, plus per-provider credentials (`GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, …). The gateway honors `SABIROUTE_HOST` and `SABIROUTE_API_PORT` for the served address and `SABIROUTE_CONFIG_PATH` for the config file. Names such as `SABIROUTE_ADMIN_KEY`, `SABIROUTE_ROUTES_PATH` (custom route directory), or service-key variables that appear elsewhere in this README belong to the newer planned design — they have no effect on this checkout; re-verify each name against the implementation before relying on it.
 
-Two supported topologies: **host-run SabiRoute** beside the Compose stack, or the **SabiRoute container** (`docker build -t sabiroute .`, non-root, health-checked; SabiChat UI at `/app/`) — including via `docker compose up --build`, which now defines the API service with loopback-only ports. When running on the host, point `DATABASE_URL` at `127.0.0.1` with the published port — the Compose service names only resolve inside the Compose network. CI (`.github/workflows/ci.yml`) runs the suite, Ruff, mypy, a JS syntax check, and the container build. Full topology, PostgreSQL TLS, migration, and rollback notes: [docs/deployment.md](docs/deployment.md).
+![Quickstart lifecycle (reference visual): configure routes and providers, authorize the key, select an eligible deployment, execute through LiteLLM, and observe outcome and usage.](media-library/SabiRoute-Media-Library-v2.3/13-production-assets/04-github-readme/sabiroute-quickstart-lifecycle-visual.svg)
+
+*Reference visual — follow the commands above and `.env.example` for the exact setup; stage names are illustrative.*
+
+Two supported topologies: **host-run SabiRoute** beside the Compose stack, or the **SabiRoute container** (`docker build -t sabiroute .`, non-root, health-checked) — including via `docker compose up --build`, which defines the API service with loopback-only ports. When running on the host, point `DATABASE_URL` at `127.0.0.1` with the published port — the Compose service names only resolve inside the Compose network. Full topology, PostgreSQL TLS, and rollback notes: [docs/deployment.md](docs/deployment.md). (There is no SabiChat UI at `/app/`, no CI workflow (`.github/workflows/` absent), and no JS frontend check on this branch — references to them elsewhere in this README describe newer planned work.)
 
 ### API usage
 
 | Endpoint | Auth | Purpose |
 |---|---|---|
-| `POST /v1/chat/completions` | client key | OpenAI-compatible chat completions (streaming supported) |
+| `POST /v1/chat/completions` | none on this branch (key-auth planned) | OpenAI-compatible chat completions (streaming supported) |
 | `GET /health`, `GET /health/live` | public | Liveness |
-| `POST /admin/api-keys` (+ rotate / revoke) | admin key | Client key lifecycle |
-| `PUT/GET/DELETE /admin/api-keys/{id}/rate-limit` | admin key | Per-key request rate and burst |
-| `PUT/GET/DELETE /admin/api-keys/{id}/budget` | admin key | Daily/monthly token and cost budgets |
-| `GET /admin/api-keys/{id}/usage` | admin key | Per-key usage |
-| `GET /admin/metrics`, `/admin/latency`, `/admin/errors`, `/admin/usage` | admin key | Telemetry |
+| `GET /admin/health`, `/admin/metrics`, `/admin/latency`, `/admin/errors`, `/admin/usage` | none on this branch | Read-only telemetry snapshots |
 
-```bash
-# Create a client key (admin key required; the plaintext key is returned once)
-curl -s http://127.0.0.1:8000/admin/api-keys \
-  -H "Authorization: Bearer $SABIROUTE_ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"project_id":"project-a","name":"local-dev"}'
+> **Planned endpoints not present on this branch:** `GET /health/ready`, `GET /v1/chat/quota-summary`, and all `/admin/api-keys/*`, rate-limit, and budget management routes — plus the client-key lifecycle, quota, and budget curl examples below — describe the newer approved design. Do not call them against this checkout; re-verify each route against the implementation before relying on it.
+
+```text
+# Planned: client-key lifecycle (NOT present on this branch — no /admin/api-keys routes exist here)
+# POST /admin/api-keys with an admin bearer key would return the plaintext key once.
 ```
 
 ```bash
-# OpenAI-compatible chat completion through a virtual policy
+# OpenAI-compatible chat completion (no auth header on this branch — key-auth planned)
 curl -s http://127.0.0.1:8000/v1/chat/completions \
-  -H "Authorization: Bearer $SABIROUTE_CLIENT_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "research",
@@ -405,7 +422,7 @@ curl -s http://127.0.0.1:8000/v1/chat/completions \
   }'
 ```
 
-`model` accepts a deployment alias (for example `sabiroute-gemini`) or a virtual route name (`ultimate`, `coding`, `research`, `reasoning`, `fast`, `cheap`). Add `"stream": true` for SSE streaming — streaming requires a deployment with verified `streaming` support.
+`model` accepts a deployment alias (for example `sabiroute-gemini`) or a policy name known to this checkout's `routing/policies.py`. Add `"stream": true` for SSE streaming.
 
 ---
 
@@ -420,16 +437,19 @@ curl -s http://127.0.0.1:8000/v1/chat/completions \
 ./.venv/bin/mypy src
 ```
 
+Tiered offline-first guide (fast checks, local regression, opt-in integration, external-service
+boundaries), with the exact expected result and skip semantics: [docs/local-validation.md](docs/local-validation.md).
+
 The Ruff command is scoped to the maintained tree on purpose: `pyproject.toml` defines no excludes, so a whole-tree `ruff check .` also scans untracked local tool artifacts (for example vendored skill scripts under `.claude/`), which currently report hundreds of findings unrelated to this project. `ruff check src tests scripts config` is the reliable gate — it passes on the maintained code, and nothing in that scope is suppressed.
 
-Operational and verification tooling:
+Operational and verification tooling (present on this branch: `scripts/test_providers.py` only — the remaining four scripts are planned additions from the newer line, not files in this checkout):
 
 | Script | Purpose | Notes |
 |---|---|---|
-| `scripts/audit_routing_dataset.py` | Read-only routing dataset audit; `--export` is readiness-gated candidate JSON and `--diagnostic-export` is diagnostic-only JSON | Requires `DATABASE_URL`; never trains or writes to the database |
-| `scripts/verify_postgres.py` | Temporary-key PostgreSQL lifecycle check, self-cleaning | Prints database/role names, never passwords |
-| `scripts/verify_phase10.py` | Exercises request accounting and rate limits against local services | Local services only |
-| `scripts/benchmark_routing.py` | Synthetic `priority` vs `measured` comparison | No provider calls — methodology check, not provider evidence |
+| `scripts/audit_routing_dataset.py` | *(Planned, absent here)* Read-only routing dataset audit | Newer-line design; not runnable on this checkout |
+| `scripts/verify_postgres.py` | *(Planned, absent here)* Temporary-key PostgreSQL lifecycle check | Newer-line design; not runnable on this checkout |
+| `scripts/verify_phase10.py` | *(Planned, absent here)* Request accounting and rate limits against local services | Newer-line design; not runnable on this checkout |
+| `scripts/benchmark_routing.py` | *(Planned, absent here)* Synthetic `priority` vs `measured` comparison | Newer-line design; not runnable on this checkout |
 | `scripts/test_providers.py` | Live provider verification | Makes **real** provider requests; writes `reports/provider_verification.json` — review and sanitize before sharing |
 
 An HTTP 200 is not acceptance. Validation covers the layers that actually fail:
@@ -470,19 +490,18 @@ That progression — and the honesty about selection bias, missing outcomes, and
 
 ## ⚠️ Known limitations
 
-- **Aggregate dataset integrity is invalid:** one historical feature/outcome count mismatch and one outcome without a feature snapshot remain, deliberately unrepaired.
-- **Training is blocked:** no outcome variation (all attempts successful), incomplete temporal provenance, and no usable chronological split.
-- **Capability evidence is narrow:** only `sabiroute-gemini`, `sabiroute-groq`, and `sabiroute-openrouter` have runtime evidence; most deployments' capability metadata is `unknown`.
-- **Phase 12 evidence is synthetic:** warm live-routing performance under real provider telemetry is not yet established.
+- **Aggregate dataset integrity / training status:** no dataset exists on this branch, so there is nothing to audit and nothing to train — the mismatch/no-variation/no-split statements below describe the newer working tree, not this checkout (see Phase 13 section).
+- **Capability evidence:** no verified deployments on this branch; capability filtering is planned (see Layer 2 note). The narrow-evidence statement below describes the newer line.
+- **Phase 12 evidence:** no measured-routing implementation exists on this branch (see Layer 3 note) — there is no synthetic benchmark output here either.
 - **Scoring telemetry is process-local:** reliability and latency signals reset on restart; the request path does not read history from the database.
-- **Token estimation is text-only:** multimodal token estimation stays null; cost appears only when calculable from configured pricing.
-- **Lightweight migrations, managed-PostgreSQL validation outstanding:** schema evolves through an ordered additive revision ledger (`sabiroute_schema_versions`, currently `0001-usage-source`, `0002-sabichat-backend`) — no Alembic, no destructive changes — validated against disposable local PostgreSQL 16 (fresh init, upgrade, idempotent re-run, backup/restore), but never against live or managed PostgreSQL.
-- **SabiChat is interim-grade:** one memory-held service key (re-minted on restart), single-process rate limits, fixed history/response caps, in-memory session token (reload signs out); per-user gateway keys and quotas are explicit future work. The browser UI is minimal and has no automated browser test suite — it was smoke-tested manually in a real browser session.
-- **Deployment foundation, not production:** the container, CI, and Compose service exist and are smoke-tested without providers; local disposable-PostgreSQL migration and backup/restore are verified, but there has been no managed-database test and no staging deployment — Phase 20 review still gates any public exposure.
-- **No separate fallback engine exists:** there is no `FallbackEngine` or `routing/fallback.py` in the tree (verified by search) — the retry/fallback loop lives in `src/sabiroute/api/completions.py` and routes every attempt through `Router.choose_deployment`.
+- **Token estimation is not implemented on this branch:** there is no text or multimodal token estimator in the candidate tree — cost-appears-only-when-calculable describes the approved design, not current behavior.
+- **Persistence is file-local on this branch: no migration framework, no PostgreSQL-backed stores, no ledger.** The candidate tree contains no `security/store.py`, no `SCHEMA_MIGRATIONS`, no `sabiroute_schema_versions` ledger, and no schema-mutation code at startup; key storage, chat state, and usage accounting live in process-local/file state, not PostgreSQL. Any passage in this README or its linked documents that describes an ordered additive revision ledger, transactional startup-applied migrations, `PostgresApiKeyStore`, managed-PostgreSQL validation runs, or backup/restore verification is a **forward-looking plan carried over from newer working-tree documentation**, not a description of this checkout's implementation. It must not be read as compliance with an explicit-migration/validate-only-startup policy, and startup-time schema mutation must not be presented as policy-compliant. The approved policy direction is explicit, versioned migrations with validate-only startup; until that implementation lands on this line, re-verify every migration, persistence-backend, and managed-database claim against the implementation actually present before relying on it.
+- **SabiChat is planned, not interim:** no chat backend, UI, session handling, or SabiChat tests exist on this branch — the "interim-grade" characterization below describes the newer line. Do not present service keys, rate limits, history windows, or browser verification as facts about this checkout.
+- **Deployment foundation, not production:** the container and Compose service exist (non-root, health-checked, smoke-tested without providers); there has been no managed-database test and no staging deployment — Phase 20 review still gates any public exposure. PostgreSQL migration and backup/restore verification described in `docs/deployment.md` is planned work (see the persistence limitation above), not an executed verification on this branch.
+- **Fallback engine present on this branch:** the candidate tree contains `routing/fallback.py` (`FallbackEngine`), wired as `Router`'s default fallback handler and exercised through the completions request path — the feature branch later removed it in favor of an inline retry loop. Verify fallback behavior against `routing/fallback.py` and `routing/router.py` as present here.
 - **Active health checking was removed:** `providers/healthcheck.py` (`ProviderHealthChecker`) was deleted after verification that nothing referenced it (see `docs/routing.md`). Runtime health is the passive success/failure and cooldown registry in `routing/health.py`.
-- **Live evidence is documentary and success-only:** the stored isolated live-path run is the evidence on record; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
-- Some root files (`Makefile`, `CHANGELOG.md`) are placeholders awaiting their phases; `Dockerfile` is implemented (Sprint 5).
+- **Live evidence is documentary and success-only (newer line):** the isolated run in [docs/phase13-data-foundation.md](docs/phase13-data-foundation.md) is the stored live-path evidence from the newer working tree — not an observation of this checkout; it did not exercise provider failure, fallback, budget exhaustion, or rate-limit rejection against real services.
+- Some root files (`Makefile`, `CHANGELOG.md`, `Dockerfile`) are zero-byte placeholders on this branch — containerization is planned work, not an implemented `Dockerfile`.
 
 ---
 
@@ -517,7 +536,7 @@ SabiRoute is alpha software. Review the [Security Policy](SECURITY.md) for suppo
 
 ## 🆓 Free Pool
 
-**Status: runtime enforcement implemented behind a disabled-by-default flag; catalogue, quotas, and shared inference still ahead.** The design below stands; the enforcement subsection after it describes what actually runs today.
+**Status: planned — runtime enforcement, catalogue, quotas, and shared inference are approved design, not implemented on this branch.** The subsections below describe the intended Free Pool design; only the informational catalogue/registry/router distinction applies to this checkout — re-verify every enforcement or quota claim against the implementation before relying on it.
 
 ### What is Free Pool?
 
@@ -565,17 +584,13 @@ Quotas, restrictions, account eligibility, geography, and terms vary by arrangem
 
 ### Runtime enforcement status
 
-Implemented, unit- and API-tested (stub execution, file-backed database — no live providers yet):
+**Planned, not implemented on this branch.** The approved design calls for an explicit allowlist policy (proposed env names `SABIROUTE_FREEPOOL_ENABLED`, `SABIROUTE_FREEPOOL_DEPLOYMENTS`, disabled by default with fail-closed behavior), a pre-execution gate in the completions path that narrows candidates to mapped deployments through the existing `Router`, and durable usage-source attribution (`unknown` / `free_pool` / `byok` / `paid`) — but the candidate tree contains no `src/sabiroute/freepool/` package, no Free Chat marker handling, and no usage-source attribution code. Do not present the allowlist gate, denial reasons, or attribution behavior as current; re-verify each against the implementation before relying on it.
 
-- `src/sabiroute/freepool/` — an explicit allowlist policy (`SABIROUTE_FREEPOOL_ENABLED`, `SABIROUTE_FREEPOOL_DEPLOYMENTS`), **disabled by default**; a disabled gateway fails closed on Free Chat requests rather than pretending to serve them.
-- a pre-execution gate in `api/completions.py` that narrows candidates to mapped deployments through the existing `Router` — no parallel ranking, no execution duplication; denial happens before any LiteLLM call with stable reasons (`free_pool_unmapped_deployment`, `free_pool_no_capable_deployment`, `free_pool_no_healthy_deployment`, …).
-- durable usage-source attribution (`unknown` / `free_pool` / `byok` / `paid`): admission starts `unknown` and becomes `free_pool` only when the gate allows; denied or spoofed requests stay `unknown`; legacy rows are never backfilled. Only `free_pool` is assigned today.
-
-Still unimplemented: catalogue-to-registry mapping data, runtime quota enforcement, provider-terms validation, and shared inference itself.
+Still unimplemented (on either line at this scope): catalogue-to-registry mapping data, runtime quota enforcement, provider-terms validation, and shared inference itself.
 
 ### Fit with the existing roadmap
 
-Free Pool is a cross-cutting workstream, not a roadmap replacement — phases keep their numbers, names, and gates:
+Free Pool is a cross-cutting workstream — phases keep their numbers, names, and gates — but the per-phase enforcement assumptions below describe the approved future design, not this checkout (governance, capability filtering, scoring, and training-gate enforcement are planned, as noted in each section). The stated fitness depends on that future implementation; re-verify each phase before relying on it as a current guarantee:
 
 - Phases 09–10 governance (auth, rate limits, budgets) underpins any future shared access.
 - Phase 11 capability filtering constrains which catalogue-mapped deployments are ever eligible.
