@@ -1,0 +1,29 @@
+.env
+.env.*
+!.env.example
+
+# Local Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Operating-system metadata
+.DS_Store
+
+# ============================================================
+# Local provider verification reports
+# ============================================================
+
+# Sprint/audit planning history is tracked as durable project history;
+# everything else under reports/ stays ignored. (Scope: read-only
+# remediation mission; files are NOT staged by this change. Scrub the
+# checkout-local absolute paths in these files before any future push.)
+reports/*
+!reports/audit-acceptance-and-disposition.md
+!reports/remediation-roadmap-and-gates.md
+!reports/pre-roadmap-audit.md
+!reports/implementation_12h.md
+!reports/my_scorecard.md

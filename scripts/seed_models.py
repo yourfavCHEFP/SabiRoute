@@ -1,0 +1,1 @@
+"""Model seeding entry point for SabiRoute."""

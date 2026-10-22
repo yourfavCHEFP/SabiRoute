@@ -1,0 +1,16 @@
+# 429-drill proxy config (r0). Fake credentials only. Never production.
+model_list:
+  - model_name: sabi-429-model
+    litellm_params:
+      model: openai/sabi-429-model
+      api_base: http://sabi-stub:8399/v1
+      api_key: sk-drill-fake
+      num_retries: 0
+
+general_settings:
+  master_key: sabi-drill-test-only
+
+litellm_settings:
+  request_timeout: 10
+  drop_params: true
+  set_verbose: false
