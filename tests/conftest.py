@@ -367,7 +367,11 @@ def make_config() -> SabiRouteConfig:
                     },
                 ]
             }
-        )
+        ),
+        # The fixture deliberately carries a literal marked test credential
+        # so the deployment shapes stay covered; the credential policy is
+        # opt-in, so the suite enables it explicitly here.
+        allow_test_credentials=True,
     )
 
 
@@ -468,6 +472,7 @@ _ISOLATED_RUNTIME_ENV_VARS = (
     "SABIROUTE_QUOTA_PILOT_USERS",
     "SABIROUTE_DOCS_ENABLED",
     "SABIROUTE_MAX_REQUEST_BODY_BYTES",
+    "SABIROUTE_ALLOW_TEST_CREDENTIALS",
 )
 
 

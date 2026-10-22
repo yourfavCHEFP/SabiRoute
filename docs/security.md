@@ -9,6 +9,16 @@
 - Missing, malformed, invalid, and revoked client credentials receive the same `401` response body. A missing key store fails closed with `503`.
 - A SabiRoute client key is never forwarded to LiteLLM. The existing `LITELLM_MASTER_KEY` remains the internal SabiRoute-to-LiteLLM credential.
 
+## Provider credential policy
+
+Configuration must not embed literal provider secrets. Every deployment resolves its credential through an `os.environ/VAR_NAME` reference, which the gateway resolves at startup and the SDK resolves lazily at the call boundary, keeping secrets out of configuration snapshots and logs. A literal `api_key` is rejected when the configuration is loaded.
+
+One narrow exception exists for this repository's own test suite: values beginning `sk-test-`, `sk-test_`, or `sk-literal-test` are recognised as marked test credentials rather than secrets. That exception is **disabled by default** and is enabled only by the explicit `SABIROUTE_ALLOW_TEST_CREDENTIALS` opt-in, which accepts `1`/`true`/`yes`/`on` (enabled) or `0`/`false`/`no`/`off` (disabled). Any other value fails loudly at startup instead of silently defaulting.
+
+The opt-in is for controlled local testing only and must not be enabled in a production deployment. It exists so local experiments and the repository's own fixtures can use a non-secret placeholder credential without weakening the production default. Enabling it does not permit arbitrary literal credentials: a value that is not a marked test credential is still rejected, so the opt-in cannot be used to place a real provider secret in configuration.
+
+Rejection messages name the offending deployment and the setting to change. They never echo the credential value, and they never echo the raw opt-in value.
+
 ## Key lifecycle
 
 An administrator creates a key with `POST /admin/api-keys` and JSON such as:

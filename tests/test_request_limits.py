@@ -145,6 +145,48 @@ def test_malformed_body_not_confused_with_oversize():
 
 
 # --- F-06a literal-credential policy ---
+#
+# Literal provider credentials are rejected by default. Marked test
+# credentials (sk-test- / sk-test_ / sk-literal-test) are accepted only
+# behind an explicit, default-off opt-in that exists for controlled local
+# testing. Environment-variable references are always supported and are
+# unaffected by the opt-in in either direction.
+
+_OPT_IN_ENV_VAR = "SABIROUTE_ALLOW_TEST_CREDENTIALS"
+
+_MARKED_TEST_PREFIXES = ("sk-test-", "sk-test_", "sk-literal-test")
+
+
+def _f06a_config(api_key: str) -> dict:
+    return {
+        "model_list": [
+            {
+                "model_name": "t",
+                "litellm_params": {
+                    "model": "openai/gpt-4o-mini",
+                    "api_key": api_key,
+                },
+            }
+        ]
+    }
+
+
+def _f06a_validate(api_key: str, **kwargs):
+    from sabiroute.config.models import SabiRouteConfig
+    from sabiroute.config.validation import validate_config
+
+    return validate_config(SabiRouteConfig.from_mapping(_f06a_config(api_key)), **kwargs)
+
+
+def _f06a_reject(api_key: str, **kwargs) -> str:
+    """Return the rejection message, failing if the credential is accepted."""
+
+    from sabiroute.config.validation import ConfigValidationError
+
+    with __import__("pytest").raises(ConfigValidationError) as excinfo:
+        _f06a_validate(api_key, **kwargs)
+    return str(excinfo.value)
+
 
 def test_literal_secret_rejected_without_value_leak():
     from sabiroute.config.models import SabiRouteConfig
@@ -174,53 +216,125 @@ def test_literal_secret_rejected_without_value_leak():
         raise AssertionError("literal secret was accepted")
 
 
-def test_marked_test_credential_accepted():
-    from sabiroute.config.models import SabiRouteConfig
-    from sabiroute.config.validation import validate_config
+def test_literal_test_credential_rejected_by_default(monkeypatch):
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
 
-    config = validate_config(
-        SabiRouteConfig.from_mapping(
-            {
-                "model_list": [
-                    {
-                        "model_name": "t",
-                        "litellm_params": {
-                            "model": "openai/gpt-4o-mini",
-                            "api_key": "sk-test-fixture-only",
-                        },
-                    }
-                ]
-            }
-        )
-    )
+    message = _f06a_reject("sk-test-fixture-only")
+
+    assert "sk-test-fixture-only" not in message
+    assert _OPT_IN_ENV_VAR in message
+
+
+def test_literal_test_credential_rejected_when_opt_in_disabled(monkeypatch):
+    for value in ("0", "false", "no", "off", ""):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+        _f06a_reject("sk-test-fixture-only")
+
+
+def test_literal_test_credential_accepted_with_explicit_opt_in(monkeypatch):
+    for value in ("1", "true", "yes", "on", "TRUE", "On"):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+
+        config = _f06a_validate("sk-test-fixture-only")
+
+        assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
+
+
+def test_opt_in_accepts_every_marked_test_prefix(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    for prefix in _MARKED_TEST_PREFIXES:
+        value = f"{prefix}fixture-only"
+        config = _f06a_validate(value)
+        assert config.model_list[0].litellm_params.api_key == value
+
+
+def test_opt_in_does_not_enable_general_literal_credentials(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    secret = "sk-live-REALISTIC-SECRET-abc123"
+    message = _f06a_reject(secret)
+
+    assert secret not in message
+    assert "literal" in message.lower()
+
+
+def test_environment_reference_accepted_regardless_of_opt_in(monkeypatch):
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
+    config = _f06a_validate("os.environ/OPENAI_API_KEY")
+    assert config.model_list[0].litellm_params.api_key == "os.environ/OPENAI_API_KEY"
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    config = _f06a_validate("os.environ/OPENAI_API_KEY")
+    assert config.model_list[0].litellm_params.api_key == "os.environ/OPENAI_API_KEY"
+
+
+def test_malformed_opt_in_value_is_rejected(monkeypatch):
+    for value in ("maybe", "enabled", "2"):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+        message = _f06a_reject("os.environ/OPENAI_API_KEY")
+        assert _OPT_IN_ENV_VAR in message
+        assert value not in message
+        assert isinstance(message, str)
+
+
+def test_opt_in_error_does_not_echo_the_credential(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    secret = "sk-live-REALISTIC-SECRET-abc123"
+    message = _f06a_reject(secret)
+
+    assert secret not in message
+
+
+def test_allowlist_rejects_whitespace_padded_values(monkeypatch):
+    for bad in (" sk-test-123", "sk-test-123 ", "sk-test-123\n"):
+        _f06a_reject(bad)
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    for bad in (" sk-test-123", "sk-test-123 ", "sk-test-123\n"):
+        _f06a_reject(bad)
+
+
+def test_explicit_parameter_overrides_environment(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "0")
+    config = _f06a_validate("sk-test-fixture-only", allow_test_credentials=True)
     assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
 
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    _f06a_reject("sk-test-fixture-only", allow_test_credentials=False)
 
-def test_allowlist_rejects_whitespace_padded_values():
-    from sabiroute.config.models import SabiRouteConfig
-    from sabiroute.config.validation import ConfigValidationError, validate_config
 
-    for bad in (" sk-test-123", "sk-test-123 ", "sk-test-123\n"):
-        try:
-            validate_config(
-                SabiRouteConfig.from_mapping(
-                    {
-                        "model_list": [
-                            {
-                                "model_name": "t",
-                                "litellm_params": {
-                                    "model": "openai/x",
-                                    "api_key": bad,
-                                },
-                            }
-                        ]
-                    }
-                )
-            )
-        except ConfigValidationError:
-            pass
-        else:
-            raise AssertionError(f"whitespace-padded value accepted: {bad!r}")
+def test_load_config_rejects_literal_test_credential_by_default(tmp_path, monkeypatch):
+    import yaml
+
+    from sabiroute.config.loader import load_config
+    from sabiroute.config.validation import ConfigValidationError
+
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        yaml.safe_dump(_f06a_config("sk-test-fixture-only")), encoding="utf-8"
+    )
+
+    with __import__("pytest").raises(ConfigValidationError):
+        load_config(config_file)
+
+
+def test_load_config_accepts_literal_test_credential_with_opt_in(tmp_path, monkeypatch):
+    import yaml
+
+    from sabiroute.config.loader import load_config
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        yaml.safe_dump(_f06a_config("sk-test-fixture-only")), encoding="utf-8"
+    )
+
+    config = load_config(config_file)
+
+    assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
 
 
 def test_env_reference_accepted_and_missing_var_fails():
