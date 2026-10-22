@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-groq
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: os.environ/GROQ_API_KEY

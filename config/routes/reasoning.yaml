@@ -1,0 +1,8 @@
+name: reasoning
+required_capabilities:
+  - reasoning
+deployments:
+  - sabiroute-openai
+  - sabiroute-gemini
+strategy: measured
+max_attempts: 2

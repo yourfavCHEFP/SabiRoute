@@ -1,0 +1,5 @@
+model_list:
+  - model_name: sabiroute-cohere
+    litellm_params:
+      model: cohere_chat/command-a-03-2025
+      api_key: os.environ/COHERE_API_KEY
