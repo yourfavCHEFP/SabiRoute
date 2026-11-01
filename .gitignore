@@ -27,3 +27,16 @@ reports/*
 !reports/pre-roadmap-audit.md
 !reports/implementation_12h.md
 !reports/my_scorecard.md
+# R1 attested set (REPORTS-MANIFEST.sha256 EXPLICIT_INCLUDE): narrow per-file
+# exceptions so the full 13-file set is trackable. reports/* still ignores
+# everything else, including documented exclusions (mission-state JSON,
+# reports/reconciliation-2026-10-31.md, reports/evidence/). Governance
+# decision required to add any further file.
+!reports/mission-c-evidence-audit-2026-10-26.md
+!reports/mission-runlog-2026-10-26T095838.md
+!reports/mobilization-reconciliation-2026-10-26.md
+!reports/part-i-sprints-1-8-overnight-report-2026-10-26.md
+!reports/provider_verification.json
+!reports/r02-kill-switch-remediation.md
+!reports/reconciliation-plan.md
+!reports/sprint-02b-unattended-core.md
