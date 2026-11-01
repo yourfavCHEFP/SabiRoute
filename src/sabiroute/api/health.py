@@ -1,6 +1,13 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from ..security.redaction import redact_secrets
+from ..security.store import (
+    check_sabichat_schema,
+    check_schema,
+    check_shared_inference_schema,
+)
+
 router = APIRouter(tags=["health"])
 
 
@@ -31,6 +38,20 @@ async def readiness(request: Request) -> JSONResponse:
     """
 
     gateway = getattr(request.app.state, "gateway", None)
+    if gateway is not None and getattr(gateway, "startup_error", None) is None:
+        # Read-only schema re-check (defensive; startup already validated).
+        try:
+            if gateway.key_store is not None and hasattr(gateway.key_store, "_engine"):
+                check_schema(gateway.key_store._engine)
+                check_shared_inference_schema(gateway.key_store._engine)
+            if gateway.chat_store is not None and hasattr(gateway.chat_store, "_engine"):
+                check_sabichat_schema(gateway.chat_store._engine)
+        except Exception as exc:
+            # D-R3-3: same redaction contract as the startup path in main.py —
+            # this is a PostgreSQL connection failure and may embed the DSN.
+            gateway.startup_error = redact_secrets(exc)
+            for _name in ("key_store", "chat_store"):
+                setattr(gateway, _name, None)
     if gateway is None or getattr(gateway, "startup_error", None):
         startup_ok = False
         registry_ok = False

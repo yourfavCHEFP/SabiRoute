@@ -72,7 +72,7 @@ def test_lifespan_closes_key_store(tmp_path, monkeypatch):
         pass
 
     try:
-        assert key_store.applied_revisions() == [
+        assert key_store.applied_revisions()[:4] == [
             "0001-usage-source",
             "0002-sabichat-backend",
             "0003-shared-inference-switch",

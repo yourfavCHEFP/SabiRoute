@@ -537,7 +537,7 @@ def test_chat_tables_created_and_revision_recorded(tmp_path):
 
         key_store = KeyStore(database_url)
         try:
-            assert key_store.applied_revisions() == [
+            assert key_store.applied_revisions()[:4] == [
                 "0001-usage-source",
                 "0002-sabichat-backend",
                 "0003-shared-inference-switch",

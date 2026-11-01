@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import ROUND_FLOOR, Decimal
@@ -50,6 +50,7 @@ from ..security.keys import (
     RequestUsageEvent,
     UsageEventValidationError,
 )
+from ..security.redaction import redact_secrets
 
 router = APIRouter(tags=["completions"], dependencies=[Depends(require_client_key)])
 
@@ -63,13 +64,86 @@ class UnknownModelError(KeyError):
     """Raised when a requested model matches neither alias nor policy."""
 
 
+#: Hard caps on user-controlled request shape. Conservative values that
+#: admit every supported use case while bounding validation, telemetry, and
+#: provider payloads. Operators cannot raise these via environment; they are
+#: release constants, not tuning knobs.
+MAX_MESSAGES_PER_REQUEST = 256
+MAX_MESSAGE_CHARS = 500_000
+
+
+#: BYOK-0 deny-list, normalized to lowercase alphanumerics only. Owner decision
+#: D-R3-1: the gateway owns provider credentials, so a caller supplying or
+#: overriding them is denied outright rather than silently stripped.
+#:
+#: ``apikey``/``apibase``/``authorization`` are credential channels.
+#: ``customllmprovider``/``provider`` are provider-*identity* selectors, which
+#: D-R3-1 also names: provider selection belongs to SabiRoute's routing layer,
+#: not to the request body. (These two are a policy extension per D-R3-1, not a
+#: proven live bypass — no provider call was made to demonstrate one.)
+_FORBIDDEN_PROVIDER_FIELDS = frozenset(
+    {
+        "apikey",
+        "apibase",
+        "authorization",
+        "customllmprovider",
+        "provider",
+    }
+)
+
+#: Bound on nested traversal, so a hostile deeply-nested body cannot turn
+#: rejection into an expensive walk.
+_FORBIDDEN_SCAN_MAX_DEPTH = 6
+
+
+def _normalize_field_name(value: Any) -> str:
+    """Reduce a field name to lowercase alphanumerics.
+
+    Drops case plus dash, underscore, dot, whitespace and unicode separator
+    spelling differences, so ``api_key``, ``API-KEY``, ``api.key`` and
+    ``"api key"`` all normalize to ``apikey``. Before this, the guard stripped
+    only ``-`` and ``_``, so ``api.key``, ``"api key"``, ``"api_key "`` and
+    ``"\\tapi_key"`` were admitted and forwarded to the provider.
+    """
+    return "".join(ch for ch in str(value).lower() if ch.isalnum())
+
+
+def _contains_forbidden_provider_field(value: Any, depth: int = 0) -> bool:
+    """True if any mapping key at any nesting level is provider credentials.
+
+    Nesting is scanned because the request body is serialized to JSON and sent
+    to LiteLLM verbatim: a credential under ``extra_body`` or ``litellm_params``
+    reaches the provider exactly as a top-level one does.
+
+    Message *content* is never inspected — only mapping keys — so a user prompt
+    that merely discusses API keys is unaffected.
+    """
+    if depth > _FORBIDDEN_SCAN_MAX_DEPTH:
+        # Bound reached with structure still unexamined. Returning ``False``
+        # here (fail open) made the bound itself the bypass: wrapping a
+        # credential in enough mappings skipped the scan while the body was
+        # still serialized to the provider verbatim. A deny-list fails closed.
+        return True
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            if _normalize_field_name(key) in _FORBIDDEN_PROVIDER_FIELDS:
+                return True
+            if _contains_forbidden_provider_field(item, depth + 1):
+                return True
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            if _contains_forbidden_provider_field(item, depth + 1):
+                return True
+    return False
+
+
 class ChatCompletionRequest(BaseModel):
     """OpenAI-compatible request body; unknown fields pass through."""
 
     model_config = ConfigDict(extra="allow")
 
-    model: str = Field(min_length=1)
-    messages: list[dict[str, Any]] = Field(min_length=1)
+    model: str = Field(min_length=1, max_length=256)
+    messages: list[dict[str, Any]] = Field(min_length=1, max_length=MAX_MESSAGES_PER_REQUEST)
     sabi_route_request_type: RequestType | None = None
 
 
@@ -244,6 +318,43 @@ async def chat_completions(
             "Request accounting is unavailable.",
             "usage_store_unavailable",
         )
+
+    # BYOK-0: reject caller-controlled provider identity/endpoint fields.
+    # These must never influence routing or provider invocation. Guard
+    # placed after auth/identity, before request_id creation and any
+    # accounting write, so rejected requests leave no usage row, reservation,
+    # snapshot, rate token, or provider call.
+    # Comparison is case-, separator- and nesting-insensitive so that
+    # "API_KEY", "ApiKey", "api-key", "api.key", "api key", "Authorization"
+    # and nested ``extra_body``/``litellm_params`` forms are all rejected.
+    # The rejected field name is deliberately not echoed back (D-R3-3).
+    # The scan covers the *whole* request body, not just the top-level extras.
+    # ``messages`` is ``list[dict[str, Any]]`` and the LiteLLM client forwards
+    # it verbatim (``"messages": list(messages)``), so a credential key nested
+    # inside a message object travels to the provider exactly like one under
+    # ``extra_body``. Before this, ``{"role": "user", "api_key": "..."}`` was
+    # accepted and serialized into the outbound body.
+    _extra = getattr(payload, "model_extra", None) or {}
+    if _contains_forbidden_provider_field(_extra) or _contains_forbidden_provider_field(
+        payload.messages
+    ):
+        return _error_response(
+            400,
+            "Request contains unsupported provider configuration fields.",
+            "invalid_request_error",
+        )
+
+    for _msg in payload.messages:
+        try:
+            _content = _msg.get("content") if isinstance(_msg, dict) else None
+        except AttributeError:
+            _content = None
+        if isinstance(_content, str) and len(_content) > MAX_MESSAGE_CHARS:
+            return _error_response(
+                413,
+                f"Message content exceeds the {MAX_MESSAGE_CHARS}-character limit.",
+                "message_content_too_large",
+            )
 
     request_id = str(uuid4())
     # Usage-source attribution starts as "unknown" for every request. It becomes
@@ -473,7 +584,9 @@ async def chat_completions(
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                logger.error("Budget reservation could not be reconciled: %s", exc)
+                logger.error(
+                    "Budget reservation could not be reconciled: %s", redact_secrets(exc)
+                )
                 cleanup_errors.append("budget_cleanup_failed")
                 response = _error_response(
                     503,
@@ -508,7 +621,9 @@ async def chat_completions(
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                logger.error("Quota reservation could not be reconciled: %s", exc)
+                logger.error(
+                    "Quota reservation could not be reconciled: %s", redact_secrets(exc)
+                )
                 cleanup_errors.append("quota_cleanup_failed")
                 response = _error_response(
                     503,
@@ -542,7 +657,7 @@ async def chat_completions(
         except asyncio.CancelledError:
             raise
         except UsageEventValidationError as exc:
-            logger.error("Request telemetry rejected at finalization: %s", exc)
+            logger.error("Request telemetry rejected at finalization: %s", redact_secrets(exc))
             persisted = False
             validation_failed = True
         except Exception:
@@ -587,7 +702,7 @@ async def chat_completions(
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                logger.error("Budget reservation release failed: %s", exc)
+                logger.error("Budget reservation release failed: %s", redact_secrets(exc))
                 cleanup_errors.append("budget_cleanup_failed")
         if quota_reserved and quota_user_id is not None:
             try:
@@ -602,7 +717,7 @@ async def chat_completions(
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                logger.error("Quota reservation release failed: %s", exc)
+                logger.error("Quota reservation release failed: %s", redact_secrets(exc))
                 cleanup_errors.append("quota_cleanup_failed")
 
     async def _cancelled_finish(
@@ -652,7 +767,7 @@ async def chat_completions(
         except asyncio.CancelledError:
             raise
         except UsageEventValidationError as exc:
-            logger.error("Request telemetry rejected at finalization: %s", exc)
+            logger.error("Request telemetry rejected at finalization: %s", redact_secrets(exc))
             persisted = False
         except Exception:
             logger.error("Durable request telemetry finalization failed.")
@@ -685,7 +800,7 @@ async def chat_completions(
             except Exception as exc:
                 logger.error(
                     "Budget reservation release failed after snapshot persistence error: %s",
-                    exc,
+                    redact_secrets(exc),
                 )
                 cleanup_errors.append("budget_cleanup_failed")
         if quota_reserved and quota_user_id is not None:
@@ -705,7 +820,7 @@ async def chat_completions(
             except Exception as exc:
                 logger.error(
                     "Quota reservation release failed after snapshot persistence error: %s",
-                    exc,
+                    redact_secrets(exc),
                 )
                 cleanup_errors.append("quota_cleanup_failed")
         response = _error_response(
@@ -736,8 +851,12 @@ async def chat_completions(
                 _error_response(503, "Rate limiting is unavailable.", "rate_limiter_unavailable"),
                 failure_category="redis_unavailable",
             )
+        # Rate-limit authority follows the lineage when one exists; fall back
+        # to the key_id only for legacy/unmigrated keys. Never use both
+        # independently — that would grant excess capacity.
+        rate_limit_key = identity.lineage_id or identity.key_id
         try:
-            rate_decision = await state.rate_limiter.admit(identity.key_id, key_limit)
+            rate_decision = await state.rate_limiter.admit(rate_limit_key, key_limit)
         except Exception:
             return await finish(
                 _error_response(503, "Rate limiting is unavailable.", "rate_limiter_unavailable"),
@@ -1002,7 +1121,8 @@ async def chat_completions(
                     raise
                 except Exception as exc:
                     logger.error(
-                        "Quota reservation release failed after cancellation: %s", exc
+                        "Quota reservation release failed after cancellation: %s",
+                        redact_secrets(exc),
                     )
                     cleanup_errors.append("quota_cleanup_failed")
                 return await _cancelled_finish(
@@ -1117,7 +1237,8 @@ async def chat_completions(
                 raise
             except Exception as exc:
                 logger.error(
-                    "Budget reservation release failed after cancellation: %s", exc
+                    "Budget reservation release failed after cancellation: %s",
+                    redact_secrets(exc),
                 )
                 cleanup_errors.append("budget_cleanup_failed")
             # A quota reservation may already be held from the earlier
@@ -1137,7 +1258,8 @@ async def chat_completions(
                     raise
                 except Exception as exc:
                     logger.error(
-                        "Quota reservation release failed after cancellation: %s", exc
+                        "Quota reservation release failed after cancellation: %s",
+                        redact_secrets(exc),
                     )
                     cleanup_errors.append("quota_cleanup_failed")
             return await _cancelled_finish(
@@ -1357,7 +1479,7 @@ async def chat_completions(
             # reconcile/settle and finalize with that attempt's attribution.
             return await _handle_attempt_loop_cancellation(exc)
         except UsageEventValidationError as exc:
-            logger.error("Pre-routing feature snapshot rejected: %s", exc)
+            logger.error("Pre-routing feature snapshot rejected: %s", redact_secrets(exc))
             return await finish(
                 _error_response(
                     500,
@@ -1432,7 +1554,14 @@ async def chat_completions(
             elapsed_ms = (time.perf_counter() - started) * 1000
             state.health.mark_failure(route_decision.deployment)
             state.metrics.record_failure()
-            state.errors.record(_error_category(exc), route_decision.deployment, str(exc))
+            # D-R3-3 names provider errors and telemetry explicitly. The
+            # tracker stores this message verbatim and `/admin/errors` exposes
+            # only counts today, so this is a latent channel rather than a
+            # live one — but a provider that echoes a credential in its error
+            # body would be persisted here in cleartext.
+            state.errors.record(
+                _error_category(exc), route_decision.deployment, redact_secrets(exc)
+            )
             state.latency.record(route_decision.deployment, elapsed_ms)
             last_error_category = _error_category(exc)
             failure_usage = _actual_tokens(exc.response_body)

@@ -39,6 +39,8 @@ def make_client(tmp_path):
 
 
 def test_web_files_served_with_correct_types(tmp_path):
+    # Canonical contract: zero-build UI served at /app/ (HEAD + Dockerfile +
+    # docs/deployment.md + README all require it); API routes untouched.
     client = make_client(tmp_path)
 
     index = client.get("/app/")
@@ -54,11 +56,19 @@ def test_web_files_served_with_correct_types(tmp_path):
     assert "css" in css.headers["content-type"]
 
 
-def test_mount_does_not_shadow_api(tmp_path):
+def test_mount_does_not_shadow_api(tmp_path, monkeypatch):
     client = make_client(tmp_path)
 
     assert client.get("/v1/auth/me").status_code == 401
-    assert client.get("/docs").status_code == 200
+    # Docs are disabled by default (F-04); enabled only via opt-in env.
+    assert client.get("/docs").status_code == 404
+
+    # The restored /app/ mount must not shadow API routes or gated docs.
+    assert client.get("/app/").status_code == 200
+
+    monkeypatch.setenv("SABIROUTE_DOCS_ENABLED", "1")
+    enabled_client = make_client(tmp_path)
+    assert enabled_client.get("/docs").status_code == 200
 
 
 def test_auth_and_chat_landmarks_present():

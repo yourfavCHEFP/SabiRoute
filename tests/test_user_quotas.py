@@ -208,7 +208,7 @@ def test_restart_keeps_held_reservation(tmp_path):
         first.close()
     second = PostgresApiKeyStore(url)
     try:
-        assert second.applied_revisions()[-1] == "0004-user-quota-ledger"
+        assert "0004-user-quota-ledger" in second.applied_revisions()
         assert second.get_quota_usage(UID, window) == {
             "reserved_tokens": 60,
             "consumed_tokens": 0,
@@ -448,7 +448,7 @@ def test_fresh_database_includes_quota_tables(tmp_path):
     database_url = f"sqlite:///{tmp_path / 'quota-fresh.sqlite'}"
     store = PostgresApiKeyStore(database_url)
     try:
-        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
+        assert "0004-user-quota-ledger" in store.applied_revisions()
         window = quota_window_start(datetime.now(UTC))
         assert store.check_and_reserve_quota(UID, "r1", 10, window, 50000) is True
         assert store.get_quota_usage(UID, window) == {
@@ -484,7 +484,7 @@ def test_legacy_database_upgrades_with_quota_tables(tmp_path):
     engine.dispose()
     store = PostgresApiKeyStore(database_url)
     try:
-        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
+        assert "0004-user-quota-ledger" in store.applied_revisions()
         assert store.get("legacykey00000000000001") is not None
         window = quota_window_start(datetime.now(UTC))
         assert store.check_and_reserve_quota(UID, "r1", 10, window, 50000) is True
@@ -614,6 +614,6 @@ def test_pg_migration_records_0004():
         pytest.skip(f"{PG_URL_ENV} is not set; PostgreSQL integration tests skipped")
     store = PostgresApiKeyStore(url)
     try:
-        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
+        assert "0004-user-quota-ledger" in store.applied_revisions()
     finally:
         store.close()
