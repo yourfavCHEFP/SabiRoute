@@ -136,6 +136,61 @@ async def rotate_client_api_key(key_id: str, request: Request) -> dict[str, Any]
     return _issued_response(record, plaintext)
 
 
+@router.post("/api-keys/{key_id}/reconcile-lineage")
+async def reconcile_client_lineage(
+    key_id: str, request: Request
+) -> dict[str, Any]:
+    """Admin-only: reconcile conflicting legacy budgets for a lineage.
+
+    Authorization: the router-level ``require_admin_key`` dependency has
+    already authenticated the caller as the holder of the admin secret
+    before this handler runs. The operator identity recorded in the
+    lineage row is the fixed administrative role token ``admin-role``:
+    this deployment has a single shared admin secret (no per-operator
+    identities), so the token names the *role*, not a person. The role
+    check (dependency) and the audit marker (row field) are intentionally
+    separate: removing the dependency would unauthenticate the endpoint
+    even though the marker text would be unchanged.
+    Fails closed on conflicting budgets, missing lineage, or unavailable store.
+    """
+    from ..security.store import reconcile_lineage_budgets
+
+    state = _state(request)
+    store = _key_store(request)
+
+    async def _reconcile() -> None:
+        def _do() -> None:
+            record = store.get(key_id)
+            if record is None:
+                raise ValueError("key_not_found")
+            if record.lineage_id is None:
+                raise ValueError("lineage_missing")
+            engine = getattr(store, "_engine", None)
+            if engine is None:
+                raise ValueError("store_engine_unavailable")
+            with engine.begin() as conn:
+                reconcile_lineage_budgets(
+                    conn, record.lineage_id, key_id, "admin-role"
+                )
+
+        await state.store_executor.run(_do)
+
+    try:
+        await _reconcile()
+    except ValueError as exc:
+        detail = str(exc)
+        if detail == "key_not_found":
+            raise HTTPException(
+                status_code=404,
+                detail={"error": {"message": "API key not found.", "type": "key_not_found"}},
+            ) from exc
+        raise HTTPException(
+            status_code=409,
+            detail={"error": {"message": detail, "type": "reconciliation_conflict"}},
+        ) from exc
+    return {"status": "reconciled", "key_id": key_id}
+
+
 @router.post("/api-keys/{key_id}/revoke")
 async def revoke_client_api_key(key_id: str, request: Request) -> dict[str, str]:
     if not await _state(request).store_executor.run(

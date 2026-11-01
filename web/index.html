@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SabiChat — chat over the SabiRoute routing gateway." />
+    <title>SabiChat</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Authentication view -->
+      <main id="view-auth" class="auth-wrap" hidden>
+        <section class="auth-card" aria-labelledby="auth-title">
+          <h1 id="auth-title">SabiChat</h1>
+          <p class="muted">Chat over the SabiRoute gateway. Free Chat uses currently eligible provider capacity.</p>
+          <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+            <button id="tab-login" type="button" role="tab" aria-selected="true">Sign in</button>
+            <button id="tab-register" type="button" role="tab" aria-selected="false">Register</button>
+          </div>
+          <form id="auth-form" novalidate>
+            <label for="auth-email">Email</label>
+            <input id="auth-email" name="email" type="email" autocomplete="email" required maxlength="320" />
+            <label for="auth-password">Password <span id="password-hint" class="muted">(12+ characters to register)</span></label>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" required maxlength="1024" />
+            <p id="auth-error" class="error" role="alert" hidden></p>
+            <button id="auth-submit" type="submit">Sign in</button>
+          </form>
+        </section>
+      </main>
+
+      <!-- Chat view -->
+      <div id="view-app" class="app-wrap" hidden>
+        <aside class="sidebar" aria-label="Conversations">
+          <div class="sidebar-head">
+            <strong>SabiChat</strong>
+            <button id="new-chat" type="button" title="Start a new conversation">+ New</button>
+          </div>
+          <p id="free-chat-note" class="muted small">Free Chat mode · availability depends on eligible provider capacity.</p>
+          <section id="quota-meter" class="quota-meter" aria-live="polite" hidden>
+            <span id="quota-text" class="muted small">Free Pool today: …</span>
+            <div id="quota-bar" class="quota-bar" role="progressbar" aria-label="Today's Free Pool usage" aria-valuemin="0" aria-valuemax="50000" aria-valuenow="0" hidden>
+              <div id="quota-fill" class="quota-fill"></div>
+            </div>
+            <span id="quota-reset" class="muted small"></span>
+          </section>
+          <ul id="conversation-list" aria-label="Conversation list"></ul>
+          <div class="sidebar-foot">
+            <span id="user-email" class="muted small"></span>
+            <button id="sign-out" type="button" title="Sign out">Sign out</button>
+          </div>
+        </aside>
+        <main class="chat-main">
+          <div id="banner" class="banner" role="alert" hidden></div>
+          <div id="empty-state" class="empty">
+            <h2>No conversation selected</h2>
+            <p>Pick a conversation or start a new one. Messages are answered through the SabiRoute gateway.</p>
+          </div>
+          <ol id="message-list" class="messages" aria-label="Messages" hidden></ol>
+          <form id="composer" class="composer" hidden>
+            <label class="visually-hidden" for="composer-input">Message</label>
+            <textarea id="composer-input" rows="2" maxlength="8000" placeholder="Type a message… (Enter to send, Shift+Enter for newline)"></textarea>
+            <div class="composer-actions">
+              <button id="send-button" type="submit">Send</button>
+              <button id="cancel-button" type="button" hidden>Cancel</button>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

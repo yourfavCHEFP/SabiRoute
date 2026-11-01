@@ -17,6 +17,8 @@ from sabiroute.security.keys import ApiKeyIdentity
 
 MESSAGES = [{"role": "user", "content": "hello"}]
 
+FORBIDDEN_FIELDS = ["api_key", "api_base", "authorization"]
+
 
 def make_client(stub: StubLiteLLMClient):
     state = build_gateway_state(config=make_config(), client=stub, key_store=InMemoryApiKeyStore())
@@ -1129,3 +1131,120 @@ def test_large_text_body_handled_without_error():
     event = next(iter(store.usage_events.values()))
     assert event.final_status == 200
     assert event.total_tokens == 5
+
+
+# --- BYOK-0: caller-controlled provider identity/endpoint fields ---
+
+def test_byok0_rejects_api_key_field():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "api_key": "secret"})  # noqa: E501
+    assert resp.status_code == 400
+    assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert "secret" not in resp.text
+    # Full no-side-effects proof: no accounting, routing, or provider activity.
+    assert stub.calls == []
+    assert store.usage_events == {}
+    assert store.budget_usage == {}
+    assert store.quota_reservations == {}
+
+
+def test_byok0_rejects_api_base_field():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "api_base": "http://evil"})  # noqa: E501
+    assert resp.status_code == 400
+    assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert "evil" not in resp.text
+    assert stub.calls == []
+    assert store.usage_events == {}
+    assert store.budget_usage == {}
+    assert store.quota_reservations == {}
+
+
+def test_byok0_rejects_authorization_field():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "authorization": "Bearer x"})  # noqa: E501
+    assert resp.status_code == 400
+    assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert "Bearer x" not in resp.text
+    assert stub.calls == []
+    assert store.usage_events == {}
+    assert store.budget_usage == {}
+    assert store.quota_reservations == {}
+
+
+def test_byok0_rejects_combined_fields():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "api_key": "s", "api_base": "http://x"})  # noqa: E501
+    assert resp.status_code == 400
+    assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert stub.calls == []
+    assert store.usage_events == {}
+    assert store.budget_usage == {}
+    assert store.quota_reservations == {}
+
+
+def test_byok0_rejects_streaming_with_forbidden_field():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "stream": True, "api_key": "secret"})  # noqa: E501
+    assert resp.status_code == 400
+    assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert "secret" not in resp.text
+    assert stub.calls == []
+    assert store.usage_events == {}
+
+
+def test_byok0_rejects_case_variants():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    for field in ("apiKey", "apiBase", "api-key", "api-base"):
+        resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, field: "x"})  # noqa: E501
+        assert resp.status_code == 400, field
+        assert resp.json()["error"]["type"] == "invalid_request_error"
+    assert stub.calls == []
+
+
+def test_byok0_rejects_case_insensitive_variants():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    store = state.key_store
+    assert isinstance(store, InMemoryApiKeyStore)
+    for field in ("API_KEY", "ApiKey", "API-KEY", "API_BASE", "ApiBase", "API-BASE", "Authorization", "AUTHORIZATION"):  # noqa: E501
+        resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, field: "secret-value"})  # noqa: E501
+        assert resp.status_code == 400, field
+        assert resp.json()["error"]["type"] == "invalid_request_error"
+        assert "secret-value" not in resp.text
+    assert stub.calls == []
+    assert store.usage_events == {}
+    assert store.budget_usage == {}
+    assert store.quota_reservations == {}
+
+
+def test_byok0_unrelated_extra_fields_still_allowed():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES, "temperature": 0.7})  # noqa: E501
+    assert resp.status_code == 200
+    assert stub.calls == ["primary"]
+
+
+def test_byok0_valid_traffic_unaffected():
+    stub = StubLiteLLMClient()
+    client, state = make_client(stub)
+    resp = client.post("/v1/chat/completions", json={"model": "fast", "messages": MESSAGES})
+    assert resp.status_code == 200
+    assert stub.calls == ["primary"]

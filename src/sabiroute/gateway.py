@@ -25,7 +25,12 @@ from .routing.router import Router
 from .routing.scoring import ScoringSettings
 from .security.keys import ApiKeyStore
 from .security.rate_limit import RedisTokenBucket
-from .security.store import PostgresApiKeyStore
+from .security.store import (
+    PostgresApiKeyStore,
+    check_sabichat_schema,
+    check_schema,
+    check_shared_inference_schema,
+)
 from .security.store_executor import BoundedStoreExecutor
 
 DEFAULT_PROXY_URL = "http://127.0.0.1:4000"
@@ -189,6 +194,14 @@ def build_gateway_state(
         # storeless test): both stores come from the environment together.
         database_url = os.environ.get("DATABASE_URL")
         chat_store = SabiChatStore(database_url) if database_url else None
+
+    # Read-only schema compatibility validation (no mutation, no migration).
+    # An incompatible schema fails startup instead of serving requests.
+    if key_store is not None and hasattr(key_store, "_engine"):
+        check_schema(key_store._engine)
+        check_shared_inference_schema(key_store._engine)
+    if chat_store is not None and hasattr(chat_store, "_engine"):
+        check_sabichat_schema(chat_store._engine)
 
     return GatewayState(
         config=config,
