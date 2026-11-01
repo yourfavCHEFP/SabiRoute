@@ -1,0 +1,204 @@
+# My Scorecard — 12-Hour Product Integration Mission
+
+Percentages are architectural estimates (acceptance criteria met), not coverage
+or elapsed time. A percentage rises only when acceptance criteria are met.
+"Prev est." is the previous *accepted* checkpoint score (Sprint 1 close:
+Free Pool 40%, routing 72%, gateway 80%); deltas are measured from there.
+Each capability has exactly one authoritative row — no duplicate or
+intermediate entries. Evidence levels: code-inspected < unit-tested <
+integration-tested < live-provider-tested.
+
+| Workstream | Prev est. | New est. | Delta (pp) | Evidence | Remains | Level | Next milestone (cost) |
+|---|---|---|---|---|---|---|---|
+| Core gateway / LiteLLM execution | 80% | 80% | 0 | Re-verified this turn; suite 308 passed / 4 skipped; ruff/mypy/diff clean | Live failure-injection evidence (pre-existing gap) | Integration-tested | Failure-injection runbook (medium) |
+| Routing reliability & governance | 72% | 72% | 0 | Unchanged this sprint; fallback-confinement test green in final run | Capability evidence for most deployments (pre-existing) | Integration-tested | Catalogue↔registry mapping endpoint (low) |
+| Free Pool runtime eligibility | 60% | 70% | +10 | Quota enforcement closed this closeout: 50,000-token UTC-day admission boundary, 429 quota_exceeded with window-derived Retry-After, 503 fail-closed, single-reservation retries, spoof-resistant identity; PG 17 race (8 threads, 5/8 admitted, total within limit, observed in `/tmp/pgverify/server.log`); full suite 393 passed / 4 skipped (PG-enabled, reported; targeted quota/header tests directly observed) | Catalogue mapping data, live-provider proof | Integration-tested (stub; disposable PG 17) | Catalogue mapping endpoint (low) |
+| SabiChat identity/backend | 0% | 75% | +75 | Prior 65% evidence stands; added quota-summary endpoint (10/10 tests: auth, spoof-resistance, fail-closed 503, midnight boundary), PG 17 migration/idempotence/isolation/restart-persistence proof, cross-account read/write probes denied 404; full suite 393 passed / 4 skipped (PG-enabled, reported; 389 passed / 8 skipped SQLite default, reported) | Per-user keys, Redis limits, live-provider proof, managed-PG validation, prod hardening | Integration-tested (stub; disposable PG 17) | Staging deploy + managed-PG test (high) |
+| SabiChat frontend | 0% | 65% | +65 | Prior MVP evidence stands; added daily usage meter (loading/ready/unavailable/stale, progressbar + ARIA, reduced-motion), 429 exhaustion UX with exact draft restore, account-switch isolation fix proven in real Chrome (marker + draft gone at logout, zero residue for second account); 9/9 web tests; console clean | Automated browser suite, full mobile/a11y passes, reload persistence decision | Browser-smoke-tested (manual) + static tests | Staging deploy + live-PG test (high) |
+| Production deployment & operations | 45% | 55% | +10 | Reconciled this turn: image + smoke + compose re-verified green, suite 308 passed; local PG 16 gate stands (19/19) | GH Actions run, managed-PG + backup test, compose-up E2E, image slimming | Integration-tested (local PG 16 + container) | Managed-PG validation (high) |
+| End-to-end verified product path | 25% | 40% | +15 | Real browser drove register→chat→reply→sign-out on stub backend (manual smoke); API-level attribution proven in tests | Automated browser E2E, live provider, staging smoke test | Browser-smoke-tested (manual, stub) | Sprint 5 staging smoke test (high) |
+
+Sprint 4 checkpoint: frontend MVP COMPLETE (re-verified). 7/7 static tests,
+31/31 UI tests, final suite 299 passed / 4 skipped (env-gated Redis);
+ruff/mypy/`git diff --check` clean; `node --check` passes. Second browser
+session confirmed: per-conversation isolation both directions (server-DB
+cross-checked), single-render + pending-clear, double-submit guard probe,
+revocation → expiry UI, empty web storage, zero console errors. Deltas held:
+frontend 0% → 50% (+50), end-to-end 25% → 40% (+15); all other rows held.
+Risks: none introduced; no automated browser suite, no mobile/a11y passes,
+live-PostgreSQL and live-provider paths unproven. No commit created.
+
+Sprint 5 checkpoint: deployment foundation COMPLETE (not production).
+Image builds + smokes green (non-root, healthy, /app served); CI valid;
+compose defined + config-valid; docs match; suite 308 passed. Delta:
+deployment 10% → 45% (+35), scored on built + locally verified artifacts,
+not config alone. Risks: GH Actions never ran here; managed-PG migration and backup/restore
+untested (local disposable PG 16 gate passed: 19/19); full-stack compose up
+not run; 2.71 GB image. No commit created. Next: managed-PG validation +
+staging deploy (high cost).
+
+SabiChat acceptance closeout (2026-10-16, branch
+feat/sabiroute-routing-foundation @ c7756c7, no commit created).
+Account-isolation fix (`web/app.js` showAuth teardown) proven in real Chrome:
+marker + draft + banner gone at logout, zero residue for the second account
+(DOM snapshots observed in `.playwright-cli/`); backend read/write probes denied 404.
+Quota enforcement proven on the 50,000-token UTC-day boundary with
+window-derived `Retry-After` on 429 and fail-closed 503; meter, exhaustion UX
+(exact draft restore), and summary endpoint (10/10) verified in-browser and in
+tests. Disposable local PostgreSQL 17.10 gate (server log observed at
+`/tmp/pgverify/server.log`): fresh migration (0001–0004), idempotent re-run,
+user/window isolation, 8-thread race admitting exactly 5/8 within limit (savepoint +
+`SELECT ... FOR UPDATE`), restart persistence, fail-closed store failure.
+Full suite with PG enabled (reported): 393 passed / 4 skipped (Redis-gated
+only; 389 passed / 8 skipped SQLite-only default, reported). Deltas: Free Pool
+60% → 70% (+10), SabiChat identity 0% → 75% (+75), frontend 0% → 65% (+65), all
+measured from the Sprint 1 accepted baseline per this file's convention.
+Risks remaining: managed-PG/TLS + backup/restore, GH Actions run,
+automated browser suite, live-provider proof.
+SabiChat Retry-After forwarding CLOSED 2026-10-16: `SabiChatService.complete`
+now returns gateway headers and the message endpoint propagates the
+standard HTTP `Retry-After` header (window-derived positive integer seconds
+until 00:00:00 UTC) on `429 quota_exceeded` only (never invented;
+`503 quota_unavailable` carries no `Retry-After` header across
+`/v1/chat/completions`, `/v1/conversations/{id}/messages`, and
+`/v1/chat/quota-summary`). Directly observed via
+`test_exhaustion_retry_after_matches_reset`,
+`test_quota_unavailable_carries_no_retry_after`, and
+`test_chat_exhaustion_forwards_retry_after` (`3 passed`) plus live `TestClient`
+429/503 header inspection confirming standard `Retry-After` header emission
+(note: the earlier `gw-Retry-After=56982` / `sabi-Retry-After=56982` notation
+was a probe stdout prefix for the standard `Retry-After` header, not a custom
+header name); full-suite aggregate count is 393 passed / 4 skipped (PG17,
+reported).
+No pilot activation, no quota/billing changes, no production-readiness claim.
+
+Mobilization reconciliation (2026-10-26, Africa/Lagos): suite re-run 425 passed / 7 skipped (env-gated Redis 4 + PG 3); ruff/mypy/diff clean; BYOK-0 8/8; schema validators 12/12; migration-path 74/74. Git diverged (ahead 2, behind 3) — reported, not reconciled. Phase 2/3 and BYOK-0 owner gates unchanged. Full detail: reports/mobilization-reconciliation-2026-10-26.md.
+---
+
+## R1–R8 Integration Lane — 2026-10-29 (branch `feat/sabiroute-routing-foundation` @ `b360ffc`)
+
+Evidence levels: code-inspected < unit-tested < integration-tested <
+live-provider-tested. Only fresh (this-lane) evidence advances a row; all
+other figures are cited historical reports, not re-runs.
+
+| Workstream | Prev (2026-10-26) | Now | Delta | Fresh evidence (this lane) | Level | Blocker |
+|---|---|---|---|---|---|---|
+| B0 manifest/provenance (R1) | 425/7 + hash OK | manifest re-verified 13/13, `git diff --check` clean | 0 | `shasum -c REPORTS-MANIFEST.sha256` 13/13 OK, exit 0 (fresh) | Historical + fresh hash check | A0/S2: ADR file untracked (canonical status not yet effective); per-report authorship beyond filenames unresolved |
+| Provider compatibility (R2) | contracts offline | unchanged | 0 | `test_provider_harness.py` 6/6 fresh; 14 aliases mapped to `litellm_params.model`, 19 model YAMLs (inspected) | Unit-tested (mocked) | Live matrix: 0 live calls (unauthorized); 1 historical 0/1 AUTH_FAIL (2026-10-10) |
+| Core security/DB safety (R3/B1/B3) | BYOK-0 9/9 (fresh subset) | **R3 VERIFIED COMPLETE 2026-11-01** (Terminal D) — one security defect found and fixed; full R3 package proven | +1 defect fix; +30 tests | R3 package (`test_r3_byok_boundary`, `test_r3_db_isolation`, `test_r3_secret_leakage`, `test_r3_real_service_controls`, `test_r3_off_loop_boundary`) **129 passed / 0 failed / 0 skipped** against real disposable PostgreSQL 17.10 + Redis 6399, 3 consecutive runs, post-run residue 0 PG rows / 0 Redis keys; with services unset 127 passed / 2 skipped (opt-in skips named, never silent). **Defect fixed:** a credential-store fault during authentication escaped as an unhandled 500 (measured before/after) — an ASGI traceback would publish the DSN; now typed 503 `authentication_unavailable`, no canary in body or logs, zero provider calls. **Off-loop boundary** (`BoundedStoreExecutor`) proven on the completion path by thread identity plus responsiveness, both mutation-verified RED with the boundary replaced by an on-loop executor; the threaded file ran 20/20 green over 20 consecutive runs. Steady state: BYOK-0 13/13 (spellings, nesting, message-nested, depth, streaming, budgeted, retry/fallback); leakage 22/22; isolation 20/20; real-service controls 27/27. Full suite 665 passed with services / 656 passed + 9 skipped without; `ruff` clean; `mypy src` clean (49 files); `git diff --check` clean. Current BYOK guard placement is `completions.py:337-345` (this row previously cited `:256`) | Integration-tested (real disposable PG/Redis, loopback plaintext; mutation-verified) | No R3 blocker. Explicitly NOT proven: managed PostgreSQL, TLS/off-host transport, multi-instance Redis, live-provider behaviour (0 live calls made), browser/web-surface security. Deferred hardening: `append_pre_routing_feature_snapshot` remains `request_id`-scoped (server-generated `uuid4`, never client-settable) |
+| F-27 lineage (R4) | 14 lineage tests (historical) | 14/14 fresh + 3-state defect pinned + 4 isolated PG/Redis probes | +defect pin | `test_accounting_lineage.py` 14 passed fresh; new `test_lineage_compat_state.py` 2 passed + 1 xfail (legacy-rotation defect pin); isolated Redis 6399: shared-bucket PASS + cutover semantics DOCUMENTED; isolated PG 55439: crash-no-fabricate DOCUMENTED + reconcile-idempotent DOCUMENTED | Integration-tested (isolated disposable PG/Redis; SQLite) | Terminal A owns fix; A6 suite + owner green |
+| Reliability (R5) | scoped PASS (historical) | offline suites re-greened fresh | 0 | fallback+recovery+schema 37/37; request-limits+deployment 39+1 skip; BYOK-0 included above — all fresh, isolated | Unit-tested | Live failure-injection (env-gated); scoped-R15 manifest still to reconstruct |
+| Compression discovery (R6) | not started | design packet written (no implementation) | +packet | `docs/compression-discovery-packet.md` (new, read-only CD1–CD6 input) | Design input only | Track A green + T8 review + owner Sprint 9 auth |
+| Operations/recovery (R7) | partial | Redis outage branches proven covered | 0 | `test_redis_outage_denies_closed_with_contract` + `test_missing_limiter...` inspected (503 `rate_limiter_unavailable`); rollout/rollback docs reconciled | Unit-tested | Managed-PG/TLS, backup/restore, compose E2E, GH run, staging |
+| A6 integrated acceptance (R8) | BLOCKED | BLOCKED (2 pre-existing web failures root-caused, not fixed) | 0 | Full suite fresh: **494 passed, 2 failed, 8 skipped** — failures are `test_sabichat_web.py` `/app/` 404 + `/docs` 404, caused by Terminal A uncommitted `main.py` (no web mount, docs gated off; F-04 gap known from reconciliation plan). No Terminal A file touched; fix is Terminal A's | Blocked | Stable SHA → A6 18-file + static + isolated PG/Redis package → T1/T8 → owner green |
+
+Full-suite manifest note: 504 collect (31 HEAD-tracked + 6 untracked test
+files); HEAD-tracked = 30 files + `conftest.py`. The "18-file" D6 token is
+the agreed baseline package, not the current file count — full-suite sign-off
+remains conditional on the criterion matrix. No push, no deployment, no
+shared/production-DB mutation in this lane. Isolated infra (Redis 6399,
+PG 55439) torn down after probes; default 6379/5432 untouched.
+
+---
+
+## F-27 formal closure — 2026-10-31 (branch `feat/sabiroute-routing-foundation` @ `b360ffc`)
+
+**Status: F-27 — CLOSED / COMPLETE.** Owner-approved closure, independently
+re-verified by Terminal D. No production-code change, no test rewrite, no
+commit, no push, no deployment, no percentage moved.
+
+Candidate identity. The working tree is uncommitted, so closure is pinned to
+content, not to a revision:
+
+```
+branch                = feat/sabiroute-routing-foundation
+head                  = b360ffc9e804e19eaf99ec8e470a13a00c733ba5
+tracked-delta sha256  = d5c24770d44ae35ccdf5c3a7c12a71837b72eee84cd224ff615b6695587d51c8
+untracked-code sha256 = f7bb747ebfd3fad86036fddfe0e117de7231007e9a6989ac10a016e829961067
+```
+
+Verified this lane (fingerprints identical before and after the run):
+
+- Focused F-27 suite: **31 passed, 0 failed, 0 skipped** across six files —
+  `test_accounting_lineage` (14), `test_lineage_compat_state` (3),
+  `test_lineage_admission_concurrency` (6), `test_lineage_redis_continuity` (1),
+  `test_lineage_rollback_injection` (2), `test_admin_lineage_http` (5).
+- `ruff check src tests scripts config`: clean.
+- `mypy src`: "Success: no issues found in 48 source files".
+- Candidate preservation: tracked-delta and untracked-code fingerprints
+  unchanged across the verification run.
+- Owner-review re-run (Terminal D, same candidate, same date): focused suite
+  re-executed fresh — **31 passed, 0 failed, 0 skipped, no xfail/xpass**. The
+  Redis continuity proof genuinely executed rather than skipping (`redis-server`
+  binary present; the test asserts it never binds 6379), so criterion 5 rests on
+  runtime evidence, not on a skip. `ruff` clean; `mypy` clean (48 files).
+- Implementation, not just decision: `_ACCOUNTING_LINEAGES` (`security/store.py:97`),
+  `create_lineage` (:612), `get_lineage` (:636), migration ledger row
+  `0006-accounting-lineages` (:142) — confirming ADR D7 Option C is built.
+- The previously-pinned legacy-rotation defect is now **fixed**: `test_lineage_compat_state.py`
+  carries no `xfail` marker and `test_rotated_legacy_key_has_backing_lineage_row`
+  passes, so the earlier row-89 note "2 passed + 1 xfail" is superseded (historical
+  text in the R1–R8 lane left intact for audit).
+
+Real-runtime proofs (not source inspection):
+
+- **Redis continuity** — disposable `redis-server` 8.10.2 on an ephemeral
+  loopback port, real `RedisTokenBucket`: Key A exhausts its burst; rotation
+  yields Key B on the same lineage bucket; Key B is **not** admitted (no fresh
+  allowance); a fresh-lineage control is admitted, proving the denial is
+  exhaustion and not a broken limiter.
+- **Rollback / failure injection** — deterministic seam: the lineage-table
+  INSERT raises mid-transaction; no partial key or lineage row survives,
+  pre-existing state is untouched, and an uninjected retry succeeds
+  deterministically (both `create` and legacy `rotate` paths).
+- **Concurrency** — barrier-synchronized 2- and 5-contender rotations yield
+  exactly one winner, no split authority, zero partial key rows; in-flight
+  rotation and attempt-1-rotate/attempt-2 retry keep one lineage bucket.
+
+### Criterion reconciliation — F-27, 8 of 8 satisfied
+
+| F-27 criterion | Evidence |
+|---|---|
+| Approve the exact reservation carry strategy | Owner approval (ADR D8); ADR D7 records Option C — dedicated `_ACCOUNTING_LINEAGES` |
+| Preserve accounting history | `test_legacy_upgrade_preserves_data`, `test_rotation_preserves_lineage` |
+| Preserve in-flight reservation semantics | `test_inflight_rotation_keeps_lineage_accounting_bucket`; lineage-aware reservation inserts |
+| Preserve Redis rate-limit bucket lineage | `test_rotation_keeps_lineage_bucket_without_fresh_allowance` (real Redis) |
+| Verify atomicity, idempotency, rollback and recovery | `test_lineage_rollback_injection` (2), `test_lineage_idempotent_creation`, `test_reconcile_idempotent` |
+| Test concurrent and in-flight rotation | `test_concurrent_rotation_*` (2 and 5 contenders), `test_retry_attempt1_rotate_attempt2_same_lineage_bucket` |
+| Prove rotation does not reset budget or rate-limit allowance | Redis no-fresh-allowance proof; `test_shared_lineage_single_rate_limit_authority`; `test_missing_lineage_never_falls_back_to_key_bucket` |
+| Budget reconciliation authority — approve strategy, record operator (Q1) | Router-level `require_admin_key` (`api/admin.py:25`); handler passes the fixed role token `admin-role` to `reconcile_lineage_budgets(conn, lineage_id, key_id, "admin-role")`, which records it as the audit marker and never fabricates an operator (`security/store.py:645`); `test_reconcile_requires_approver`, `test_reconcile_lineage_missing_admin_secret_returns_401`, `test_reconcile_lineage_wrong_admin_secret_returns_401`, `test_reconcile_lineage_conflicting_budgets_returns_409`, `test_reconcile_lineage_success_records_audit_marker` |
+
+### Explicit classification — not F-27 blockers
+
+- **Q2 — 90-day superseded-lineage archival policy:** POST-F-27 ROADMAP.
+- **Q3 — conditional Redis TTL operationalization and soak acceptance:**
+  POST-F-27 ROADMAP; the `1h-conditional` description retains its own proof
+  obligations.
+- **Dangling-lineage auth-denial telemetry:** POST-F-27 OBSERVABILITY.
+- **D6/A6 integrated acceptance battery:** SEPARATE FUTURE GATE. This closure
+  is not an A6 sign-off; the A2 group gate separately requires hosted CI at the
+  integrated tip, which remains unverified.
+
+### Scope boundary
+
+This section closes F-27 only. It does not close A2, A6, B0 or B1, and does
+not change any percentage in the tables above. The R1–R8 lane's R4 row is
+superseded on its blocker cell by this section; its historical text is left
+intact for audit.
+
+### Open integrity note
+
+`REPORTS-MANIFEST.sha256` still reports `reports/my_scorecard.md: FAILED`
+(`shasum -c` exit 1) because this file postdates the manifest. Regenerating the
+manifest is an owner decision and was not performed here.
+
+Fingerprint reproducibility. The `tracked-delta` fingerprint **reproduces
+bit-exact** (`git diff | shasum -a 256`) on this candidate. The
+`untracked-code` fingerprint could **not** be reproduced, because its
+derivation method was never documented and no natural variant (sorted object
+ids, concatenated contents, per-file digests, six-file scopes) reproduces
+`f7bb747e…`. It is therefore carried as recorded but must be treated as
+**UNVERIFIED**. This does not weaken the closure: the untracked files in
+question are the F-27 tests themselves, which were re-executed green in this
+review, and the tracked delta — the part that pins production source — is
+identical to the value recorded at closure.

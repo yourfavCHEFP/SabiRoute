@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-10-10T10:46:30.661837+00:00",
+  "project": "SabiRoute",
+  "test_prompt": "Reply with exactly: SABIROUTE_PROVIDER_TEST_OK",
+  "results": [
+    {
+      "model_name": "sabiroute-together",
+      "litellm_model": "together_ai/openai/gpt-oss-120B",
+      "status": "FAIL",
+      "credential_status": "PRESENT",
+      "non_stream_status": "FAIL",
+      "stream_status": "SKIPPED",
+      "latency_ms": 3168.1491249473765,
+      "stream_latency_ms": null,
+      "error_type": "AUTHENTICATION_ERROR",
+      "error_message": "litellm.BadRequestError: Together_aiException - {\n  \"id\": \"p4f8uij-z1gNr-a4850a9bee6afc17\",\n  \"error\": {\n    \"message\": \"Invalid API key provided. You can find your API key at https://api.together.ai/settings/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+      "timestamp": "2026-10-10T10:46:27.493594+00:00"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0
+  }
+}
