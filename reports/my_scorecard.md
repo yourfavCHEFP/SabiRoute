@@ -90,7 +90,7 @@ other figures are cited historical reports, not re-runs.
 | Reliability (R5) | scoped PASS (historical) | offline suites re-greened fresh | 0 | fallback+recovery+schema 37/37; request-limits+deployment 39+1 skip; BYOK-0 included above — all fresh, isolated | Unit-tested | Live failure-injection (env-gated); scoped-R15 manifest still to reconstruct |
 | Compression discovery (R6) | not started | design packet written (no implementation) | +packet | `docs/compression-discovery-packet.md` (new, read-only CD1–CD6 input) | Design input only | Track A green + T8 review + owner Sprint 9 auth |
 | Operations/recovery (R7) | partial | Redis outage branches proven covered | 0 | `test_redis_outage_denies_closed_with_contract` + `test_missing_limiter...` inspected (503 `rate_limiter_unavailable`); rollout/rollback docs reconciled | Unit-tested | Managed-PG/TLS, backup/restore, compose E2E, GH run, staging |
-| A6 integrated acceptance (R8) | BLOCKED | BLOCKED (2 pre-existing web failures root-caused, not fixed) | 0 | Full suite fresh: **494 passed, 2 failed, 8 skipped** — failures are `test_sabichat_web.py` `/app/` 404 + `/docs` 404, caused by Terminal A uncommitted `main.py` (no web mount, docs gated off; F-04 gap known from reconciliation plan). No Terminal A file touched; fix is Terminal A's | Blocked | Stable SHA → A6 18-file + static + isolated PG/Redis package → T1/T8 → owner green |
+| A6 integrated acceptance (R8) | BLOCKED | BLOCKED — recorded web blocker no longer reproduces (2026-11-01); remaining gates are process gates | +web-blocker cleared (observed) | Full suite fresh @ HEAD `524a017` + 141-file dirty tree: **656 passed / 0 failed / 9 skipped** (services unset) and **665 passed / 0 failed / 0 skipped** against disposable PostgreSQL 17.10 (port 55440, db `r8_acceptance_test`) + Redis 8.10.2 (port 6421); post-run residue 0 Redis keys, both instances torn down, default 5432/6379 never touched. The two recorded failures (`/app/` 404 + `/docs` 404) **no longer reproduce**: `main.py` now mounts `/app` (:173) and keeps docs **fail-closed** behind `SABIROUTE_DOCS_ENABLED` (:134–148) — the `/docs` 404 was F-04 intended policy, so this is test/impl realignment, not an F-04 policy change; covered by `test_mount_does_not_shadow_api` (`/app/` 200, `/docs` 404 default / 200 when enabled); `test_sabichat_web.py` **9 passed**. Static gates: `ruff` clean, `mypy src` clean (49 files), `git diff --check` clean. Tree byte-identical before/after (141 dirty / 0 staged) | Integration-tested (real disposable PG/Redis) | Stable SHA (tree still uncommitted) → T1/T8 → owner green |
 
 Full-suite manifest note: 504 collect (31 HEAD-tracked + 6 untracked test
 files); HEAD-tracked = 30 files + `conftest.py`. The "18-file" D6 token is
@@ -202,3 +202,125 @@ ids, concatenated contents, per-file digests, six-file scopes) reproduces
 question are the F-27 tests themselves, which were re-executed green in this
 review, and the tracked delta — the part that pins production source — is
 identical to the value recorded at closure.
+
+---
+
+## Commit freeze verification — `e9f383b` (2026-11-01, Africa/Lagos)
+
+**Status: VERIFIED WITH ONE RELEASE-BLOCKING GAP.** Read-only review of the
+frozen commit. No production code changed, no test rewritten, no commit, no
+push, no deployment, no percentage moved. This section is appended; the R1–R8
+lane table and the R8 row above are left byte-intact (including the R8
+"web-blocker cleared" edit already present in the working tree).
+
+Candidate identity. `HEAD` = `e9f383bcbea51044c902406203f3c5485238b85a`,
+parent = `524a017e4e889a5037b0ced162231afa63308cf8`, branch
+`feat/sabiroute-routing-foundation`, message
+`feat(gateway): freeze shared schema and application baseline` (one line, no
+body). Scope verified exact: **25 files, +2313 / −151** (`git diff --numstat`
+aggregate), 0 staged, sole tracked modification `reports/my_scorecard.md`.
+
+### What the commit actually does (inspected, not inferred)
+
+| Area | Change |
+|---|---|
+| F-27 lineage (R4) | New `sabiroute_accounting_lineages` table; `lineage_id` on `sabiroute_api_keys` and `sabiroute_budget_reservations`; revision `0006-accounting-lineages`; `create_lineage` / `get_lineage` / `reconcile_lineage_budgets`; `get()` denies a dangling lineage (fail closed); `rotate` carries lineage forward; rate-limit authority follows `lineage_id or key_id` |
+| Schema groups (B1) | `SABIROUTE_SCHEMA_GROUPS` = `core`\|`full`; `CORE_TABLES` / `SABICHAT_PRODUCT_TABLES` inventories; `0005-schema-groups:<group>` ledger rows; refuses `core` on a product-table DB and `full`→`core` downgrade |
+| Migration locking | `pg_advisory_xact_lock` + `SET LOCAL lock_timeout='30s'` in `ensure_schema`, `apply_schema_migrations`, `migrate_usage_columns`, and the new `python -m sabiroute.migrate` |
+| BYOK-0 (R3) | Provider credential/identity deny-list (`apikey`, `apibase`, `authorization`, `customllmprovider`, `provider`), normalized to lowercase alphanumerics, nesting-scanned, depth-bounded **fail-closed**; now also scans `messages`, not just `extra_body` |
+| Request bounds | `BodySizeMiddleware` (413 before routing/auth/accounting), `MAX_MESSAGES_PER_REQUEST` 256, `MAX_MESSAGE_CHARS` 500 000, `model` max_length 256 |
+| D-R3-3 redaction | New `security/redaction.py`; wired into auth 503 (`from None`), startup/readiness, completions error+telemetry, admin error tracker |
+| F-04 docs gating | `/docs`, `/redoc`, `/openapi.json` disabled unless `SABIROUTE_DOCS_ENABLED` |
+| SabiChat surface | `chat_router` **newly mounted** (defined but unmounted at parent); `web/{index.html,app.js,styles.css}` added → `/app/` now served. This is why the recorded `/app/` 404 no longer reproduces: the mount already existed at parent, but the `web/` directory was empty |
+| Startup contract | `PostgresApiKeyStore.__init__` and `SabiChatStore.__init__` **stop** calling `ensure_schema`; replaced by read-only `check_schema` in `build_gateway_state` / lifespan |
+| Session hygiene | Best-effort purge at startup+shutdown; 30-day retention for revoked sessions |
+| Tenant scoping | Usage finalize now requires `key_id` in addition to `request_id` |
+
+### Fresh evidence gathered this review
+
+- `ruff check src tests scripts config`: **clean**.
+- `mypy src`: **clean, 49 source files**.
+- `git diff --check`: **clean**.
+- Full suite: **656 passed / 0 failed / 9 skipped** (services unset) — exactly
+  the figure the R8 row cites, so that claim reproduces.
+- Frontend scan: `web/app.js` contains **no** `innerHTML`, `outerHTML`,
+  `eval`, `new Function`, `document.write`, or web storage; the bearer token
+  is held in memory and sent only as an `Authorization` header.
+- Fresh-database probe (disposable SQLite, `DATABASE_URL` unset): store
+  construction creates **zero tables**; `check_schema` then raises
+  `ValueError: Incompatible schema: missing tables ['sabiroute_api_key_budgets',
+  'sabiroute_api_keys', 'sabiroute_budget_reservations', 'sabiroute_request_usage',
+  'sabiroute_schema_versions']`; after an explicit `ensure_schema(groups="full")`
+  it passes and the ledger reads
+  `0001, 0002, 0003, 0004, 0006-accounting-lineages, 0005-schema-groups:full`.
+
+### Findings
+
+**F1 — HIGH — startup auto-migration removed, but no deployment path runs the
+replacement.** `PostgresApiKeyStore.__init__` and `SabiChatStore.__init__` no
+longer create schema, and the new `src/sabiroute/migrate.py` is wired **nowhere**:
+`Dockerfile` ends at `CMD ["sabiroute"]` with no migrate step, `docker-compose.yml`
+has no migrate service, and `sabiroute.migrate` appears in **no** file under
+`docs/`, `scripts/`, `Makefile`, or `config/`. `docs/deployment.md` still states
+schema is "applied transactionally at startup by every store entry point" — now
+false. Consequence, proven above: a fresh deployment builds, fails `check_schema`,
+degrades, and serves 503 on completions until an undocumented manual
+`python -m sabiroute.migrate`. **Masked in tests** by the new autouse
+`_ensure_schema_for_stores` fixture in `tests/conftest.py`, which monkeypatches
+both `__init__`s to call `ensure_schema(groups="full")` — so the suite never
+exercises the production startup contract, and no test builds the app from a
+fresh `DATABASE_URL`. This is a tests-green / deploy-broken divergence, not a
+test failure.
+
+**F2 — MEDIUM — `check_schema` never validates `_ACCOUNTING_LINEAGES`.**
+`_REQUIRED_COLUMNS` lists `sabiroute_accounting_lineages`, but `required_tables`
+omits it, so that entry is unreachable; a database missing the lineages table
+passes the check.
+
+**F3 — LOW/MEDIUM — readiness permanently degrades on a transient DB blip.**
+`api/health.py` sets `gateway.startup_error` and nulls `key_store`/`chat_store`
+on any schema re-check failure. A momentary connection error during a readiness
+poll is therefore sticky until process restart (self-heals only via container
+restart).
+
+**F4 — LOW — stale counts in docstrings.** `security/store.py` still says "`core`
+creates only the nine Core-owned tables; `full` creates all 13" and "Core owns
+the nine gateway tables below"; the actual inventories are **10** and **14**
+(`CORE_TABLES` now includes `_ACCOUNTING_LINEAGES`). `reconcile_lineage_budgets`
+also carries a duplicated comment line.
+
+**F5 — LOW — `reconcile_lineage_budgets` no-ops on a missing lineage row.** The
+final `UPDATE ... WHERE lineage_id = :id` affects 0 rows without error, so an
+out-of-band-deleted lineage would still report `{"status": "reconciled"}`.
+`api/admin.py` guards only the `record.lineage_id is None` case.
+
+**F6 — LOW — URI redaction truncates at the first `@`.** `_URI_USERINFO` masks
+only up to the first `@`, so a non-percent-encoded password containing `@` is
+partially retained. Well-formed URIs percent-encode, and the module documents
+its pattern-based limits; recorded for completeness.
+
+**F7 — LOW — ledger assertions weakened.** Four tests changed
+`applied_revisions() == [...]` to `applied_revisions()[:4] == [...]`; nothing now
+asserts the full ledger, and the new `0005-schema-groups:*` row is asserted only
+indirectly via the `SCHEMA_MIGRATIONS` constant.
+
+### Scope boundary
+
+This section records verification of `e9f383b` only. It does **not** close A2,
+A6, B0, B1, or R8, and it moves **no** percentage in the tables above: the
+commit is a freeze of already-lane-scored work, and F1 is a deployment-contract
+gap rather than new capability. Recommended follow-up before any deploy: add
+`python -m sabiroute.migrate` to the image/compose startup path (or reinstate a
+guarded startup migration), correct `docs/deployment.md`, and add a test that
+exercises startup against a schema-less database so the conftest fixture can no
+longer mask F1.
+
+### Manifest status (measured, not carried forward)
+
+`REPORTS-MANIFEST.sha256` records `04e376bb…` for this file; the working copy
+hashes `6b7d1c08…` (measured before this append), so
+`shasum -c REPORTS-MANIFEST.sha256` reports `reports/my_scorecard.md: FAILED`.
+Note that `REPORTS-PROVENANCE.md:124–125` asserts the scorecard "verifies OK in
+the current manifest" — that held at the earlier repair but is **no longer
+true** after subsequent edits (the R8 row, and now this section). Regenerating
+the manifest remains an owner decision and was not performed here.
