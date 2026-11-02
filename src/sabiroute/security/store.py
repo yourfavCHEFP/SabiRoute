@@ -728,6 +728,10 @@ def check_schema(bind: Any, *, tables: set[str] | None = None) -> None:
         _BUDGET_RESERVATIONS.name,
         _SCHEMA_VERSIONS.name,
         _REQUEST_USAGE.name,
+        # Core-owned (see CORE_TABLES) and required by the accounting
+        # contract: budget/quota settlement writes lineages. A database
+        # missing this table is schema-incompatible, not merely degraded.
+        _ACCOUNTING_LINEAGES.name,
     }
     if tables:
         required_tables = required_tables & tables

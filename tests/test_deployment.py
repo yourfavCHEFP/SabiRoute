@@ -100,7 +100,11 @@ def test_dockerfile_matches_runtime_contract():
     assert "uv sync --frozen --no-dev" in text
     assert "--no-install-project" in text
     assert "USER sabiroute" in text
-    assert "/health/live" in text
+    # F1: the image probe must be readiness, so an unmigrated/degraded
+    # container cannot report itself healthy on liveness alone.
+    assert "/health/ready" in text
+    assert "/health/live" not in text
+    assert "python -m sabiroute.migrate" in text
     assert "EXPOSE 8000" in text
     assert 'CMD ["sabiroute"]' in text
     assert "COPY src/ ./src/" in text
