@@ -97,11 +97,51 @@ services:
 
 
   # ==========================================================
+  # SABIROUTE SCHEMA MIGRATION (one-shot)
+  # ==========================================================
+  #
+  # Explicit migration step. SabiRoute store constructors never create or
+  # alter schema, and startup performs only a read-only compatibility check.
+  # This service is the deployment's sole schema writer, and the API service
+  # waits for it to exit 0 (see ``depends_on`` below), so a fresh database is
+  # migrated before the gateway starts and a failed migration can never leave
+  # a running-but-unmigrated deployment. Concurrent runs are serialized by the
+  # PostgreSQL advisory lock in ``sabiroute.migrate``; this topology never
+  # starts two migrators at once.
+
+  sabiroute-migrate:
+    build: .
+    image: ${SABIROUTE_IMAGE:-sabiroute:local}
+
+    container_name: sabiroute-migrate
+
+    # One-shot: run to completion, never restart on failure.
+    restart: "no"
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sabiroute}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-sabiroute}
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+    command:
+      - "python"
+      - "-m"
+      - "sabiroute.migrate"
+
+
+  # ==========================================================
   # SABIROUTE API
   # ==========================================================
 
   sabiroute:
     build: .
+    image: ${SABIROUTE_IMAGE:-sabiroute:local}
 
     container_name: sabiroute-api
 
@@ -135,13 +175,17 @@ services:
       litellm:
         condition: service_healthy
 
+      # Migration must have succeeded before the API is considered started.
+      sabiroute-migrate:
+        condition: service_completed_successfully
+
     healthcheck:
       test:
         [
           "CMD",
           "python",
           "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live', timeout=5)"
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready', timeout=5)"
         ]
       interval: 30s
       timeout: 10s

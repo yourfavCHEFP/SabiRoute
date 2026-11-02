@@ -403,7 +403,7 @@ Key environment variables (names only — see `.env.example` for the full list):
 
 *Reference visual — follow the commands above and `.env.example` for the exact setup; stage names are illustrative.*
 
-Two supported topologies: **host-run SabiRoute** beside the Compose stack, or the **SabiRoute container** (`docker build -t sabiroute .`, non-root, health-checked; SabiChat UI at `/app/`) — including via `docker compose up --build`, which now defines the API service with loopback-only ports. When running on the host, point `DATABASE_URL` at `127.0.0.1` with the published port — the Compose service names only resolve inside the Compose network. CI (`.github/workflows/ci.yml`) runs the suite, Ruff, mypy, a JS syntax check, and the container build. Full topology, PostgreSQL TLS, migration, and rollback notes: [docs/deployment.md](docs/deployment.md).
+Two supported topologies: **host-run SabiRoute** beside the Compose stack, or the **SabiRoute container** (`docker build -t sabiroute .`, non-root, health-checked on readiness; SabiChat UI at `/app/`) — including via `docker compose up --build`, which runs the explicit one-shot schema migration (`sabiroute-migrate`) and starts the API service, with loopback-only ports, only after that migration exits 0. When running on the host, point `DATABASE_URL` at `127.0.0.1` with the published port — the Compose service names only resolve inside the Compose network. CI (`.github/workflows/ci.yml`) runs the suite, Ruff, mypy, a JS syntax check, and the container build. Full topology, PostgreSQL TLS, migration, and rollback notes: [docs/deployment.md](docs/deployment.md).
 
 ### API usage
 

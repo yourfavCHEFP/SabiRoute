@@ -29,8 +29,10 @@ reserved URL characters. Keep `.env` local and never include it in diagnostic ou
 Build with `docker build -t sabiroute .` (verified: 2.71 GB, litellm
 dependency weight included). The image installs from `uv.lock`, runs as the
 non-root `sabiroute` user, serves the API on 8000 with the SabiChat UI at
-`/app/`, and probes `GET /health/live` (dependency-free liveness, no
-provider calls). File-based configuration is pinned via
+`/app/`, and probes `GET /health/ready`. Readiness — not liveness — is the
+container gate: it reports 503 while the schema is unmigrated or the gateway
+is otherwise degraded, so an unready container cannot present as healthy.
+File-based configuration is pinned via
 `SABIROUTE_CONFIG_PATH`, `SABIROUTE_ROUTES_PATH`, and `SABIROUTE_WEB_DIR`
 because a wheel install relocates the package away from repository-relative
 paths. Secrets arrive via environment only; `.env` never enters the image
@@ -53,21 +55,64 @@ DATABASE_URL=postgresql://sabiroute:<url-encoded-password>@<host>:25060/sabirout
 through untouched. SabiRoute tables are namespaced (`sabiroute_*`) and live
 alongside LiteLLM's tables in the same database without touching them.
 
-Schema evolution is an ordered additive revision ledger
-(`sabiroute_schema_versions`; see `security/store.py:SCHEMA_MIGRATIONS`),
-applied transactionally at startup by every store entry point. Fresh
-databases build all tables; existing databases gain nullable columns via
-`ADD COLUMN IF NOT EXISTS`; re-running is a no-op; failures propagate and
-roll back, leaving readiness failed rather than half-migrated. Validated
-against disposable local PostgreSQL 16: fresh init (both revisions, all
-tables), representative usage/chat data round-trip, idempotent re-run,
-pre-ledger upgrade with legacy rows preserved as `unknown`, clear
-`OperationalError` on bad credentials, and `pg_dump`/restore into a second
-database with identical revisions and counts. **Managed-PostgreSQL upgrade
-and backup validation remain outstanding**: exercise backup → apply →
-row-count check → revision check against a disposable managed instance
-before any real migration. Never run migrations against a database whose
-target has not been positively identified.
+## Schema migration (explicit, one-shot)
+
+Schema is **never** created or altered by application startup or by a store
+constructor. `PostgresApiKeyStore` and `SabiChatStore` only open connections;
+startup runs a read-only compatibility check (`security/store.py:check_schema`
+and friends). Bringing a database to the current schema is a separate,
+explicit migration step:
+
+```bash
+python -m sabiroute.migrate
+```
+
+This is the only supported schema writer. It reads `DATABASE_URL` (or
+`SABIROUTE_DATABASE_URL`) and `SABIROUTE_SCHEMA_GROUPS` (`core` or `full`,
+default `full`), then applies the ordered, additive revision ledger recorded in
+`sabiroute_schema_versions` (see `security/store.py:SCHEMA_MIGRATIONS`). Fresh
+databases build all tables for the selected group; existing databases gain
+nullable columns via `ADD COLUMN IF NOT EXISTS`; re-running is a no-op.
+
+Exit status is meaningful: `0` means the schema exists and passed validation,
+`1` means migration failed (the transaction rolls back, leaving nothing
+half-applied), `2` means no database URL was configured. On PostgreSQL the
+whole migration runs inside one transaction holding `pg_advisory_xact_lock`
+with `lock_timeout = '30s'`, so concurrent migrators serialize instead of
+racing.
+
+The deployment contract is therefore:
+
+```
+fresh database
+  → explicit migration (python -m sabiroute.migrate)
+  → migration succeeded
+  → schema exists and validates
+  → gateway starts normally
+```
+
+`docker-compose.yml` encodes that ordering: the one-shot `sabiroute-migrate`
+service runs the migration after PostgreSQL is healthy, and the `sabiroute`
+API service declares
+`depends_on: sabiroute-migrate: condition: service_completed_successfully`.
+A failed migration therefore prevents the API from starting at all. For a
+standalone container or a host-run process, run the migration first:
+
+```bash
+docker run --rm --env-file .env sabiroute:local python -m sabiroute.migrate
+```
+
+**If migration is skipped on a fresh database**, startup does not fake success:
+the read-only check fails, the gateway degrades (liveness stays up, readiness
+returns 503, completions return 503 with the startup error), and the image
+`HEALTHCHECK` — which probes `/health/ready` — reports the container unhealthy.
+The older `GET /health/live` probe passes in that state and must not be used as
+a deployment gate.
+
+**Managed-PostgreSQL upgrade and backup validation remain outstanding**:
+exercise backup → apply → row-count check → revision check against a
+disposable managed instance before any real migration. Never run migrations
+against a database whose target has not been positively identified.
 
 ## Redis
 
@@ -81,10 +126,12 @@ PostgreSQL. Managed Redis (or the VPS instance) is selected via `REDIS_URL`
 
 ## Startup, shutdown, and rollback
 
-- Startup builds gateway state (config → registry → stores → limiter). Any
-  failure degrades loudly: liveness stays up, readiness reports the failing
-  component, completions return 503 with the startup error. Never route
-  traffic on a `not_ready` instance.
+- Startup builds gateway state (config → registry → stores → limiter) and then
+  runs a read-only schema check. Migration is **not** part of startup — apply
+  it first (see "Schema migration" above). Any failure degrades loudly:
+  liveness stays up, readiness reports the failing component, completions
+  return 503 with the startup error. Never route traffic on a `not_ready`
+  instance.
 - Shutdown closes the key store, rate limiter, and chat store via the
   lifespan handler.
 - Request logs are structured (see `utils/logging.py`); they carry request
