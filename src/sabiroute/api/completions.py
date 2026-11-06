@@ -390,6 +390,16 @@ async def chat_completions(
     pre_routing_features: list[dict[str, Any]] = []
     quota_reserved = False
     quota_user_id: str | None = None
+    # Attempt-loop state is bound here, before the first finish() call, so
+    # every reachable completion/failure path — including a post-reservation,
+    # pre-attempt failure — observes valid state instead of an unbound closure
+    # variable. finish() reads ``attempted`` and ``actual_usage_parts``.
+    attempted: list[str] = []
+    last_error_category: str | None = None
+    last_deployment: str | None = None
+    actual_usage_parts: list[tuple[int | None, int | None, int | None]] = []
+    cost_usage_parts: list[tuple[str, tuple[int | None, int | None, int | None]]] = []
+    provider_usage_unknown = False
     # Request-local accounting ledger: every database mutation that must be
     # compensated on cancellation is recorded here with enough detail to
     # make cleanup idempotent. Entries are appended only after the worker
@@ -600,7 +610,13 @@ async def chat_completions(
             # Exactly one settle-or-release runs per logical request.
             try:
                 if attempted:
-                    quota_total = _sum_actual_tokens(actual_usage_parts)[2]
+                    # Consume the same unknown-aware settlement outcome the
+                    # budget governor receives: ``tokens[2]`` is None when any
+                    # attempt's usage is unknown, which settle_quota holds at
+                    # the original estimate. Recomputing _sum_actual_tokens
+                    # here would settle at a partial sum and diverge from
+                    # budget (B5 / C-07).
+                    quota_total = tokens[2]
                     await _run_accounting(
                         "quota_cleanup",
                         store.settle_quota,
@@ -630,13 +646,21 @@ async def chat_completions(
                     "Quota reservation could not be reconciled.",
                     QUOTA_UNAVAILABLE,
                 )
+        # Telemetry reports the best-known actual usage. ``tokens`` is the
+        # settlement value: None when any attempt's usage is unknown, so both
+        # governors hold the original estimate (B5). When settlement is
+        # unknown, still record the sum of the known attempt parts rather than
+        # None, so the usage event reflects what was actually observed.
+        telemetry_tokens = (
+            _sum_actual_tokens(actual_usage_parts) if tokens[2] is None else tokens
+        )
         final_event = replace(
             event,
             final_deployment=deployment,
             final_status=response.status_code,
-            prompt_tokens=tokens[0],
-            completion_tokens=tokens[1],
-            total_tokens=tokens[2],
+            prompt_tokens=telemetry_tokens[0],
+            completion_tokens=telemetry_tokens[1],
+            total_tokens=telemetry_tokens[2],
             failure_category=failure_category,
             estimated_input_tokens=estimated_input or None,
             reserved_tokens=reserved_tokens if budget_reserved else None,
@@ -1308,13 +1332,6 @@ async def chat_completions(
         budget_reserved = True
         ledger.append(("budget", None))
 
-    attempted: list[str] = []
-    last_error_category: str | None = None
-    last_deployment: str | None = None
-    actual_usage_parts: list[tuple[int | None, int | None, int | None]] = []
-    cost_usage_parts: list[tuple[str, tuple[int | None, int | None, int | None]]] = []
-    provider_usage_unknown = False
-
     async def _handle_attempt_loop_cancellation(
         exc: asyncio.CancelledError,
     ) -> JSONResponse:
@@ -1570,7 +1587,10 @@ async def chat_completions(
                 cost_usage_parts.append((route_decision.deployment, failure_usage))
                 if failure_usage[2] is None:
                     provider_usage_unknown = True
-            elif budget_reserved:
+            else:
+                # A missing usage object means usage is unknown (B5) for both
+                # the budget and quota governors — not only when a budget is
+                # reserved.
                 provider_usage_unknown = True
 
             failure_cost = _actual_cost(
@@ -1801,6 +1821,10 @@ async def chat_completions(
                     if usage is not None:
                         actual_usage_parts.append(usage)
                         cost_usage_parts.append((decision.deployment, usage))
+                    if usage is None or usage[2] is None:
+                        # Missing/underivable usage makes the request unknown
+                        # for settlement (B5), matching the non-streaming path.
+                        provider_usage_unknown = True
                     actual_cost = _actual_cost(
                         state,
                         [(decision.deployment, usage)] if usage else [],
@@ -1904,6 +1928,11 @@ async def chat_completions(
         if success_usage is not None:
             actual_usage_parts.append(success_usage)
             cost_usage_parts.append((route_decision.deployment, success_usage))
+        if success_usage is None or success_usage[2] is None:
+            # A missing usage object, or a total that cannot be derived from
+            # prompt+completion, makes the whole logical request unknown for
+            # settlement (B5): both governors must hold the original estimate.
+            provider_usage_unknown = True
         success_cost = _actual_cost(
             state,
             [(route_decision.deployment, success_usage)] if success_usage else [],
