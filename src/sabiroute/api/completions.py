@@ -400,11 +400,14 @@ async def chat_completions(
     actual_usage_parts: list[tuple[int | None, int | None, int | None]] = []
     cost_usage_parts: list[tuple[str, tuple[int | None, int | None, int | None]]] = []
     provider_usage_unknown = False
-    # Request-local accounting ledger: every database mutation that must be
-    # compensated on cancellation is recorded here with enough detail to
-    # make cleanup idempotent. Entries are appended only after the worker
-    # reports success, so cleanup never acts on work that never committed.
-    # Each entry is one of:
+    # Request-local accounting ledger: a record of every reservation this
+    # request actually holds, appended only after the worker reports success
+    # so it never names work that did not commit. It is currently write-only:
+    # nothing reads it. The compensation decisions in finish(),
+    # _compensate_all() and snapshot_persistence_failure() read the
+    # ``budget_reserved`` and ``quota_reserved``/``quota_user_id`` flags, and
+    # this list is neither logged nor exported. Treat it as an unused record,
+    # not as observability or audit state. Each entry is one of:
     #   ("quota", user_id)  — quota estimate held
     #   ("budget", None)    — budget estimate held
     # (The admission usage row is created before any cancellation window
@@ -417,9 +420,10 @@ async def chat_completions(
     # In-flight accounting worker tracking: at most one accounting worker
     # runs per request at a time. ``in_flight`` names it; ``in_flight_done``
     # resolves exactly once when that worker exits (success or failure), on
-    # every exit path. finish() waits for it before inspecting the ledger,
-    # so cleanup decisions always observe committed state. Repeated
-    # cancellation re-waits on the same barrier rather than abandoning it.
+    # every exit path. finish() waits for it before inspecting the
+    # reservation flags, so cleanup decisions always observe committed state.
+    # Repeated cancellation re-waits on the same barrier rather than
+    # abandoning it.
     in_flight: str | None = None
     in_flight_done: asyncio.Event | None = None
 

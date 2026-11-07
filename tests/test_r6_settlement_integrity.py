@@ -485,3 +485,167 @@ def test_e02_known_zero_usage_settles_zero_not_estimate() -> None:
         "known zero usage must account zero budget tokens, observed "
         f"{_budget_tokens(store, key_id)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# F4 — both governors must agree on a mixed known/unknown request
+# ---------------------------------------------------------------------------
+
+
+def test_f4_both_governors_hold_estimate_on_mixed_known_and_unknown_usage() -> None:
+    """F4: budget and quota governors settle a mixed known/unknown request identically.
+
+    One logical request, both governors active, two attempts:
+      - attempt 1 fails with a fully known usage object (partial total),
+      - attempt 2 succeeds but reports no usage object (unknown).
+
+    Under B5 the whole request is unknown, so BOTH governors must hold the
+    full original estimate — never the partial known sum. The known-zero
+    guard is re-asserted here so a fix cannot collapse known-zero into unknown.
+
+    Asserted
+        1. The scenario reached the success path via two attempts.
+        2. Quota consumed equals the reservation's own estimate.
+        3. Budget accounted tokens equal the same estimate.
+        4. Neither governor charged attempt 1's partial total.
+        5. One quota reservation and one budget entry share the same
+           request_id, and the quota reservation is settled exactly once.
+        6. Re-settling the settled reservation is a no-op in the in-memory
+           test double. This does NOT exercise the Postgres ``settle_quota``
+           path, so it is not evidence of production database idempotency.
+        7. A known-zero request still settles at zero in both governors.
+    """
+    state, store, _stub, key_id, uid = _make_quota_and_budget_harness()
+    _widen_free_pool(state)
+
+    partial_total = 7
+    stub = _ScriptedStub(
+        [
+            LiteLLMClientError(
+                "upstream 500",
+                status_code=500,
+                response_body={
+                    "usage": {
+                        "prompt_tokens": 3,
+                        "completion_tokens": 4,
+                        "total_tokens": partial_total,
+                    }
+                },
+            ),
+            _success_body_without_usage(),
+        ]
+    )
+    state.client = stub
+
+    request = _make_direct_completion_request(state)
+    payload = _retry_payload(uid)
+
+    response = asyncio.run(chat_completions(payload, request))
+
+    # (1) Scenario preconditions: success path via two attempts.
+    assert response.status_code == 200, (
+        f"scenario did not reach the success path; status {response.status_code}: {_body(response)}"
+    )
+    assert len(stub.calls) == 2, (
+        f"expected the retry to run (2 attempts), observed {len(stub.calls)}"
+    )
+
+    quota = _quota_snapshot(store)
+    budget_tokens = _budget_tokens(store, key_id)
+
+    # (2) Quota governor holds the full original estimate.
+    assert quota["consumed_tokens"] == quota["estimate"], (
+        "F4 (quota governor): unknown usage must settle at the full original "
+        f"estimate, but quota consumed {quota['consumed_tokens']} against an "
+        f"estimate of {quota['estimate']}"
+    )
+    # (3) Budget governor holds the same estimate.
+    assert budget_tokens == quota["estimate"], (
+        "F4 (budget governor): unknown usage must hold the full original "
+        f"estimate, but budget accounted {budget_tokens} against an estimate "
+        f"of {quota['estimate']}"
+    )
+
+    # (4) Neither governor charged the partial known sum.
+    assert quota["consumed_tokens"] != partial_total, (
+        f"F4: quota settled at attempt 1's partial total ({partial_total}) "
+        f"instead of the full original estimate ({quota['estimate']})"
+    )
+    assert budget_tokens != partial_total, (
+        f"F4: budget settled at attempt 1's partial total ({partial_total}) "
+        f"instead of the full original estimate ({quota['estimate']})"
+    )
+
+    # (5) Reservation identity: one quota reservation and one budget entry,
+    # both keyed by the same logical request_id, settled exactly once.
+    assert quota["status"] == "settled", (
+        f"F4: quota reservation must be settled, observed {quota['status']!r}"
+    )
+    assert quota["reserved_tokens"] == 0, (
+        "F4: a settled quota reservation must release its reserved estimate, "
+        f"observed {quota['reserved_tokens']} still reserved"
+    )
+    assert len(store.quota_reservations) == 1, (
+        f"F4: expected exactly one quota reservation, observed {len(store.quota_reservations)}"
+    )
+    assert len(store.budget_usage) == 1, (
+        f"F4: expected exactly one budget entry, observed {len(store.budget_usage)}"
+    )
+    ((quota_user, quota_request_id),) = store.quota_reservations.keys()
+    ((budget_key, budget_request_id),) = store.budget_usage.keys()
+    assert quota_user == uid
+    assert budget_key == key_id
+    assert quota_request_id == budget_request_id, (
+        "F4: both governors must settle the same logical request_id, observed "
+        f"quota {quota_request_id!r} vs budget {budget_request_id!r}"
+    )
+
+    # (6) In-memory double only: re-settling the already-settled reservation
+    # is a no-op in InMemoryApiKeyStore. This does NOT exercise the Postgres
+    # settle_quota path, so it is not evidence of production idempotency.
+    window_key = store.quota_reservations[(quota_user, quota_request_id)][2]
+    before = store.quota_windows[window_key]
+    store.settle_quota(quota_user, quota_request_id, None)
+    after = store.quota_windows[window_key]
+    assert before == after, (
+        "F4: re-settling a settled quota reservation must be a no-op, but the "
+        f"window changed from {before!r} to {after!r}"
+    )
+
+    # (7) Known zero remains distinguishable from unknown: a request whose
+    # single attempt reports explicit zeros must settle at zero in both
+    # governors, not at the estimate.
+    zero_state, zero_store, _zero_stub, zero_key_id, zero_uid = _make_quota_and_budget_harness()
+    zero_stub = _ScriptedStub(
+        [
+            {
+                "id": "chatcmpl-stub",
+                "model": "primary",
+                "choices": [{"message": {"role": "assistant", "content": "ok"}}],
+                "usage": {
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                },
+            }
+        ]
+    )
+    zero_state.client = zero_stub
+    zero_request = _make_direct_completion_request(zero_state)
+    zero_payload = _make_free_chat_payload(zero_uid)
+    zero_response = asyncio.run(chat_completions(zero_payload, zero_request))
+    zero_quota = _quota_snapshot(zero_store)
+
+    assert zero_response.status_code == 200
+    assert zero_quota["estimate"] > 0, (
+        "F4 guard is only meaningful when the reservation holds a positive estimate"
+    )
+    assert zero_quota["consumed_tokens"] == 0, (
+        "F4: known zero usage must settle at zero, but quota consumed "
+        f"{zero_quota['consumed_tokens']} against an estimate of "
+        f"{zero_quota['estimate']}"
+    )
+    assert _budget_tokens(zero_store, zero_key_id) == 0, (
+        "F4: known zero usage must account zero budget tokens, observed "
+        f"{_budget_tokens(zero_store, zero_key_id)}"
+    )
