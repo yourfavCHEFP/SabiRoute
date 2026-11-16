@@ -11,6 +11,7 @@ from redis.asyncio import Redis
 from .chat.store import SabiChatStore
 from .config.loader import load_config
 from .config.models import SabiRouteConfig
+from .config.validation import OptimizationSettings, load_optimization_settings
 from .freepool.eligibility import FreePoolPolicy
 from .monitoring.errors import ErrorTracker
 from .monitoring.latency import LatencyTracker
@@ -69,6 +70,10 @@ class GatewayState:
     # Per-user quota policy for pilot shared inference. Empty pilot cohort
     # by default: nobody is metered until deliberately configured.
     quota_policy: QuotaPolicy = field(default_factory=QuotaPolicy)
+    # R6.3 / I5: the optimisation policy, resolved once at startup and frozen.
+    # Never re-read during a request: a mid-request flip would split one
+    # reservation across two requests.
+    optimization: OptimizationSettings = field(default_factory=OptimizationSettings)
     store_executor: BoundedStoreExecutor = field(
         default_factory=BoundedStoreExecutor
     )
@@ -189,6 +194,15 @@ def build_gateway_state(
     if quota_policy is None:
         quota_policy = QuotaPolicy.from_env()
 
+    # R6.3 / I5: optimisation settings load once here and are frozen on the state.
+    # Invalid values raise ConfigValidationError, which is a startup failure rather
+    # than a runtime degrade — an operator who mistyped a policy should not discover
+    # it by silently serving uncompressed traffic. Absent section means defaults,
+    # which is disabled.
+    optimization = load_optimization_settings(
+        (config.model_extra or {}).get("optimization")
+    )
+
     if chat_store is None and not stores_managed_by_caller:
         # Neither store was injected, so this is a real deployment (or a
         # storeless test): both stores come from the environment together.
@@ -219,6 +233,7 @@ def build_gateway_state(
         free_pool=free_pool,
         chat_store=chat_store,
         quota_policy=quota_policy,
+        optimization=optimization,
     )
 
 
