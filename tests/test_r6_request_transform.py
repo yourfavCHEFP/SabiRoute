@@ -10,9 +10,13 @@ import asyncio
 import dataclasses
 import json
 import logging
+from typing import Any, cast
 
 import pytest
+from conftest import InMemoryApiKeyStore, StubLiteLLMClient, make_config
+from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from redis.asyncio import Redis
 
 from sabiroute.capabilities import Capability
 from sabiroute.config.validation import (
@@ -20,6 +24,8 @@ from sabiroute.config.validation import (
     load_optimization_settings,
     resolve_optimization_policy,
 )
+from sabiroute.gateway import build_gateway_state
+from sabiroute.main import create_app
 from sabiroute.request_transform import (
     BypassReason,
     CanonicalisationError,
@@ -42,6 +48,9 @@ from sabiroute.request_transform import (
     within_budget,
 )
 from sabiroute.request_transform import pipeline as pipeline_module
+from sabiroute.routing.policies import RoutingPolicy
+from sabiroute.security.keys import issue_api_key
+from sabiroute.security.rate_limit import RedisTokenBucket
 
 LOGGER = logging.getLogger("test.request_transform")
 
@@ -504,3 +513,157 @@ def test_b5_an_exception_inside_the_transform_leaves_the_original_intact(monkeyp
     assert outcome.bypass.reason is BypassReason.TRANSFORM_ERROR
     assert outcome.record is not None
     assert outcome.record.fallback_reason == "transform_error"
+
+
+# --- Call-site integration: the wiring, not just the module ------------------
+#
+# Every test above exercises the transform in isolation. These two prove the
+# call site in ``api/completions.py`` is actually reached and that the disabled
+# default sends the client's own bytes to the provider. Without these, a typo in
+# the wiring would leave the whole suite green.
+
+class _CapturingClient(StubLiteLLMClient):
+    """Records the message list the provider would receive."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.sent: list[Any] = []
+
+    async def chat_completion(
+        self, decision: Any, messages: Any, **extra: Any
+    ) -> dict[str, Any]:
+        self.sent.append([dict(message) for message in messages])
+        return await super().chat_completion(decision, messages, **extra)
+
+class _NoopRedis:
+    async def eval(self, *args: object) -> list[int]:
+        return [1, 0]
+
+    async def aclose(self) -> None:
+        return None
+
+def _gateway(
+    optimization: dict[str, Any] | None = None, *, failures: dict[str, int] | None = None
+) -> tuple[Any, Any, str]:
+    store = InMemoryApiKeyStore()
+    stub = _CapturingClient()
+    stub.failures_remaining = dict(failures or {})
+    config = make_config()
+    if optimization is not None:
+        config = config.model_copy(update={"optimization": optimization})
+    state = build_gateway_state(
+        config=config,
+        client=stub,
+        key_store=store,
+        rate_limiter=RedisTokenBucket(cast(Redis, _NoopRedis())),
+    )
+    state.policies.register(
+        RoutingPolicy(
+            name="fast",
+            deployments=["primary", "secondary"],
+            strategy="priority",
+            max_attempts=2,
+        )
+    )
+    _, secret = issue_api_key(store, project_id="p", name="c")
+    return state, stub, secret
+
+def test_call_site_is_reached_and_disabled_default_sends_identical_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SABIROUTE_ADMIN_KEY", "r6-admin")
+    state, stub, secret = _gateway()
+    messages = [
+        {"role": "system", "content": "be brief"},
+        {"role": "user", "content": "one"},
+        {"role": "assistant", "content": "two"},
+        {"role": "user", "content": "three"},
+    ]
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert len(stub.sent) == 1, "the provider was not called"
+    assert stub.sent[0] == messages
+
+def test_call_site_honours_an_enabled_policy_from_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SABIROUTE_ADMIN_KEY", "r6-admin")
+    state, stub, secret = _gateway(
+        {"policy": {"enabled": True, "strategy": "whole_message_removal", "max_ratio": 0.4}}
+    )
+    messages = [
+        {"role": "system", "content": "s"},
+        {"role": "user", "content": "a" * 400},
+        {"role": "user", "content": "b" * 400},
+        {"role": "user", "content": "c" * 400},
+        {"role": "user", "content": "d" * 400},
+    ]
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    # Strictly fewer messages. A `<=` here would pass just as happily with the
+    # call site wired to the untransformed list, which is the failure this test
+    # exists to catch.
+    assert len(stub.sent[0]) < len(messages)
+    assert len(canonical_bytes(stub.sent[0])) <= len(canonical_bytes(messages))
+
+def test_invalid_optimization_config_fails_startup() -> None:
+    with pytest.raises(Exception) as excinfo:
+        _gateway({"policy": {"max_ratio": 4.0}})
+
+    assert "max_ratio" in str(excinfo.value)
+
+def test_transform_runs_once_for_a_request_that_falls_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """I3: one effective request per logical request, not one per attempt.
+
+    A transform inside the attempt loop would run twice here and could send two
+    different effective requests against a single reservation.
+    """
+    monkeypatch.setenv("SABIROUTE_ADMIN_KEY", "r6-admin")
+    state, stub, secret = _gateway(
+        {"policy": {"enabled": True, "max_ratio": 0.4}}, failures={"primary": 1}
+    )
+    calls: list[int] = []
+
+    original_run = pipeline_module.run
+
+    def counting_run(*args: Any, **kwargs: Any) -> Any:
+        calls.append(1)
+        return original_run(*args, **kwargs)
+
+    monkeypatch.setattr("sabiroute.api.completions.run_transform", counting_run)
+
+    messages = [
+        {"role": "system", "content": "s"},
+        {"role": "user", "content": "a" * 400},
+        {"role": "user", "content": "b" * 400},
+        {"role": "user", "content": "c" * 400},
+        {"role": "user", "content": "d" * 400},
+    ]
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert len(stub.sent) == 2, "expected a failed attempt then a fallback"
+    assert len(calls) == 1, "the transform ran once per attempt, not once per request"
+    assert stub.sent[0] == stub.sent[1], "attempts saw different effective requests"

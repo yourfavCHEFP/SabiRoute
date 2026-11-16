@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..capabilities import RequestType, classify_request
+from ..config.validation import resolve_optimization_policy
 from ..freepool.eligibility import (
     FREE_CHAT_MARKER,
     FREE_POOL_NO_CAPABLE_DEPLOYMENT,
@@ -39,6 +40,7 @@ from ..quotas import (
     quota_reset_at,
     quota_window_start,
 )
+from ..request_transform import run as run_transform
 from ..routing.policies import RoutingPolicy
 from ..routing.router import NoCapableDeploymentError, NoHealthyDeploymentError
 from ..security.auth import require_client_key
@@ -1363,6 +1365,22 @@ async def chat_completions(
             failure_category="client_cancelled",
         )
 
+    # I9 window: strictly after the request has been admitted and strictly before
+    # any provider call. Hoisted out of the attempt loop on purpose: I3 requires
+    # exactly one effective request per logical request, so a fallback attempt must
+    # reuse the same transformed messages rather than re-transform and risk sending
+    # two different effective requests for one reservation. Built dark — the default
+    # policy is disabled and a disabled policy returns the message list untouched, so
+    # the bytes reaching the provider are those that always reached it. The guard
+    # wraps the whole transform, so no failure here can become a client 4xx.
+    transform_outcome = run_transform(
+        messages=payload.messages,
+        policy=resolve_optimization_policy(state.optimization, policy.name),
+        request_id=request_id,
+        logger=logger,
+    )
+    attempt_messages = transform_outcome.messages
+
     for attempt in range(1, policy.max_attempts + 1):
         if _deadline_expired(request):
             # Absolute deadline passed before this attempt could start.
@@ -1540,7 +1558,7 @@ async def chat_completions(
                 )
                 stream_session = await state.client.start_chat_completion_stream(
                     route_decision,
-                    payload.messages,
+                    attempt_messages,
                     temperature=temperature,
                     max_tokens=attempt_max_tokens,
                     **stream_extras,
@@ -1559,7 +1577,7 @@ async def chat_completions(
             else:
                 body = await state.client.chat_completion(
                     route_decision,
-                    payload.messages,
+                    attempt_messages,
                     temperature=temperature,
                     max_tokens=attempt_max_tokens,
                     **extras,
