@@ -25,12 +25,14 @@ def _freeze(value: Any) -> Any:
         return tuple(_freeze(item) for item in value)
     return value
 
+
 def _thaw(value: Any) -> Any:
     if isinstance(value, MappingProxyType):
         return {key: _thaw(item) for key, item in value.items()}
     if isinstance(value, tuple):
         return [_thaw(item) for item in value]
     return value
+
 
 @dataclass(frozen=True, slots=True)
 class FrozenOriginal:

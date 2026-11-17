@@ -14,18 +14,20 @@ from .errors import CapabilityLoss
 
 _MULTIMODAL_CAPABILITIES = frozenset({Capability.VISION, Capability.MULTIMODAL})
 
+
 def _has_non_text_content(message: dict[str, Any]) -> bool:
     content = message.get("content")
     if isinstance(content, list):
         return any(
-            isinstance(block, dict) and block.get("type") not in (None, "text")
-            for block in content
+            isinstance(block, dict) and block.get("type") not in (None, "text") for block in content
         )
     return False
+
 
 def _has_tool_calls(message: dict[str, Any]) -> bool:
     calls = message.get("tool_calls")
     return isinstance(calls, list) and bool(calls)
+
 
 def check_capability_preservation(
     original: list[dict[str, Any]],
@@ -43,12 +45,8 @@ def check_capability_preservation(
 
     if required & _MULTIMODAL_CAPABILITIES:
         if any(_has_non_text_content(message) for message in dropped):
-            raise CapabilityLoss(
-                "transform would drop multimodal content the request requires"
-            )
+            raise CapabilityLoss("transform would drop multimodal content the request requires")
 
     if Capability.TOOL_USE in required:
         if any(_has_tool_calls(message) for message in dropped):
-            raise CapabilityLoss(
-                "transform would drop a tool call the request requires"
-            )
+            raise CapabilityLoss("transform would drop a tool call the request requires")

@@ -18,6 +18,7 @@ from ..security.redaction import redact_secrets
 
 T = TypeVar("T")
 
+
 def fail_to_original(
     operation: Callable[[], T],
     original: T,

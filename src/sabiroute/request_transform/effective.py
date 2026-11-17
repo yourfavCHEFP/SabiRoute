@@ -31,6 +31,7 @@ class EffectiveRequest:
     def byte_length(self) -> int:
         return len(canonical_bytes(list(self.messages)))
 
+
 def derive_effective(
     original: list[dict[str, Any]],
     messages: list[dict[str, Any]],

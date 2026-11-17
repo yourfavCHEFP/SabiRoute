@@ -23,6 +23,7 @@ class BypassReason(StrEnum):
     VALIDATION_FAILURE = "validation_failure"
     TRANSFORM_ERROR = "transform_error"
 
+
 @dataclass(frozen=True, slots=True)
 class BypassDecision:
     """One decision, correlated to one request."""
@@ -30,6 +31,7 @@ class BypassDecision:
     bypassed: bool
     reason: BypassReason
     request_id: str
+
 
 def evaluate_bypass(
     *,

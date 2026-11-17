@@ -35,8 +35,10 @@ def canonical_bytes(messages: Any) -> bytes:
         sort_keys=False,
     ).encode("utf-8")
 
+
 def _strict(value: Any) -> Any:
     raise CanonicalisationError(f"unsupported value type: {type(value).__name__}")
+
 
 def is_canonical(messages: Any) -> bool:
     """True when re-canonicalising the parsed form reproduces the same bytes."""
@@ -44,6 +46,23 @@ def is_canonical(messages: Any) -> bool:
     second = canonical_bytes(json.loads(first))
     return first == second
 
+
 def within_budget(original: bytes, canonical: bytes) -> bool:
     """The canonical form must never expand (I2 limits: output <= input)."""
     return len(canonical) <= len(original)
+
+
+def within_byte_budget(original: bytes, transformed: bytes, ratio: float) -> bool:
+    """D1's byte budget: the transform-emitted payload may not exceed ``ratio`` x input.
+
+    This is a **different quantity** from :func:`within_budget`. That one is the canonical
+    form's non-expansion invariant — 1.0x, always on, not configurable. This one is the
+    owner's configurable ceiling on what the transform stage may emit, and it is
+    deliberately looser so a future rewriting transform has room to work.
+
+    At HEAD it cannot bind through the pipeline: I3's monotone-shrink already rejects any
+    expansion, and 1.25x is looser than the 1.0x canonical form enforces. It is kept so it
+    binds if that invariant is ever relaxed, and it is tested directly where it is
+    genuinely falsifiable.
+    """
+    return len(transformed) <= len(original) * ratio

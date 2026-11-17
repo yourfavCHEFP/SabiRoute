@@ -10,7 +10,7 @@ See ``artifacts/sprint-phoenix/R6.1-FOUNDATION-CONTRACT.md`` for the I1-I9 contr
 from __future__ import annotations
 
 from .bypass import BypassDecision, BypassReason, evaluate_bypass
-from .canonical import canonical_bytes, is_canonical, within_budget
+from .canonical import canonical_bytes, is_canonical, within_budget, within_byte_budget
 from .capability import check_capability_preservation
 from .compression import compress, protected_indices, tool_spans
 from .effective import EffectiveRequest, derive_effective
@@ -55,4 +55,5 @@ __all__ = [
     "tool_spans",
     "validate_effective",
     "within_budget",
+    "within_byte_budget",
 ]
