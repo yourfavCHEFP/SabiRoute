@@ -17,10 +17,15 @@ executed to produce this record.
 ## Test design
 
 1. Create a disposable local database.
-2. Run the backup action.
-3. Create `restore_probe` with a sentinel row.
-4. Run the restore action.
-5. Assert `to_regclass('restore_probe')` is NULL.
+2. Create `restore_probe` with a sentinel row.
+3. Run the backup action.
+4. Drop `restore_probe` to simulate loss.
+5. Run the restore action.
+6. Assert the sentinel row is recovered.
+
+The first draft of the check asserted that a table created *after* backup would be removed by
+`pg_restore --clean`. That was wrong: `--clean` only drops objects present in the archive. The
+check now proves restoration of pre-backup state instead.
 
 ## Verdict
 
