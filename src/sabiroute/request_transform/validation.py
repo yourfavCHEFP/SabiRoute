@@ -16,6 +16,7 @@ MAX_MESSAGES = 256
 MAX_CHARS = 500_000
 MAX_BYTES = 1_048_576
 
+
 def validate_effective(messages: list[dict[str, Any]]) -> None:
     """Raise ``ValidationFailure`` when the effective request breaks any cap."""
     if not messages:

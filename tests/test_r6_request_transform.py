@@ -10,6 +10,8 @@ import asyncio
 import dataclasses
 import json
 import logging
+import time
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -46,6 +48,7 @@ from sabiroute.request_transform import (
     tool_spans,
     validate_effective,
     within_budget,
+    within_byte_budget,
 )
 from sabiroute.request_transform import pipeline as pipeline_module
 from sabiroute.routing.policies import RoutingPolicy
@@ -137,6 +140,25 @@ def test_i2_non_sequence_fails_closed():
     with pytest.raises(CanonicalisationError):
         canonical_bytes({"role": "user"})
 
+def test_i2_budgets_default_to_the_owner_values():
+    """D1: a budget of ``None`` can never fail, so it can never be shown to regress."""
+    policy = OptimizationPolicy()
+
+    assert policy.latency_budget_ms == 150.0
+    assert policy.byte_budget_ratio == 1.25
+
+def test_i2_budgets_are_configurable_not_hardcoded():
+    policy = OptimizationPolicy(latency_budget_ms=200.0, byte_budget_ratio=1.5)
+
+    assert policy.latency_budget_ms == 200.0
+    assert policy.byte_budget_ratio == 1.5
+
+def test_i2_rejects_a_nonsense_budget():
+    with pytest.raises(ValidationError):
+        OptimizationPolicy(latency_budget_ms=0.0)
+    with pytest.raises(ValidationError):
+        OptimizationPolicy(byte_budget_ratio=0.5)
+
 # --- I3: effective request ---------------------------------------------------
 
 def test_i3_monotone_shrink_rejects_expansion():
@@ -197,11 +219,12 @@ def test_i4_record_is_scalar_only():
 
 # --- I5: the optimisation policy --------------------------------------------
 
-def test_i5_defaults_to_disabled_with_no_ratio():
+def test_i5_defaults_to_disabled_with_the_owner_ceiling():
+    """D2: the default is a value the guard can reject, not a ``None`` slot."""
     settings = load_optimization_settings(None)
 
     assert settings.policy.enabled is False
-    assert settings.policy.max_ratio is None
+    assert settings.policy.max_ratio == 0.50
 
 def test_i5_rejects_a_ratio_above_one():
     with pytest.raises(ValidationError):
@@ -210,6 +233,23 @@ def test_i5_rejects_a_ratio_above_one():
 def test_i5_rejects_a_ratio_of_zero():
     with pytest.raises(ValidationError):
         OptimizationPolicy(max_ratio=0.0)
+
+def test_i5_rejects_a_ratio_below_the_owner_lower_bound():
+    """D2: the range is 0.25..1.0, so a value under it is refused at load."""
+    with pytest.raises(ValidationError):
+        OptimizationPolicy(max_ratio=0.24)
+
+def test_i5_accepts_the_lower_bound_and_the_ceiling():
+    assert OptimizationPolicy(max_ratio=0.25).max_ratio == 0.25
+    assert OptimizationPolicy(max_ratio=1.0).max_ratio == 1.0
+
+def test_i5_the_ceiling_survives_a_per_route_override():
+    """A route override that sets no ratio must not silently reset the ceiling."""
+    settings = load_optimization_settings(
+        {"policy": {"enabled": True, "max_ratio": 0.4}, "routes": {"fast": {"enabled": True}}}
+    )
+
+    assert resolve_optimization_policy(settings, "fast").max_ratio == 0.4
 
 def test_i5_per_route_override_applies():
     settings = load_optimization_settings(
@@ -420,6 +460,187 @@ def test_r64_never_empties_the_request():
     result = compress(messages, max_ratio=0.0, count_tokens=lambda m: 100)
 
     assert result
+
+def test_r64_empty_result_falls_back_to_original_identity():
+    """The `if not result` guard is reachable, and must preserve the original objects."""
+    messages = [{"content": "roleless"}]
+
+    result = compress(messages, max_ratio=0.1, count_tokens=lambda m: 100)
+
+    # Deleting compression.py:146-147 returns an empty list here, so this is falsifiable.
+    assert result == messages
+    assert [id(m) for m in result] == [id(m) for m in messages]
+
+def test_r64_an_unreachable_ceiling_passes_through_unmodified():
+    """D2: a ceiling the compressor cannot reach degrades to the original.
+
+    ``compress`` removes oldest-first and skips protected messages and tool spans. When
+    every remaining candidate is protected the loop runs out of work still holding more
+    than the target. Returning that half-done list would ship a request compressed *below*
+    what the policy authorised, so the original is returned instead.
+    """
+    messages = [
+        {"role": "user", "content": "a" * 400, "cache_control": {"type": "ephemeral"}},
+        {"role": "user", "content": "b" * 400},
+        {"role": "user", "content": "c" * 400},
+        {"role": "user", "content": "d" * 400},
+    ]
+
+    result = compress(messages, max_ratio=0.1, count_tokens=lambda m: len(m) * 100)
+
+    # Indices 1 and 2 are removable, but dropping both still leaves 200 tokens against a
+    # 40-token target. A partial result would be a request compressed below the ceiling.
+    assert result == messages
+    assert [id(m) for m in result] == [id(m) for m in messages]
+
+def test_i2_the_byte_budget_is_falsifiable_in_isolation():
+    """D1: the budget itself must be able to fail, or it is a slot wearing a number.
+
+    This proves the *function* can return False. It does not prove the pipeline calls
+    it — see ``test_i2_the_byte_budget_gate_is_wired_into_the_pipeline`` for that half.
+    The gate cannot bind *with the shipped compressor*, which only ever removes
+    messages; it is kept so it binds if a rewriting transform is ever added.
+    """
+    original = b"x" * 100
+
+    assert within_byte_budget(original, b"x" * 100, 1.25) is True
+    assert within_byte_budget(original, b"x" * 125, 1.25) is True
+    assert within_byte_budget(original, b"x" * 126, 1.25) is False
+
+def test_i2_an_expanding_transform_never_reaches_the_provider(monkeypatch):
+    """D1: whichever gate fires, an expanding transform degrades to the original."""
+    messages = _messages()
+    before = canonical_bytes(messages)
+
+    def expand(m, *, max_ratio, count_tokens):
+        # Same message count and roles, so I6/I8 pass — only the bytes grow.
+        return [{**msg, "content": f"{msg.get('content', '')}{'x' * 4000}"} for msg in m]
+
+    monkeypatch.setattr(pipeline_module, "compress", expand)
+
+    outcome = run(
+        messages=messages,
+        policy=OptimizationPolicy(enabled=True, max_ratio=0.5),
+        request_id="req-1",
+        logger=LOGGER,
+    )
+
+    assert canonical_bytes(outcome.messages) == before
+    assert outcome.bypass.reason is BypassReason.TRANSFORM_ERROR
+
+def test_i2_the_byte_budget_gate_is_wired_into_the_pipeline(monkeypatch):
+    """D1: a False from the byte budget must actually degrade the request.
+
+    The isolation test above proves the function can return False. This proves the
+    pipeline *reaches* it: the same request succeeds unpatched, and degrades once the
+    gate is forced to False. Delete the call site and the second half fails, because
+    nothing else in the pipeline rejects this input.
+    """
+    messages = _messages()
+    before = canonical_bytes(messages)
+    policy = OptimizationPolicy(enabled=True, max_ratio=0.5)
+
+    # Baseline: this request is transformable, so a failure below is the gate's doing.
+    baseline = run(
+        messages=messages, policy=policy, request_id="req-1", logger=LOGGER
+    )
+    assert baseline.bypass.reason is not BypassReason.TRANSFORM_ERROR
+
+    monkeypatch.setattr(pipeline_module, "within_byte_budget", lambda *a, **k: False)
+
+    outcome = run(
+        messages=messages, policy=policy, request_id="req-1", logger=LOGGER
+    )
+
+    assert canonical_bytes(outcome.messages) == before
+    assert outcome.bypass.reason is BypassReason.TRANSFORM_ERROR
+
+def test_i9_the_call_site_sits_inside_the_window():
+    """I9: the transform call stays between the budget commit and the attempt loop.
+
+    The window is a structural property, and nothing else in this suite notices if it
+    breaks: moving ``run_transform`` above the budget reservation would split the
+    reservation from the payload it covers and leave every behavioural test green.
+    This pins the order against that refactor.
+    """
+    source = (
+        Path(__file__).resolve().parents[1] / "src/sabiroute/api/completions.py"
+    ).read_text(encoding="utf-8")
+    lines = source.splitlines()
+
+    def count(predicate: str) -> list[int]:
+        return [i for i, line in enumerate(lines) if predicate in line]
+
+    # `budget_reserved = True` also occurs in an unrelated function; the window is
+    # bounded by the later occurrence, which is the one in the transform path.
+    budget = count("budget_reserved = True")[-1]
+    call = count("run_transform(")[0]
+    loop = count("for attempt in range(1, policy.max_attempts")[0]
+
+    assert budget < call < loop, (
+        f"run_transform at {call} is outside the I9 window ({budget}, {loop})"
+    )
+
+def test_i2_a_transform_that_stalls_breaches_the_latency_budget(monkeypatch):
+    """D1: the latency budget is falsifiable — a stall past the ceiling degrades."""
+    messages = _messages()
+    before = canonical_bytes(messages)
+
+    def stall(m, *, max_ratio, count_tokens):
+        time.sleep(0.05)
+        return list(m)
+
+    monkeypatch.setattr(pipeline_module, "compress", stall)
+
+    outcome = run(
+        messages=messages,
+        policy=OptimizationPolicy(enabled=True, max_ratio=0.5, latency_budget_ms=1.0),
+        request_id="req-1",
+        logger=LOGGER,
+    )
+
+    assert canonical_bytes(outcome.messages) == before
+    assert outcome.bypass.reason is BypassReason.TRANSFORM_ERROR
+
+def test_i2_latency_budget_includes_bypass_and_freeze(monkeypatch):
+    """D1: the ceiling spans the whole stage, including bypass evaluation.
+
+    The old bracket opened inside `_transform`, after bypass and freeze. Advancing a
+    fake clock inside bypass makes the request 150 ms against a 100 ms budget; with
+    the old placement the measured interval is 0 ms and this test fails.
+    """
+    class Clock:
+        def __init__(self) -> None:
+            self.now = 0.0
+
+        def perf_counter(self) -> float:
+            return self.now
+
+    clock = Clock()
+    monkeypatch.setattr(pipeline_module, "time", clock)
+
+    def costly_bypass(**kwargs: Any) -> Any:
+        clock.now += 0.15
+        return pipeline_module.BypassDecision(
+            False, pipeline_module.BypassReason.NOT_BYPASSED, kwargs["request_id"]
+        )
+
+    monkeypatch.setattr(pipeline_module, "evaluate_bypass", costly_bypass)
+
+    messages = _messages()
+    before = canonical_bytes(messages)
+
+    outcome = run(
+        messages=messages,
+        policy=OptimizationPolicy(
+            enabled=True, max_ratio=0.5, latency_budget_ms=100.0
+        ),
+        request_id="req-1",
+        logger=LOGGER,
+    )
+
+    assert canonical_bytes(outcome.messages) == before
+    assert outcome.bypass.reason is BypassReason.TRANSFORM_ERROR
 
 # --- B5: the pipeline ships dark --------------------------------------------
 

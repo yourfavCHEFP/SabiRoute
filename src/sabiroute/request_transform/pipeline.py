@@ -23,7 +23,9 @@ the copy. Calling it after ``derive_effective`` would silently disable I6.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,7 +33,7 @@ from ..capabilities import Capability
 from ..config.validation import OptimizationPolicy
 from ..security.budgets import UnsupportedBudgetRequest, estimate_input_tokens
 from .bypass import BypassDecision, BypassReason, evaluate_bypass
-from .canonical import canonical_bytes, within_budget
+from .canonical import canonical_bytes, within_budget, within_byte_budget
 from .capability import check_capability_preservation
 from .compression import compress
 from .effective import EffectiveRequest, derive_effective
@@ -42,6 +44,7 @@ from .record import TransformationRecord
 from .validation import validate_effective
 
 DEFAULT_STRATEGY = "whole_message_removal"
+
 
 def default_token_counter(messages: list[dict[str, Any]]) -> int | None:
     """Adapt the repository's single estimator to the ``TokenCounter`` protocol.
@@ -56,8 +59,10 @@ def default_token_counter(messages: list[dict[str, Any]]) -> int | None:
     except UnsupportedBudgetRequest:
         return None
 
+
 def _sha256(messages: list[dict[str, Any]]) -> str:
     return hashlib.sha256(canonical_bytes(messages)).hexdigest()
+
 
 @dataclass(frozen=True, slots=True)
 class TransformOutcome:
@@ -67,6 +72,7 @@ class TransformOutcome:
     effective: EffectiveRequest | None
     record: TransformationRecord | None
     bypass: BypassDecision
+
 
 def _untouched_outcome(
     original: list[dict[str, Any]],
@@ -94,6 +100,7 @@ def _untouched_outcome(
         bypass=bypass,
     )
 
+
 def run(
     *,
     messages: list[dict[str, Any]],
@@ -107,6 +114,11 @@ def run(
 
     Never raises. Returns the original messages on any failure, with the reason recorded.
     """
+    # D1: open the latency bracket before bypass and freeze. §4 calls the I2 budget a
+    # *synchronous event-loop stall*; both are inline costs on the same request, so a
+    # bracket that opened after them measured less than the docstring promises.
+    started = time.perf_counter()
+
     # --- I7: bypass, evaluated once, before anything is touched -----------------
     bypass = evaluate_bypass(
         policy_enabled=policy.enabled,
@@ -134,9 +146,17 @@ def run(
         )
 
     def _transform() -> TransformOutcome:
+        # D1: ``started`` was taken at the top of ``run`` so the ceiling spans bypass,
+        # freeze, and the transform body — all inline work on this one request.
+
         # --- I2: canonical form ------------------------------------------------
-        canonical = canonical_bytes(original)
-        if not within_budget(canonical_bytes(original), canonical):
+        # The invariant is "the canonical bytes are never longer than the input's
+        # DEFAULT JSON" (canonical.py:8). The baseline must therefore be the default
+        # encoding, not the canonical one: comparing canonical to itself reduces to
+        # len(x) <= len(x) and can never fire. See R6.1-REVIEW-RECORD.md [M] 6.
+        original_bytes = canonical_bytes(original)
+        default_json = json.dumps(original, ensure_ascii=False).encode("utf-8")
+        if not within_budget(default_json, original_bytes):
             raise TransformError("canonical form expanded the original")
 
         # --- R6.4: compression -------------------------------------------------
@@ -145,6 +165,14 @@ def run(
             max_ratio=policy.max_ratio,
             count_tokens=default_token_counter,
         )
+
+        # --- D1: the byte budget ------------------------------------------------
+        # Configurable, and deliberately looser than I3's monotone-shrink, so it binds
+        # only if that invariant is ever relaxed. See canonical.within_byte_budget.
+        if not within_byte_budget(
+            original_bytes, canonical_bytes(compressed), policy.byte_budget_ratio
+        ):
+            raise TransformError("transform output exceeded the byte budget")
 
         # --- I6: capability preservation, BEFORE the dict copy in I3 -----------
         # compress() preserves object identity; derive_effective() does not.
@@ -174,6 +202,11 @@ def run(
             fallback_reason=None,
             bypass_reason=str(bypass.reason),
         )
+        # --- D1: the latency ceiling --------------------------------------------
+        elapsed_ms = (time.perf_counter() - started) * 1000.0
+        if elapsed_ms > policy.latency_budget_ms:
+            raise TransformError("transform exceeded the latency budget")
+
         return TransformOutcome(
             messages=effective_messages,
             effective=effective,
@@ -213,6 +246,7 @@ def run(
         policy=policy,
         fallback_reason=str(reason),
     )
+
 
 def classify_failure(error: BaseException | None) -> BypassReason:
     """Map a transform failure onto the bypass enum. ``None`` is not expected.

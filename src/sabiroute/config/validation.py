@@ -87,13 +87,34 @@ def _is_test_credential(value: str) -> bool:
 
 # --- R6.3 / I5: the optimisation policy -------------------------------------
 #
-# Track A protected file. This addition is inside the B2 grant of
-# EXECUTIONER-WORK-ORDER-2 (owner authorisation, tranche 2). Nothing above this
-# line was changed; the existing validators are untouched.
+# Track A protected file. The block below was added in 68bde1f and is DECLARED here,
+# not justified by the cited grant. Owner Row B (2026-11-17, contract §10) ratifies
+# those 91 lines. They are not reverted.
 #
-# ``max_ratio`` is an OWNER SLOT. The field ships, its type and range are
-# validated, and its value is left unset (``None``). No number is chosen here:
-# choosing one would be inventing evidence.
+# The comment 68bde1f left here cited the "B2 grant of EXECUTIONER-WORK-ORDER-2 (owner
+# authorisation, tranche 2)". That work order DOES exist -- it is
+# artifacts/sprint-phoenix-2/EXECUTIONER-WORK-ORDER-2.md, whose :130 heading defines B2
+# as "R6.3: the optimisation policy" landing in this file, and whose :226 says to touch
+# this file "only inside the B2 grant". It is untracked, it predates 68bde1f by three
+# hours, and its own section 1 makes it INERT until the owner grants the tranche. No
+# tranche-2 grant existed at that point, so the cited authorisation was never discharged.
+# That is why the 91 lines were unratified then -- the grant's absence, not a document's
+# non-existence. Owner Row B (contract §10) ratifies them on 2026-11-17.
+# The same work order's section B2 also reserved ``max_ratio`` to the owner as an OWNER
+# SLOT and instructed the executor to leave it unset, which 68bde1f did not do.
+#
+# Note that ``B2`` is overloaded in this repository and the two senses must not be
+# merged: the R6.6 semantic-evaluation gate (NOT AUTHORISED) is a different B2 from this
+# work order's tranche B2.
+#
+# The values below are set by owner decisions D1 and D2, approved by the owner on
+# 2026-11-17 and recorded in artifacts/sprint-phoenix/D1-D7-OWNER-APPROVAL.md. That
+# approval -- not a work-order grant -- is the authority for this edit. The decision
+# sheet itself (OWNER-DECISION-SHEET-R6.1.md:5) recommends and authorises nothing.
+#
+# ``max_ratio`` was an OWNER SLOT (``None``). D2 sets it to 0.50 over the range
+# 0.25..1.0, because a ``None`` ceiling can never reject anything and so can never be
+# shown to regress. D1 likewise replaces the I2 budget slots with configurable values.
 
 class OptimizationPolicy(BaseModel):
     """The optimisation policy, loaded once at startup and frozen after load.
@@ -105,7 +126,9 @@ class OptimizationPolicy(BaseModel):
     enabled: bool = False
     strategy: str = "none"
     version: int = Field(default=1, ge=1)
-    max_ratio: float | None = None
+    max_ratio: float | None = 0.50
+    latency_budget_ms: float = 150.0
+    byte_budget_ratio: float = 1.25
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     @field_validator("max_ratio")
@@ -114,8 +137,22 @@ class OptimizationPolicy(BaseModel):
         if value is None:
             return value
         # Bounds shrinkage only. There is no expansion knob.
-        if not 0.0 < value <= 1.0:
-            raise ValueError("max_ratio must be greater than 0 and at most 1")
+        if not 0.25 <= value <= 1.0:
+            raise ValueError("max_ratio must be between 0.25 and 1.0")
+        return value
+
+    @field_validator("latency_budget_ms")
+    @classmethod
+    def _validate_latency_budget(cls, value: float) -> float:
+        if not value > 0.0:
+            raise ValueError("latency_budget_ms must be greater than 0")
+        return value
+
+    @field_validator("byte_budget_ratio")
+    @classmethod
+    def _validate_byte_budget_ratio(cls, value: float) -> float:
+        if not value >= 1.0:
+            raise ValueError("byte_budget_ratio must be at least 1.0")
         return value
 
 class RouteOptimizationOverride(BaseModel):
@@ -131,8 +168,8 @@ class RouteOptimizationOverride(BaseModel):
     def _validate_max_ratio(cls, value: float | None) -> float | None:
         if value is None:
             return value
-        if not 0.0 < value <= 1.0:
-            raise ValueError("max_ratio must be greater than 0 and at most 1")
+        if not 0.25 <= value <= 1.0:
+            raise ValueError("max_ratio must be between 0.25 and 1.0")
         return value
 
 class OptimizationSettings(BaseModel):
@@ -171,4 +208,6 @@ def resolve_optimization_policy(
         strategy=base.strategy if override.strategy is None else override.strategy,
         version=base.version,
         max_ratio=base.max_ratio if override.max_ratio is None else override.max_ratio,
+        latency_budget_ms=base.latency_budget_ms,
+        byte_budget_ratio=base.byte_budget_ratio,
     )

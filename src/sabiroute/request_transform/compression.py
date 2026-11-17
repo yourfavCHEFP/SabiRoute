@@ -35,15 +35,15 @@ from typing import Any, Protocol
 class TokenCounter(Protocol):
     def __call__(self, messages: list[dict[str, Any]]) -> int | None: ...
 
+
 def _has_cache_control(message: dict[str, Any]) -> bool:
     if "cache_control" in message:
         return True
     content = message.get("content")
     if isinstance(content, list):
-        return any(
-            isinstance(block, dict) and "cache_control" in block for block in content
-        )
+        return any(isinstance(block, dict) and "cache_control" in block for block in content)
     return False
+
 
 def protected_indices(messages: list[dict[str, Any]]) -> frozenset[int]:
     """Indices that must never be removed."""
@@ -53,9 +53,7 @@ def protected_indices(messages: list[dict[str, Any]]) -> frozenset[int]:
         if message.get("role") == "system":
             protected.add(index)
 
-    last_user = max(
-        (i for i, m in enumerate(messages) if m.get("role") == "user"), default=None
-    )
+    last_user = max((i for i, m in enumerate(messages) if m.get("role") == "user"), default=None)
     last_assistant = max(
         (i for i, m in enumerate(messages) if m.get("role") == "assistant"), default=None
     )
@@ -73,6 +71,7 @@ def protected_indices(messages: list[dict[str, Any]]) -> frozenset[int]:
 
     return frozenset(protected)
 
+
 def tool_spans(messages: list[dict[str, Any]]) -> list[tuple[int, ...]]:
     """Contiguous spans of an assistant tool call and the results answering it."""
     spans: list[tuple[int, ...]] = []
@@ -80,9 +79,7 @@ def tool_spans(messages: list[dict[str, Any]]) -> list[tuple[int, ...]]:
     while index < len(messages):
         calls = messages[index].get("tool_calls")
         if isinstance(calls, list) and calls:
-            call_ids = {
-                call.get("id") for call in calls if isinstance(call, dict)
-            }
+            call_ids = {call.get("id") for call in calls if isinstance(call, dict)}
             span = [index]
             following = index + 1
             while following < len(messages) and messages[following].get("role") == "tool":
@@ -96,6 +93,7 @@ def tool_spans(messages: list[dict[str, Any]]) -> list[tuple[int, ...]]:
         else:
             index += 1
     return spans
+
 
 def compress(
     messages: list[dict[str, Any]],
@@ -146,5 +144,10 @@ def compress(
 
     result = [m for i, m in enumerate(messages) if i not in removed]
     if not result:
+        return list(messages)
+    if current_tokens() > target:
+        # D2: the ceiling could not be reached without removing a protected message or
+        # splitting a tool exchange. A partial result would ship a request compressed
+        # *below* what the policy authorised, so send the original instead.
         return list(messages)
     return result
