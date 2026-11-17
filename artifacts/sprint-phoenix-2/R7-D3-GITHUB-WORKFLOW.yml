@@ -1,0 +1,33 @@
+# R7 Tranche D3 — GitHub workflow FILE, written but not pushed.
+# Deliberately stored under artifacts/, not .github/workflows/, so it never runs.
+# Row D: "I authorise the R7 offline items in Tranche D... I do not authorise ... any push."
+
+name: r7-offline-controlled-replay
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pyproject.toml
+      - name: Install dependencies
+        run: python -m pip install -e .[dev]
+      - name: Static and unit gates
+        run: |
+          python -m ruff check src tests scripts config
+          python -m mypy src
+          python -m pytest -q
+      - name: No managed services
+        run: |
+          test -z "${SABIROUTE_TEST_REDIS_URL:-}"
+          test -z "${SABIROUTE_TEST_PG_URL:-}"
+          test "${SABIROUTE_TRAINING_AUTHORIZED:-false}" = "false"

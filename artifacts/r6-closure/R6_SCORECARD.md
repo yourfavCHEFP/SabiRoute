@@ -45,7 +45,7 @@ being *tested*, and *tested* without being *independently verified*.
 | **WP-2** | Phase 2 protocol/schema reconciliation | **RECORD COMPLETE · GATE NOT MET** | `WP2_Owner_Decision_Record_Part_1..4.txt` `[R]` | Protocol/addendum internally consistent; fields trace to approved decisions; registration-locus blocker explicit; no ledger created | **PARTIAL** |
 | **WP-3** | Phase 3 manifest + historical corrections | **DONE** | `wp3-manifest-reconciliation-2026-11-16.md` §1–§6 `[R]` | Manifest scope reconciles; every required digest reproducible; historical reports distinguish old from new | **MET, with 9 open items (§4)** |
 | **WP-4** | Phase 4 independent verification | **DONE — report delivered** | Copilot WP-4 report, 2026-11-16 `[R]` | Complete independent report; blocking discrepancies resolved **or explicitly presented to owner**; no closure claim before owner acceptance | **ACT COMPLETE · FINDINGS UNRESOLVED** |
-| **WP-5** | Owner closure decision | **NOT STARTED** | — | Explicit owner acceptance | **BLOCKED** |
+| **WP-5** | Owner closure decision | **DONE — OWNER ACCEPTED 2026-11-17** | Owner Row A, `R6.1-FOUNDATION-CONTRACT.md` §10 | Explicit owner acceptance | **MET — owner-accepted** |
 
 ## 1.1 WP-by-WP detail
 
@@ -88,9 +88,11 @@ being *tested*, and *tested* without being *independently verified*.
 - Part 4 changed **during** the audit (16,448 B → 18,710 B) — classified *unsettled, not wrong*. Correct call;
   it was a writer/reader race, not a defect `[R]`.
 
-**WP-5 — Owner closure · BLOCKED**
-- Not started. Requires a decision pack, not another audit.
-- Cannot close until **F-05 / F-06** are resolved or owner-accepted, **BL-22** signed, **G7** granted.
+**WP-5 — Owner closure · DONE — OWNER ACCEPTED 2026-11-17**
+- Closed by Owner Row A (`R6.1-FOUNDATION-CONTRACT.md` §10), not by another audit.
+- Basis: **F-05 / F-06** corrected, **BL-22** signed, **G7** granted.
+- F-02 remains accepted-unproven; the registration ledger is never instantiated and the `:570`
+  conformance skip remains skipped. Closing WP-5 does not resolve F-02.
 
 ---
 
