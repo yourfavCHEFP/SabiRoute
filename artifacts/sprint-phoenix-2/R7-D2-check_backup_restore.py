@@ -24,7 +24,7 @@ def _dsn() -> str:
     if missing:
         raise SystemExit(f"missing required local-test env: {', '.join(missing)}")
     host = os.environ["PGHOST"]
-    if host not in {"localhost", "127.0.0.1", "::1"}:
+    if host not in {"localhost", "127.0.0.1", "::1", "/tmp"}:
         raise SystemExit("refusing non-local PGHOST; managed databases are out of scope")
     return (
         f"host={host} port={os.environ.get('PGPORT', '5432')} "
@@ -37,19 +37,32 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         backup = str(Path(tmp) / "disposable.backup")
         env = {**os.environ, "BACKUP_FILE": backup}
-        subprocess.run([str(SCRIPT), "backup"], check=True, env=env)
+
+        # The sentinel must exist at backup time: pg_restore --clean only drops objects
+        # present in the archive, not arbitrary tables created after the dump.
         with psycopg.connect(dsn) as conn:
             with conn.cursor() as cur:
                 cur.execute("DROP TABLE IF EXISTS restore_probe")
                 cur.execute("CREATE TABLE restore_probe (value text)")
                 cur.execute("INSERT INTO restore_probe VALUES ('sentinel')")
             conn.commit()
-        subprocess.run([str(SCRIPT), "restore"], check=True, env=env)
+
+        subprocess.run(["bash", str(SCRIPT), "backup"], check=True, env=env)
+
+        # Damage the live database after the backup.
         with psycopg.connect(dsn) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT to_regclass('restore_probe')")
-                if cur.fetchone()[0] is not None:
-                    raise SystemExit("restore did not remove the post-backup table")
+                cur.execute("DROP TABLE restore_probe")
+            conn.commit()
+
+        subprocess.run(["bash", str(SCRIPT), "restore"], check=True, env=env)
+
+        with psycopg.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM restore_probe")
+                rows = cur.fetchall()
+                if rows != [("sentinel",)]:
+                    raise SystemExit(f"restore did not recover sentinel: {rows!r}")
     return 0
 
 
