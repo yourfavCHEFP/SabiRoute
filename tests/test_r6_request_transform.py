@@ -7,7 +7,9 @@ only passes on well-formed input has not been tested.
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import dataclasses
+import hashlib
 import json
 import logging
 import time
@@ -764,12 +766,27 @@ class _NoopRedis:
         return None
 
 def _gateway(
-    optimization: dict[str, Any] | None = None, *, failures: dict[str, int] | None = None
+    optimization: dict[str, Any] | None = None,
+    *,
+    failures: dict[str, int] | None = None,
+    extra_capabilities: frozenset[Capability] | None = None,
 ) -> tuple[Any, Any, str]:
     store = InMemoryApiKeyStore()
     stub = _CapturingClient()
     stub.failures_remaining = dict(failures or {})
     config = make_config()
+    if extra_capabilities:
+        config = config.model_copy(update={
+            "model_list": [
+                deployment.model_copy(update={
+                    "capabilities": {
+                        **(deployment.capabilities or {}),
+                        **{capability: True for capability in extra_capabilities},
+                    }
+                })
+                for deployment in config.model_list
+            ]
+        })
     if optimization is not None:
         config = config.model_copy(update={"optimization": optimization})
     state = build_gateway_state(
@@ -888,3 +905,259 @@ def test_transform_runs_once_for_a_request_that_falls_back(
     assert len(stub.sent) == 2, "expected a failed attempt then a fallback"
     assert len(calls) == 1, "the transform ran once per attempt, not once per request"
     assert stub.sent[0] == stub.sent[1], "attempts saw different effective requests"
+
+# --- R7 D1: pinned controlled replay through the stub provider --------------
+#
+# E1/E2 above capture provider-bound messages but do not pin their bytes. E3-E6 below
+# pin both the input corpus and the exact bytes the stub provider receives. E7 pins
+# that cancellation cannot reach the provider at all. Every expected value here is a
+# literal derived by hand from the inline corpus, not from the code under test.
+
+_D1_PINNED_SHA256: dict[str, str] = {
+    "e3_tool_exchange": "86e2ce9d98295fc7d664ed630c40bfe67e481c396bbc1ba87c4f9bde2cee0284",
+    "e4_cached_prefix": "a8796102081ba9105ee258c163131ea163fa7f99d9c05b51bea01d42556376db",
+    "e5_capability_loss": "6ff7d418da0c5fdb71715035a5bd214126f7ee0e74969ac15a2ab8ffe81cba11",
+    "e6_transform_error": "442f2c08ada559ba49cc92f32efee42eb1565b17951375ac589a3056f7e4380f",
+    "e7_cancellation": "62acf1162171fe0d0edd369ff9f585f1fe3ce89e20209936ecef7dacc8bf01e7",
+}
+
+_D1_CAPTURED_BYTES: dict[str, bytes] = {
+    "e3_tool_exchange": (
+        b'[{"role":"system","content":"d1-e3-system"},{"role":"user","content":"d1-e3-question"},'
+        b'{"role":"assistant","content":"","tool_calls":[{"id":"d1-e3-call","type":"function",'
+        b'"function":{"name":"lookup","arguments":"{\\"q\\":1}"}}]},'
+        b'{"role":"tool","tool_call_id":"d1-e3-call","content":"d1-e3-result"},'
+        b'{"role":"assistant","content":"d1-e3-answer"},{"role":"user","content":"d1-e3-final"}]'
+    ),
+    "e4_cached_prefix": (
+        b'[{"role":"user","content":"d1-e4-cached-a","cache_control":{"type":"ephemeral"}},'
+        b'{"role":"assistant","content":"d1-e4-cached-b","cache_control":{"type":"ephemeral"}},'
+        b'{"role":"user","content":"d1-e4-removable"},'
+        b'{"role":"assistant","content":"d1-e4-answer"},{"role":"user","content":"d1-e4-final"}]'
+    ),
+    "e5_capability_loss": (
+        b'[{"role":"system","content":"d1-e5-system"},{"role":"user","content":[{"type":"text",'
+        b'"text":"d1-e5-text"},{"type":"image_url","image_url":{"url":"d1-e5-inline-image"}}]},'
+        b'{"role":"user","content":"d1-e5-final"}]'
+    ),
+    "e6_transform_error": (
+        b'[{"role":"system","content":"d1-e6-system"},{"role":"user","content":"d1-e6-question"},'
+        b'{"role":"assistant","content":"d1-e6-answer"},{"role":"user","content":"d1-e6-final"}]'
+    ),
+}
+
+def _d1_corpus_bytes(messages: Any) -> bytes:
+    """Encode canonical provider-bound payload bytes (test-side, not HTTP wire bytes)."""
+    return json.dumps(messages, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+def _d1_pin(name: str, messages: list[dict[str, object]]) -> bytes:
+    payload = _d1_corpus_bytes(messages)
+    assert hashlib.sha256(payload).hexdigest() == _D1_PINNED_SHA256[name]
+    return payload
+
+def _d1_gateway(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    raise_in_transform: BaseException | None = None,
+    with_vision: bool = False,
+) -> tuple[Any, Any, str, list[Any]]:
+    monkeypatch.setenv("SABIROUTE_ADMIN_KEY", "r6-admin")
+    state, stub, secret = _gateway(
+        {
+            "policy": {
+                "enabled": True,
+                "strategy": "whole_message_removal",
+                "max_ratio": 0.4,
+            }
+        },
+        extra_capabilities=(
+            frozenset({Capability.VISION, Capability.MULTIMODAL})
+            if with_vision
+            else None
+        ),
+    )
+    captured: list[bytes] = []
+    original_chat = stub.chat_completion
+
+    async def capture(decision: Any, messages: Any, **extra: Any) -> dict[str, Any]:
+        captured.append(_d1_corpus_bytes(messages))
+        return await original_chat(decision, messages, **extra)
+
+    stub.chat_completion = capture  # type: ignore[method-assign]
+    stub.sent_bytes = captured
+
+    seen: list[Any] = []
+    original_run = run
+
+    if raise_in_transform is not None:
+        def raise_in_pipeline(m, *, max_ratio, count_tokens):
+            raise raise_in_transform
+
+        monkeypatch.setattr(pipeline_module, "compress", raise_in_pipeline)
+
+    def replay(**kwargs: Any) -> Any:
+        outcome = original_run(**kwargs)
+        seen.append(outcome)
+        return outcome
+
+    monkeypatch.setattr("sabiroute.api.completions.run_transform", replay)
+    return state, stub, secret, seen
+
+def test_d1_e3_tool_exchange_captures_pinned_original_bytes_at_stub(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages = [
+        {"role": "system", "content": "d1-e3-system"},
+        {"role": "user", "content": "d1-e3-question"},
+        {"role": "assistant", "content": "", "tool_calls": [{
+            "id": "d1-e3-call",
+            "type": "function",
+            "function": {"name": "lookup", "arguments": "{\"q\":1}"},
+        }]},
+        {"role": "tool", "tool_call_id": "d1-e3-call", "content": "d1-e3-result"},
+        {"role": "assistant", "content": "d1-e3-answer"},
+        {"role": "user", "content": "d1-e3-final"},
+    ]
+    original_bytes = _d1_pin("e3_tool_exchange", messages)
+    state, stub, secret, outcomes = _d1_gateway(monkeypatch)
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert stub.sent_bytes == [original_bytes]
+    assert stub.sent_bytes == [_D1_CAPTURED_BYTES["e3_tool_exchange"]]
+    assert stub.sent[0][2]["tool_calls"][0]["id"] == "d1-e3-call"
+    assert stub.sent[0][3]["tool_call_id"] == "d1-e3-call"
+    assert outcomes[0].bypass.reason is BypassReason.NOT_BYPASSED
+    assert outcomes[0].record.original_sha256 == _D1_PINNED_SHA256["e3_tool_exchange"]
+    assert outcomes[0].record.effective_sha256 == _D1_PINNED_SHA256["e3_tool_exchange"]
+
+def test_d1_e4_cached_prefix_captures_pinned_original_bytes_at_stub(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages = [
+        {"role": "user", "content": "d1-e4-cached-a", "cache_control": {"type": "ephemeral"}},
+        {"role": "assistant", "content": "d1-e4-cached-b", "cache_control": {"type": "ephemeral"}},
+        {"role": "user", "content": "d1-e4-removable"},
+        {"role": "assistant", "content": "d1-e4-answer"},
+        {"role": "user", "content": "d1-e4-final"},
+    ]
+    original_bytes = _d1_pin("e4_cached_prefix", messages)
+    state, stub, secret, outcomes = _d1_gateway(monkeypatch)
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert stub.sent_bytes == [original_bytes]
+    assert stub.sent_bytes == [_D1_CAPTURED_BYTES["e4_cached_prefix"]]
+    assert stub.sent[0][0]["cache_control"] == {"type": "ephemeral"}
+    assert stub.sent[0][1]["cache_control"] == {"type": "ephemeral"}
+    assert outcomes[0].bypass.reason is BypassReason.NOT_BYPASSED
+    assert outcomes[0].record.original_sha256 == _D1_PINNED_SHA256["e4_cached_prefix"]
+    assert outcomes[0].record.effective_sha256 == _D1_PINNED_SHA256["e4_cached_prefix"]
+
+def test_d1_e5_capability_loss_sends_pinned_original_bytes_to_stub(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages = [
+        {"role": "system", "content": "d1-e5-system"},
+        {"role": "user", "content": [
+            {"type": "text", "text": "d1-e5-text"},
+            {"type": "image_url", "image_url": {"url": "d1-e5-inline-image"}},
+        ]},
+        {"role": "user", "content": "d1-e5-final"},
+    ]
+    original_bytes = _d1_pin("e5_capability_loss", messages)
+
+    def drop_vision(m, *, max_ratio, count_tokens):
+        return [message for index, message in enumerate(m) if index != 1]
+
+    monkeypatch.setattr(pipeline_module, "compress", drop_vision)
+ # The wired call site must pass classified required capabilities into run_transform.
+    state, stub, secret, outcomes = _d1_gateway(
+        monkeypatch,
+        with_vision=True,
+    )
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert outcomes[0].bypass.reason is BypassReason.CAPABILITY_LOSS
+    assert stub.sent_bytes == [original_bytes]
+    assert stub.sent_bytes == [_D1_CAPTURED_BYTES["e5_capability_loss"]]
+    assert outcomes[0].record.fallback_reason == "capability_loss"
+    assert outcomes[0].record.original_sha256 == _D1_PINNED_SHA256["e5_capability_loss"]
+
+def test_d1_e6_transform_error_sends_pinned_original_bytes_to_stub(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages = [
+        {"role": "system", "content": "d1-e6-system"},
+        {"role": "user", "content": "d1-e6-question"},
+        {"role": "assistant", "content": "d1-e6-answer"},
+        {"role": "user", "content": "d1-e6-final"},
+    ]
+    original_bytes = _d1_pin("e6_transform_error", messages)
+
+    def boom(m, *, max_ratio, count_tokens):
+        raise RuntimeError("d1 transform error")
+
+    monkeypatch.setattr(pipeline_module, "compress", boom)
+    state, stub, secret, outcomes = _d1_gateway(monkeypatch)
+
+    with TestClient(create_app(state=state)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={"model": "fast", "messages": messages},
+            headers={"Authorization": f"Bearer {secret}"},
+        )
+
+    assert response.status_code == 200
+    assert stub.sent_bytes == [original_bytes]
+    assert stub.sent_bytes == [_D1_CAPTURED_BYTES["e6_transform_error"]]
+    assert outcomes[0].bypass.reason is BypassReason.TRANSFORM_ERROR
+    assert outcomes[0].record.fallback_reason == "transform_error"
+    assert outcomes[0].record.original_sha256 == _D1_PINNED_SHA256["e6_transform_error"]
+
+def test_d1_e7_cancellation_inside_transform_reaches_no_stub_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages = [
+        {"role": "system", "content": "d1-e7-system"},
+        {"role": "user", "content": "d1-e7-question"},
+        {"role": "assistant", "content": "d1-e7-answer"},
+        {"role": "user", "content": "d1-e7-final"},
+    ]
+    _d1_pin("e7_cancellation", messages)
+    state, stub, secret, outcomes = _d1_gateway(
+        monkeypatch, raise_in_transform=asyncio.CancelledError("D1 cancellation")
+    )
+
+    with TestClient(create_app(state=state)) as client:
+        # TestClient's anyio portal translates the injected asyncio.CancelledError
+        # into concurrent.futures.CancelledError at the scenario boundary.
+        with pytest.raises(concurrent.futures.CancelledError):
+            client.post(
+                "/v1/chat/completions",
+                json={"model": "fast", "messages": messages},
+                headers={"Authorization": f"Bearer {secret}"},
+            )
+
+    assert stub.sent_bytes == []
+    assert stub.sent == []
+    assert outcomes == []

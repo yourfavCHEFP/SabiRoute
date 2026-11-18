@@ -1376,6 +1376,7 @@ async def chat_completions(
     transform_outcome = run_transform(
         messages=payload.messages,
         policy=resolve_optimization_policy(state.optimization, policy.name),
+        required_capabilities=classification.required_capabilities,
         request_id=request_id,
         logger=logger,
     )
