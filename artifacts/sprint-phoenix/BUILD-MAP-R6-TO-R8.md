@@ -33,7 +33,7 @@ R6 the only open run:
 | R5 | Reliability & Execution Semantics | COMPLETE 100% | 25/25 across 3 files |
 | **R6** | **Compression & Context Optimization** | **IN PROGRESS 0%** | **design only — no implementation, no tests** |
 | R7 | Integrated Regression & Release Evidence | COMPLETE 100% | 672 full suite; RP6 + Redis; 656+ offline |
-| R8 | T8 Consolidation & Acceptance | COMPLETE 100% | 6 verdicts ACCEPTED; full suite 672/0/0 |
+| R8 | T8 Consolidation & Acceptance | DONE — OWNER GREEN R8-G1 | Stable SHA `1d91f73`; fresh T1/T8 re-review PASS; 839 passed / 10 skipped; six legacy badges `UNTRACEABLE / WITHDRAWN` |
 
 **`319a711` is confirmed present in this repository** — `git cat-file -t` → `commit` `[M]`. The
 active HEAD is `e0530e5`, **later** than the dashboard snapshot.
@@ -47,11 +47,12 @@ dashboard:
 |---|---|---|
 | R5 | COMPLETE 100% | *"scoped PASS (historical)"* `:90` — scoped and historical, not current |
 | R7 | COMPLETE 100% | **partial** `:92` — *"Managed-PG/TLS, backup/restore, compose E2E, GH run, staging"* outstanding |
-| **R8** | **COMPLETE 100%, ACCEPTED** | **BLOCKED** `:93` — *"remaining gates are process gates: Stable SHA (tree still uncommitted) → T1/T8 → owner green"* |
+| **R8** | **DONE — OWNER GREEN R8-G1** | Previously BLOCKED `:93`; now DONE at stable SHA `1d91f73` after fresh T1/T8 re-review PASS, recorded in `R8-OWNER-GREEN-CLOSURE.md` |
 
-**And there is no T8 consolidation document in the tree**, so the dashboard's *"6 verdicts
-ACCEPTED"* cannot be traced to a source at all. An acceptance badge with no source document is
-not evidence.
+**There is no T8 consolidation document in the tree**, so the dashboard's legacy *"6 verdicts
+ACCEPTED"* could not be traced to a source. Those badges were withdrawn under `R8-W1` as
+`UNTRACEABLE / WITHDRAWN`. R8 closure now rests on fresh evidence and owner green `R8-G1`, not on
+that legacy badge.
 
 **Two drafts of this section, both wrong:**
 
@@ -62,12 +63,12 @@ not evidence.
 
 **The accurate position:** R1–R6 carry substantial, genuinely verified code and test evidence
 (R3 alone: 129 passed against real disposable PostgreSQL + Redis, three consecutive runs,
-mutation-verified). **R7 is partial. R8 is BLOCKED** by the tree's own record. The dashboard
-overstates both.
+mutation-verified). **R7 is partial. R8 is DONE by owner row R8-G1** at stable SHA `1d91f73`
+after fresh T1/T8 re-review PASS. The historical R8 badge was unsupported; the closure is not.
 
-**This is not a defect the executioner created and it is not fixed by editing the dashboard.**
-It is an open conflict between two records about the same thing, recorded here rather than
-silently reconciled.
+**This was not a defect the executioner created.** It was an open conflict between two records,
+recorded rather than silently reconciled. Owner row `R8-G1` now closes R8 and authorises this
+dashboard correction; the six legacy badges remain withdrawn.
 
 ### 0.2 "Everything done when I get back" is not achievable tonight
 
@@ -476,9 +477,9 @@ This is a **read-only** audit — Phase A of `R6-COMPLETION-PROMPT.md`.
 
 ### 9.2 R6 is the only release with work left **to build** — it is not the only open record
 
-**R7 is partial and R8 is BLOCKED** by the tree's own scorecard (§0.1a). R6 is the only release
-where nothing has been built yet; R7 and R8 need *closing*, not building, and both need an owner
-act rather than code.
+**R7 is partial; R8 is DONE by owner row R8-G1** at stable SHA `1d91f73` (§0.1a). R6 is the only
+release where nothing has been built yet; R7 still needs an owner act rather than code, while R8
+is closed and recorded.
 
 R6 shows **0%**: *"Design documented (requirements, strategy)"* is ticked; *"Corpus and dataset
 preparation"*, *"Compression pipeline (CD1–CD6)"* and *"Evaluation and operational evidence"* are
