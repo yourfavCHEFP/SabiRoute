@@ -24,6 +24,8 @@ The registry currently contains these configured aliases:
 | `sabiroute-cohere` | `cohere_chat/command-a-03-2025` | `COHERE_API_KEY` | Configured; unverified |
 | `sabiroute-pollinations` | `openai/gpt-6-luna` at the configured Pollinations API base | `POLLINATION_API_KEY` | Configured; unverified |
 
+**Contract-gap note [VERIFIED BY INSPECTION]:** the aliases above are not a provider-contract matrix. Provider-reported usage, tool calls, context limits, authentication translation, and live response shape remain untested dimensions. R2 stays `BLOCKED — NOT DONE`; this note upgrades no provider status.
+
 “Configured” means the alias and credential reference exist in YAML. It does not
 mean the credential is present, the account has quota, or a live completion has
 passed. The SabiRoute registry preserves environment references and resolves

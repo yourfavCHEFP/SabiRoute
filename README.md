@@ -608,7 +608,7 @@ Implemented, unit- and API-tested (stub execution, file-backed database — no l
 - a pre-execution gate in `api/completions.py` that narrows candidates to mapped deployments through the existing `Router` — no parallel ranking, no execution duplication; denial happens before any LiteLLM call with stable reasons (`free_pool_unmapped_deployment`, `free_pool_no_capable_deployment`, `free_pool_no_healthy_deployment`, …).
 - durable usage-source attribution (`unknown` / `free_pool` / `byok` / `paid`): admission starts `unknown` and becomes `free_pool` only when the gate allows; denied or spoofed requests stay `unknown`; legacy rows are never backfilled. Only `free_pool` is assigned today.
 
-Still unimplemented: catalogue-to-registry mapping data, runtime quota enforcement, provider-terms validation, and shared inference itself.
+For this track, runtime quota enforcement is implemented and unit-/API-tested (`tests/test_user_quotas.py`) for the opt-in pilot cohort: 50,000 tokens per UTC calendar day, fail-closed when quota state is unavailable. This is stub-execution evidence, not live-provider evidence. Still unimplemented: catalogue-to-registry mapping data, provider-terms validation, shared inference itself, and provider-side quota discovery.
 
 ### Fit with the existing roadmap
 
