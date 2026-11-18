@@ -31,12 +31,27 @@ R6 the only open run:
 | R3 | Routing, Policy & Correctness | COMPLETE 100% | 43 RF3 files verified; B1 acceptance |
 | R4 | F-27 Accounting & Rotation | COMPLETE 100% | 46/46 (7-suite), 31/31 (6-suite core) |
 | R5 | Reliability & Execution Semantics | COMPLETE 100% | 25/25 across 3 files |
-| **R6** | **Compression & Context Optimization** | **IN PROGRESS 0%** | **design only — no implementation, no tests** |
+| **R6** | **Compression & Context Optimization** | **IN PROGRESS** — the dashboard's 0% (2026-11-02) is stale at current HEAD | `68bde1f` landed `src/sabiroute/request_transform/` + tests; `4080bf5` wired the I9 call-site guard; `ac859fd` recorded R6.1 owner decisions; `d115073` recorded R6.0 document-level closure. R6.6: L1/L2 replay PASS, mutation matrix OPEN — not fully validated |
 | R7 | Integrated Regression & Release Evidence | COMPLETE 100% | 672 full suite; RP6 + Redis; 656+ offline |
 | R8 | T8 Consolidation & Acceptance | DONE — OWNER GREEN R8-G1 | Stable SHA `1d91f73`; fresh T1/T8 re-review PASS; 839 passed / 10 skipped; six legacy badges `UNTRACEABLE / WITHDRAWN` |
 
 **`319a711` is confirmed present in this repository** — `git cat-file -t` → `commit` `[M]`. The
 active HEAD is `e0530e5`, **later** than the dashboard snapshot.
+
+### 0.1b R6 is no longer 0% — implementation is in the tree, but R6 is not complete
+
+The dashboard snapshot above is a historical figure, not the state at HEAD
+`fb7583b`. Verified against commit history and the tree: `68bde1f` landed
+`src/sabiroute/request_transform/` (I1–I9 contracts, R6.4 compression, R6.5
+capabilities) with `tests/test_r6_request_transform.py`; `4080bf5` wired the I9
+call-site guard into `api/completions.py` and `gateway.py`; `ac859fd` recorded
+the R6.1 owner decisions; `d115073` recorded R6.0 **document-level** closure
+(DoD 10/10 — not registration or ledger instantiation). The current position
+for R6.6 is `L1/L2 REPLAY PASS · MUTATION MATRIX OPEN`
+(`artifacts/sprint-phoenix-2/R6.6-R7D2-EXECUTION-RECORD.md` and
+`R6.6-VALIDATION-SPEC.md`). R6 is therefore partly implemented and replayed,
+**not** 0% and **not** complete: the I1–I9 mutation matrix and R6.7 staged
+rollout remain open.
 
 ### 0.1a The dashboard and the tree's own scorecard disagree — and both drafts of this section were wrong
 
@@ -46,7 +61,7 @@ dashboard:
 | Release | Dashboard says | `reports/my_scorecard.md` says |
 |---|---|---|
 | R5 | COMPLETE 100% | *"scoped PASS (historical)"* `:90` — scoped and historical, not current |
-| R7 | COMPLETE 100% | **partial** `:92` — *"Managed-PG/TLS, backup/restore, compose E2E, GH run, staging"* outstanding |
+| R7 | COMPLETE 100% | **partial** `:92` — local disposable-PG D2 backup/restore check PASS; *"Managed-PG/TLS, managed backup/restore, compose E2E, hosted GH run, staging"* outstanding, plus D1 E2E not run and D3 file inert |
 | **R8** | **DONE — OWNER GREEN R8-G1** | Previously BLOCKED `:93`; now DONE at stable SHA `1d91f73` after fresh T1/T8 re-review PASS, recorded in `R8-OWNER-GREEN-CLOSURE.md` |
 
 **There is no T8 consolidation document in the tree**, so the dashboard's legacy *"6 verdicts
@@ -239,8 +254,11 @@ reverted in §4.3 and DoD row 8).
 `api`, `chat`, `config`, `freepool`, `intelligence`, `monitoring`, `providers`, `routing`,
 `security`, `utils` + `capabilities.py`, `gateway…` `[R]`
 
-**What does not exist:** no `compression/` package, no `request_transform/` package. R6.1–R6.5
-are greenfield within that tree.
+**Current tree:** `src/sabiroute/request_transform/` exists (`68bde1f`, refined in `ac859fd`;
+I9 guard wired in `4080bf5`) and is covered by `tests/test_r6_request_transform.py`.
+There is no separate `compression/` package — the R6.4 compression code lives at
+`request_transform/compression.py`. R6.1–R6.5 are no longer greenfield; R6.6's mutation matrix
+and R6.7 rollout remain open (§0.1b).
 
 ### 5.2 The settlement path (where the risk lives)
 
@@ -475,15 +493,18 @@ evidence. What would convert it to `[M]`:
 
 This is a **read-only** audit — Phase A of `R6-COMPLETION-PROMPT.md`.
 
-### 9.2 R6 is the only release with work left **to build** — it is not the only open record
+### 9.2 R6 is the only release with work left **to validate** — it is not the only open record
 
-**R7 is partial; R8 is DONE by owner row R8-G1** at stable SHA `1d91f73` (§0.1a). R6 is the only
-release where nothing has been built yet; R7 still needs an owner act rather than code, while R8
-is closed and recorded.
+**R7 is partial; R8 is DONE by owner row R8-G1** at stable SHA `1d91f73` (§0.1a). R6 has landed
+implementation but is not closed (§0.1b); R7 still needs owner/environment acts rather than this
+code, while R8 is closed and recorded.
 
-R6 shows **0%**: *"Design documented (requirements, strategy)"* is ticked; *"Corpus and dataset
-preparation"*, *"Compression pipeline (CD1–CD6)"* and *"Evaluation and operational evidence"* are
-not. The dashboard names the remaining milestones explicitly:
+The dashboard snapshot recorded R6 at **0%**: *"Design documented (requirements, strategy)"* was
+ticked; *"Corpus and dataset preparation"*, *"Compression pipeline (CD1–CD6)"* and
+*"Evaluation and operational evidence"* were not. That snapshot predates `68bde1f`, `4080bf5`,
+`ac859fd`, `d115073` and the R6.6 controlled replay. The current tree has the pipeline, its tests,
+and an L1/L2 replay PASS with the I1–I9 mutation matrix still OPEN. The dashboard's remaining
+milestones were:
 
 1. Finalise R6 requirements and design (CD1–CD6)
 2. Implement compression pipeline and integration
@@ -506,24 +527,24 @@ them in advance would be inventing evidence.
 ## 10. THE SEQUENCE, STATED ONCE
 
 ```
-R6.0  CLOSURE                          [OPEN — rows 6, 8, 9, 10]
+R6.0  CLOSURE  [DOCUMENT-LEVEL CLOSED — d115073; ledger/registration still gated]
   │   needs: S-1, S-2, S-3 (F-01) · S-4 (BL-22) · S-5 (G7)
   │          ruling on F-02 · real derivation of row 6's trusted-checkpoint half
   ▼
-R6.1  FOUNDATION CONTRACT              [NOT STARTED — gate S-6]
+R6.1  FOUNDATION CONTRACT  [IMPLEMENTED — 68bde1f; owner decisions ac859fd]
   │   immutable original request · canonical representation · metadata ·
   │   policy/capability checks PRECEDE transformation · explicit bypass
   │   source: r6-t17-foundation-contract-extraction-and-track-a-engagement-packet.md
   ▼
-R6.2–R6.5  OPTIMISATION PIPELINE       [NOT STARTED — entry-gated on R6.1 by construction]
+R6.2–R6.5  OPTIMISATION PIPELINE  [IMPLEMENTED — 68bde1f; I9 guard 4080bf5]
   │   gated because they change metered bytes, and the settlement path carries F1/F3
   │   source: r6-impl-prep-02-r62-r65-pipeline-preparation.md
   ▼
-R6.6–R6.7  VALIDATION AND ROLLOUT      [NOT STARTED — specification only, no evidence]
+R6.6–R6.7  VALIDATION AND ROLLOUT  [R6.6 L1/L2 REPLAY PASS · MUTATION MATRIX OPEN · R6.7 NOT EXECUTED]
       thresholds are slots, not values · pre-registered stop rules
       source: r6-impl-prep-03-r6.6-r6.7-validation-and-rollout-preparation.md
 
-R1–R5, R7, R8                          [DO NOT EXIST in this repository]
+R1–R5, R7, R8  [EXIST — see sections 0.1/0.1a; R7 partial, R8 DONE at 1d91f73]
 ```
 
 **Running in parallel, permanently:** the P0 lane. Sprint PHOENIX does not block P0-2.
@@ -577,8 +598,11 @@ R1–R5, R7, R8                          [DO NOT EXIST in this repository]
 
 ---
 
-**THE MAP'S OWN LIMIT.** This document covers R6.0 → R6.7. It does not cover R1–R5, R7 or R8,
-because no material for them exists in this repository. If you need those scoped, that is a
-planning act — and it needs a source, not an inference from what happens to be lying around.
+**THE MAP'S OWN LIMIT.** This document's primary scope is R6.0 → R6.7. R1–R5, R7 and R8 are
+summarised here only to correct the earlier claim that they did not exist (§0.1, §0.1a); their
+evidence lives in commits, the scorecard and owner records, not in this map.
 
-**Current position: R6.0 OPEN, 6 of 10 DoD rows, blocked on six owner signatures.**
+**Current position (reconciled 2026-11-18): R6.0 document-level closure recorded (`d115073`,
+DoD 10/10; ledger/registration still gated); R6.1–R6.5 implementation landed (`68bde1f`,
+`4080bf5`, `ac859fd`); R6.6 L1/L2 replay PASS with the mutation matrix OPEN; R6.7 not executed.
+R7 partial; R8 DONE at owner green `1d91f73`.**

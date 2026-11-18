@@ -1,6 +1,6 @@
 # R7 D1 — E2E DEFINITION
 
-**Authority:** Row D, Tranche D1. **Status:** DEFINED · NOT RUN.
+**Authority:** Row D, Tranche D1. **Status:** DEFINED · LOCAL CONTROLLED REPLAY PASS (2026-11-18 addendum in `R7-D1-D2-CONTROLLED-REPLAY-RECORD.md` §7); live-provider E2E remains out of scope.
 
 No managed service, provider credential or GitHub workflow run is authorised. This is a definition
 only.
