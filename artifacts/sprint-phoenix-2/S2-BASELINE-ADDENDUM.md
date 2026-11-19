@@ -42,7 +42,7 @@ All five commands were run in the exact order required by the Task 1 brief, in o
 | 4 | `git diff --check` | 0 | No output; clean |
 | 5 | `shasum -c REPORTS-MANIFEST.sha256` | 0 | 13 artifacts each reported `OK` |
 
-`[VERIFIED BY RUNTIME]` the observed values match the approved baseline recorded in `docs/superpowers/specs/2026-11-18-s1-s18-local-gap-closure-design.md:34` and the Task 1 brief: 844 passed / 10 skipped, Ruff clean, mypy clean over 61 files, manifest 13 OK, and diff clean. No numerical reconciliation or baseline override was needed.
+`[VERIFIED BY RUNTIME]` the observed values match the approved baseline recorded in `docs/superpowers/specs/2026-11-18-s1-s18-local-gap-closure-design.md:35` and the Task 1 brief: 844 passed / 10 skipped, Ruff clean, mypy clean over 61 files, manifest 13 OK, and diff clean. No numerical reconciliation or baseline override was needed.
 
 ## 3. Exact command transcript
 

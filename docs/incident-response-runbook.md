@@ -20,8 +20,10 @@ no code, configuration, credentials, or acceptance gate.
    as needed.
 3. `GET /health/ready` returns HTTP 200 with `status: ready` only when startup,
    registry, and key-store checks pass. On failure it returns HTTP 503 with
-   `status: not_ready`, a `failing` list, and `components` for
-   `startup`, `registry`, `key_store`, and `rate_limiter`.
+   `status: not_ready`, a `failing` list, and `components` for `startup`,
+   `registry`, `key_store`, and `rate_limiter`. When a chat store is configured,
+ a post-startup chat-store schema recheck failure also adds `chat_store` to
+ both `failing` and `components`.
 4. Do not route traffic to a `not_ready` instance. `GET /health/live` only proves
    the process is alive and is not a deployment gate. `rate_limiter: absent` is
    informational when no per-key limiter is configured; readiness does not probe
@@ -37,11 +39,20 @@ no code, configuration, credentials, or acceptance gate.
   running any migration; never run it against an unidentified target.
 - In Compose, the one-shot migration service must complete successfully before
   the API starts. For a host process or standalone container, migrate first.
-- If startup construction or the defensive read-only schema check fails, the
+- Startup construction failure (including the startup-time schema check): the
   exception is passed through `redact_secrets`, stored as `startup_error`, and
   the key/chat stores are set to `None`. Liveness may remain up while readiness
-  reports 503 and completions fail closed with the startup error. Treat this as a
-  real schema/connectivity failure, not a transient ready state to retry around.
+  reports 503 and completions fail closed with the startup error. This state is
+ sticky by design: treat it as a real startup/schema/connectivity failure, not
+  a transient ready state to retry around.
+- Post-startup defensive read-only schema recheck failure: `GET /health/ready`
+ performs this check on each probe. A failure is response-local only; it does
+ not set `startup_error` and does not null the stores. A key-store recheck
+ failure adds `key_store` to `failing`/`components`; a configured chat-store
+ recheck failure adds `chat_store` to both. The current probe returns
+ HTTP 503, but a later probe may return 200 once the checks pass. A persistent
+ failure fails every readiness probe and must be triaged rather than routed
+ around.
 - Managed-PostgreSQL upgrade and backup validation remain outstanding. Do not
   infer them from a local disposable-database result. `[VERIFIED BY INSPECTION]`
 
