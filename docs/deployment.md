@@ -141,6 +141,10 @@ PostgreSQL. Managed Redis (or the VPS instance) is selected via `REDIS_URL`
   previous image against a migrated database is safe (new columns are
   ignored). Keep the previous image tagged until the new revision is
   verified against `/health/ready`.
+- For local-only triage of readiness, startup/schema, auth/store, Redis,
+  provider-failure, rollback, evidence-capture, and redaction cases, see
+  [docs/incident-response-runbook.md](incident-response-runbook.md). It is not
+  production verification and changes no acceptance gate.
 
 ## Runtime database addresses
 

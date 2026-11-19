@@ -143,8 +143,7 @@ one exported attempt has no decision timestamp.
 Keep these statuses separate:
 
 - **Implementation:** the Phase 13.1 feature snapshot and read-only audit
-  implementation are present in the working tree; they are not yet isolated in
-  a Phase 13 commit.
+  implementation are committed as `71271fc` (phase-13.1 routing data foundation).
 - **Live verification:** the current telemetry path passed one bounded
   non-streaming and one bounded streaming request.
 - **Phase 13.2 closure:** pending. The live-runtime subgate passed, but the
