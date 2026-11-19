@@ -693,11 +693,13 @@ def reconcile_lineage_budgets(
                     "reconciliation blocked until budgets are aligned."
                 )
     # Mark lineage as reconciled (audit marker only; no data deletion).
-    connection.execute(
+    result = connection.execute(
         update(_ACCOUNTING_LINEAGES)
         .where(_ACCOUNTING_LINEAGES.c.lineage_id == lineage_id)
         .values(superseded_by=approver, status="reconciled")
     )
+    if result.rowcount == 0:
+        raise ValueError(f"Lineage {lineage_id!r} not found for reconciliation.")
 
 
 _REQUIRED_COLUMNS: dict[str, set[str]] = {
