@@ -32,12 +32,19 @@ paths that are currently unit-tested but lack live failure-injection evidence
 
 ### 2. Non-retryable failure → no fallback
 
-1. Force `primary` to return a non-retryable error (auth failure, 4xx).
+1. Force `primary` to return a genuinely non-retryable 4xx, such as HTTP 400.
+ Do not use 401, 403, or 429 for this scenario.
 2. Expected: no retry and no attempt on `secondary`. SabiRoute does not
    return the upstream status to the client: the terminal response is HTTP
    502 `sabiroute_upstream_error` with `failure_category` set to the classified
    category (e.g. `"client"` for HTTP 400).
 3. Evidence: single attempt recorded.
+
+`src/sabiroute/api/completions.py:61` defines
+`RETRYABLE_STATUS_CODES = {401, 403, 429}`, and `:1643` treats those statuses
+as retryable; timeouts and `>=500` statuses are retryable as well. A 401/403
+injection therefore attempts `secondary` by design and is not a valid
+non-retryable example. `[VERIFIED BY INSPECTION]`
 
 ### 3. Cooldown after repeated failures
 
