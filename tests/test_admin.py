@@ -94,6 +94,48 @@ def test_readiness_reports_ready_when_request_path_is_servable():
     assert body["components"]["rate_limiter"] == "absent"
 
 
+def test_readiness_recovers_after_transient_schema_check_failure(monkeypatch):
+    from sqlalchemy import create_engine
+    from sqlalchemy.pool import StaticPool
+
+    import sabiroute.api.health as health_module
+    from sabiroute.security.store import ensure_schema
+
+    state = build_gateway_state(
+        config=make_config(),
+        client=StubLiteLLMClient(),
+        key_store=InMemoryApiKeyStore(),
+    )
+    provision_test_key(state)
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    ensure_schema(engine, groups="full")
+    state.key_store._engine = engine
+
+    calls = 0
+
+    def fail_once(_engine):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("transient schema check failure")
+
+    monkeypatch.setattr(health_module, "check_schema", fail_once)
+    app = create_app(state=state)
+    client = TestClient(app)
+
+    first = client.get("/health/ready")
+    second = client.get("/health/ready")
+
+    assert first.status_code == 503
+    assert second.status_code == 200
+    body = second.json()
+    assert body["components"]["key_store"] == "ok"
+
+
 def test_readiness_fails_when_startup_is_degraded():
     from sabiroute.gateway import empty_gateway_state
 
