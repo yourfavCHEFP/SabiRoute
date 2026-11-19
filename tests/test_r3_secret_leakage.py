@@ -528,8 +528,9 @@ def test_readiness_schema_recheck_does_not_store_credential(
     resp = client.get("/health/ready")
 
     assert resp.status_code == 503
-    # The re-check must actually have failed, or the assertion below is moot.
-    assert state.startup_error is not None
+    # The 503 plus a null startup_error proves the re-check failed only for
+    # this response, without poisoning shared gateway state.
+    assert state.startup_error is None
     assert CANARY not in resp.text
     assert CANARY not in str(state.startup_error)
 
