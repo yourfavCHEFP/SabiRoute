@@ -321,26 +321,26 @@ These labels are not interchangeable. *Implemented* is not *Complete*, and a gre
 
 | Phase | Focus | Status | Evidence / notes |
 |---:|---|---|---|
-| 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green |
+| 00 | Architecture and environment | Complete | Typed configuration and validation, app factory; full suite green (866 passed / 10 skipped baseline; 875 passed / 1 skipped with disposable services, T0/T1) |
 | 01 | Basic LiteLLM gateway | Complete | Non-streaming and streaming requests documented on the live path; fallback covered by tests only |
 | 02 | Provider expansion | In progress | Three of fourteen aliases have runtime evidence ([docs/capabilities.md](docs/capabilities.md), 2026-10-08); the 2026-10-10 harness run recorded a Together authentication failure |
 | 03 | Model registry | Complete | Registry and aliases in place; `config/config.yaml` is the runtime catalog |
 | 04 | Virtual models / policies | Complete | Six route policies loaded and validated at startup; `research` exercised on the live path |
-| 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`, unit-tested; no live failure-injection evidence; see [limitations](#️-known-limitations) |
+| 05 | Fallback engine | Implemented | Retry/fallback loop in `api/completions.py`; local stub tests re-executed for retry, deterministic fallback, cooldown recovery, and non-retryable 400 (T2); no live-provider failure-injection evidence; see [limitations](#️-known-limitations) |
 | 06 | Health monitoring | Implemented | Passive cooldown and recovery unit-tested; the former active `ProviderHealthChecker` was removed (see `docs/routing.md`) |
-| 07 | Observability | Implemented | Trackers wired into gateway state and admin endpoints; no stored failure-metric evidence |
-| 08 | PostgreSQL | Complete | `PostgresApiKeyStore` exercised by the documented live run |
+| 07 | Observability | Implemented | Trackers wired into gateway state and admin endpoints; local stored-record success/failure linkage and rejection of unlinked outcomes verified (T3); live-provider telemetry remains UNVERIFIED |
+| 08 | PostgreSQL | Complete | `PostgresApiKeyStore` exercised by the documented live run; real PostgreSQL tenant-isolation control passed on disposable infrastructure (T1) |
 | 09 | Authentication and API keys | Complete | Client/admin boundary; a key was issued and revoked during that run |
-| 10 | Budgets and rate limits | Implemented | Unit and API tests cover admission and rejection (text-only estimator contract); rejection paths not exercised on the live path |
+| 10 | Budgets and rate limits | Implemented | Unit and API tests cover admission and rejection (text-only estimator contract); disposable-service Redis/PostgreSQL integration tests passed (T1); rejection paths not exercised on the documented live provider path |
 | 11 | Capability-aware deterministic routing | Implemented | Routing and tests in place; capability evidence missing for most deployments |
 | 12 | Measured deterministic scoring | Implemented | `deterministic-v1` live on measured routes; benchmark evidence is synthetic only |
-| 13 | ML-assisted routing | In progress | 13.1 committed; live sub-gate passed; aggregate integrity failed; 13.3 blocked — see [below](#-ml-readiness-status-phase-13) |
+| 13 | ML-assisted routing | In progress | 13.1 committed; documentary live sub-gate passed and aggregate integrity failed; fresh re-audit found no dataset, its diagnostic invocation failed before querying, and all five fresh checks are UNVERIFIED; 13.3 BLOCKED (`ML NOT DONE`) — see [below](#-ml-readiness-status-phase-13) |
 | 14 | Benchmarking | Planned | Compare against the unchanged deterministic baseline |
 | 15 | Admin dashboard | Planned | — |
 | 16 | Private remote access / Tailscale | Planned | — |
-| 17 | Security hardening | Planned | Baseline controls maintained throughout earlier phases |
+| 17 | Security hardening | Planned | Baseline controls maintained throughout earlier phases; preparation-only security evidence recorded (T6), with live/placeholder classification, external scanners, Git history, deployed probes, and full audit UNVERIFIED |
 | 18 | Testing and regression | Planned | Tests are required throughout earlier phases |
-| 19 | CI/CD | Implemented (definition + local execution) | Workflow defined (`.github/workflows/ci.yml`: locked install, pytest with Redis service, Ruff, mypy, `node --check web/app.js`, container build); every step has been executed locally, a hosted Actions run is not yet verified |
+| 19 | CI/CD | Implemented (definition + local execution) | Five check steps: pytest with Redis service, Ruff, mypy, `node --check web/app.js`, container build; local pytest (disposable services), Ruff, mypy, and node --check passed (T5); local docker build failed (Docker daemon unavailable); hosted Actions UNVERIFIED |
 | 20 | Production architecture | Planned | — |
 
 Phase 11 note: unknown capabilities are never treated as verified support; only the deployment-specific evidence in [docs/capabilities.md](docs/capabilities.md) is enabled. Phase 12 note: `scripts/benchmark_routing.py` runs a fixed synthetic comparison of `priority` vs `measured` — it is a methodology check, **not** proof of warm live-routing performance against real providers.
