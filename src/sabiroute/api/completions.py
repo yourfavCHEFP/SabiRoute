@@ -661,6 +661,15 @@ async def chat_completions(
             _sum_actual_tokens(actual_usage_parts) if tokens[2] is None else tokens
         )
         final_event = replace(
+        # Ensure feature/outcome count consistency to prevent integrity-check
+        # mismatches (feature_outcome_count_mismatch, outcome_without_feature_snapshot).
+        n_features = len(pre_routing_features)
+        n_outcomes = len(routing_decisions)
+        if n_features < n_outcomes:
+          pre_routing_features = list(pre_routing_features) + [None] * (n_outcomes - n_features)
+        elif n_outcomes < n_features:
+          routing_decisions = list(routing_decisions) + [None] * (n_features - n_outcomes)
+
             event,
             final_deployment=deployment,
             final_status=response.status_code,

@@ -1,0 +1,5 @@
+asset_group,source,request_intent,verbatim_prompt_available,actual_delivered_output,usage_status
+CG media concept boards,ChatGPT conversation,Explore SabiRoute visual identity and organize brand website GitHub README documentation marketing social media UI and motion directions,No; see chat context and provenance note,38 multi-panel concept boards; not individually exported panels,REFERENCE ONLY
+CG engineering infographics,ChatGPT conversation,Visualize completed SabiRoute engineering milestones and retry/deadline findings,No; see chat context and provenance note,25 multi-panel milestone/technical infographics,VERIFY ALL CLAIMS BEFORE PUBLICATION
+SH reference outputs,Previously user-shared chat attachments,Preserve prior SabiRoute logo and banner outputs for comparison,No,9 separate attached image files preserved,REFERENCE ONLY
+NB original archive,Uploaded Nano Banana ZIP,Original generated-image collection,Original prompts absent from ZIP,26 original JPEGs plus categorized copies,REVIEW INDIVIDUALLY

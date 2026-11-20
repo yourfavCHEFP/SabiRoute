@@ -1,0 +1,113 @@
+{
+  "package": "SabiRoute Media Library v2.2 — fine-grained detail crop candidates",
+  "source_board_count": 14,
+  "crop_count": 290,
+  "source_boards": [
+    {
+      "board_id": "CG-001",
+      "source_board_filename": "CG-001-a_clean_high_resolution_multi_panel_collage_poste.png",
+      "crop_count": 23,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-001/"
+    },
+    {
+      "board_id": "CG-004",
+      "source_board_filename": "CG-004-a_high_resolution_clean_organized_branded_media.png",
+      "crop_count": 23,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-004/"
+    },
+    {
+      "board_id": "CG-005",
+      "source_board_filename": "CG-005-a_high_resolution_dark_tech_styled_promotional_in.png",
+      "crop_count": 23,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-005/"
+    },
+    {
+      "board_id": "CG-006",
+      "source_board_filename": "CG-006-a_high_resolution_dark_themed_polished_graphic_c.png",
+      "crop_count": 23,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-006/"
+    },
+    {
+      "board_id": "CG-007",
+      "source_board_filename": "CG-007-a_high_resolution_promotional_portfolio_mockup_ima.png",
+      "crop_count": 14,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-007/"
+    },
+    {
+      "board_id": "CG-009",
+      "source_board_filename": "CG-009-a_highly_detailed_professionally_designed_brand_m.png",
+      "crop_count": 21,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-009/"
+    },
+    {
+      "board_id": "CG-013",
+      "source_board_filename": "CG-013-a_polished_detailed_ui_brand_assets_showcase_imag.png",
+      "crop_count": 26,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-013/"
+    },
+    {
+      "board_id": "CG-014",
+      "source_board_filename": "CG-014-a_polished_high_resolution_grid_style_brand_asse.png",
+      "crop_count": 25,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-014/"
+    },
+    {
+      "board_id": "CG-016",
+      "source_board_filename": "CG-016-a_wide_clean_professional_sabiroute_media_libr.png",
+      "crop_count": 19,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-016/"
+    },
+    {
+      "board_id": "CG-020",
+      "source_board_filename": "CG-020-a_wide_high_resolution_clean_dark_themed_asset.png",
+      "crop_count": 10,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-020/"
+    },
+    {
+      "board_id": "CG-022",
+      "source_board_filename": "CG-022-a_wide_high_resolution_promotional_portfolio_layo.png",
+      "crop_count": 28,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-022/"
+    },
+    {
+      "board_id": "CG-028",
+      "source_board_filename": "CG-028-a_wide_polished_ui_branding_asset_collage_poster.png",
+      "crop_count": 31,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/CG-028/"
+    },
+    {
+      "board_id": "CG-029",
+      "source_board_filename": "CG-029-wide_cinematic_tech_brand_asset_presentation_portf.png",
+      "crop_count": 12,
+      "method": "Curated 12 section crops from v2.1",
+      "folder": "12-separated-reference-panels/by-board/CG-029/"
+    },
+    {
+      "board_id": "NB-013",
+      "source_board_filename": "NB-013-brand-system-concept-board.jpg",
+      "crop_count": 12,
+      "method": "Automatic border-based reference crops",
+      "folder": "12-separated-reference-panels/by-board/NB-013/"
+    }
+  ],
+  "left_whole": [
+    "25 ChatGPT engineering/milestone infographics (each is a complete infographic)",
+    "Nano Banana coherent technical diagrams NB-014, NB-015, NB-018"
+  ],
+  "status": "CROPPED_REFERENCE; HUMAN REVIEW REQUIRED; NONE APPROVED OR INTEGRATED",
+  "notes": [
+    "Secondary detail-candidate layer; prefer section-level panels for navigation."
+  ]
+}

@@ -1,0 +1,589 @@
+# The Build Map for the Models
+## SabiRoute R6.0 — Remaining Closure Work
+
+**Version:** 1.0  
+**Prepared:** 9 November 2026  
+**Scope:** R6.0 closure only  
+**Repository:** `/Users/airm2/My ML Hub/SabiRoute`
+
+---
+
+# 0. Purpose and operating contract
+
+This is the controlling execution brief for every model contributing to the remainder of SabiRoute R6.0.
+
+Read it completely before acting. Inspect the live repository and current evidence. This map records known decisions and constraints; it does not replace live verification.
+
+**Core principle: SabiRoute decides. LiteLLM executes. Evidence guides the path.**
+
+**Mandatory principle: Treat failures as architectural evidence.**
+
+Preserve failures, investigate their causes and distinguish architecture defects from implementation errors, stale evidence, environment problems, permissions and governance restrictions. Never bypass a failure merely to make a run green.
+
+### 0.1 Status vocabulary
+
+Every model must distinguish:
+
+- **Selected:** owner chose an option.
+- **Approved:** owner explicitly authorised a decision or action.
+- **Implemented:** code or documentation was changed.
+- **Tested:** a check actually ran.
+- **Independently verified:** another authorised actor reviewed the evidence.
+- **Gate accepted:** owner explicitly accepted the exit gate.
+
+These states are not interchangeable.
+
+### 0.2 Collaboration roles
+
+| Role | Actor | Responsibility |
+|---|---|---|
+| Owner | User | Architecture decisions, approvals, scope and gate acceptance |
+| Primary builder / registrar | Claude Code Terminal | Repository execution, edits, tests and registrar duties |
+| Collaborative builder | Claude Code Desktop | Coordinates execution and collaborates with terminal Claude Code |
+| Independent verifier | VS Code GitHub Copilot | Read-only independent verification |
+| Recovery support | Copilot when not verifying | Investigations and repairs under explicit authority |
+
+Claude Code Terminal and Claude Code Desktop are both builders. They must work together using this build map.
+
+Neither Claude Code instance may claim independent verification of work it authored or materially directed.
+
+Copilot is the independent verifier. It must not verify its own changes. If Copilot performs a repair, a fresh independent verification is required.
+
+### 0.3 How many prompts until R6.0 closes?
+
+Our target is **five controlled handoffs**:
+
+1. **Build prompt:** Claude Code Desktop coordinates the remaining R6.0 work with Claude Code Terminal.
+2. **Evidence prompt:** Terminal Claude Code produces consolidated test, digest, manifest and Git evidence.
+3. **Independent verification:** VS Code Copilot verifies the completed work read-only.
+4. **Correction prompt:** Only if Copilot identifies concrete defects.
+5. **Closure prompt:** Owner reviews the evidence and decides BL-22, G7 and formal R6.0 acceptance.
+
+This is a planning target, not permission to skip gates. Safe work packages should be consolidated rather than turned into dozens of exploratory prompts.
+
+---
+
+# 1. Current project position
+
+### 1.1 Last known repository baseline
+
+| Item | Last reported value |
+|---|---|
+| Branch | `sec/deps-nov` |
+| HEAD | `1e69ada943f3d3921122219e7a569cdff989d3fd` |
+| Tracked modifications | 0 |
+| Staged changes | 0 |
+| R6 documentation | Predominantly untracked |
+
+These are historical measurements. Recheck the live repository before acting.
+
+### 1.2 Phase 1 — C-02 provenance reconciliation
+
+Reported current addendum:
+
+`docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md`
+
+- SHA-256: `6916650940b73219f20f427227f4f677ea6f84bcd0ab727135d25b28b63399a6`
+- Bytes: 38,603
+- Lines: 646
+
+Reported changes:
+
+- Amendment 1 preserved.
+- Amendment 2 added, dated 2026-11-09.
+- The 2026-11-07 owner work-order artifact is described as not independently located in the available evidence.
+- O1/O2 owner confirmation is dated 2026-11-09 UTC.
+- PARAM-B.6 provenance wording updated in §12.1.
+- Reconciliation paragraph added in §12.4.
+- O1/O2 selected values unchanged.
+- C-5 not reapplied; §12.2 not edited.
+
+A non-authoring reviewer operating through Claude Code reported positive content, measurement and Git-state findings.
+
+However, the owner has now assigned VS Code Copilot as the independent verifier. Copilot must perform the formal read-only verification.
+
+There is also a documented limitation: the original pre-edit bytes were unavailable for complete direct byte-for-byte comparison. Do not overclaim historical comparison.
+
+Do not repeat Phase 1 edits unless Copilot identifies a concrete defect and the owner authorises a correction.
+
+### 1.3 Stale U2 ADDENDUM test vector
+
+The test file:
+
+`tests/test_r6_registration_digest_conformance.py`
+
+was reported to contain this old vector:
+
+```python
+ADDENDUM: (35932, "ab0bd89ce810abdbedae3a21903e07a4d416e2cf7470c1bc8e8c14168ce891ea"),
+```
+
+The reported current addendum measurement is:
+
+```text
+Bytes:  38603
+SHA:    6916650940b73219f20f427227f4f677ea6f84bcd0ab727135d25b28b63399a6
+```
+
+The stale vector is consumed by:
+
+`test_u2_reproduces_published_digest[ADDENDUM]`
+
+The CRLF-invariance test reportedly uses the live file as its own reference and is unaffected.
+
+**Required correction:**
+
+After independently measuring and verifying the current addendum bytes:
+
+- Update only the ADDENDUM vector.
+- Preserve the digest algorithm.
+- Preserve every other vector.
+- Preserve canonicalisation rules.
+- Preserve test semantics.
+- Run the focused digest and CRLF-invariance tests.
+- Run relevant registration digest conformance tests.
+
+Never copy the reported digest blindly. Recompute it from live bytes.
+
+Do not put the document's own current digest inside the addendum. Record authoritative hashes externally in the evidence manifest or registration evidence as authorised.
+
+### 1.4 Other known R6.0 state
+
+- T16 has 23 canonical decision cards: A1–A4, B1–B9, C1–C4 and D1–D6.
+- All 23 owner selections are recorded; selections are not formal approvals.
+- C-02 is a governance interpretation, not a canonical decision card.
+- ADR-2 / R6.1 foundation contract was adopted as a draft foundation contract only. It does not grant implementation authority.
+- B6: monotone-shrink; no silent reservation re-baselining.
+- B5: unknown usage wins at the full original estimate for both budget and quota.
+- Seven-mode vocabulary is discovery terminology only, not API/config values.
+- Q2: internal developer gateway/dev-loop product anchor; no customer, closed-beta, production or paid-service claims without evidence.
+- Q3: mechanical and semantic gates both block R6.6 exit; routing invariance is mandatory.
+- Q5: dual measurement contract selected, but exact serialization, framing, comparison and failure-attribution details remain unresolved.
+- O1–O8 and D1–D7 registration design choices were selected in project history.
+- O5 makes append-only JSONL the authoritative VER ledger. The §6 HTML-comment grammar must not remain an alternative authority.
+- O4 establishes the nine-field genesis schema and UUIDv4 ledger ID.
+- PARAM-A.7 establishes append-only JSONL, canonical JSON per line, envelope fields, domain-separated genesis, UUIDv4 ledger ID and trusted checkpoint after every successfully appended VER entry.
+- Original six VER fields: `decision`, `verifier`, `verified`, `result`, `marker_sha256`, `items_checked`.
+- S3 adds `card_sha256`, `file_sha256`, and envelope fields `seq`, `prev`, `entry_type`, `entry_sha256`.
+- `entry_type` must be documented as part of the already approved schema where grounded in the approved proposal/genesis schema. Do not present it as a newly invented owner requirement.
+- `card_sha256` and `file_sha256` are O5-designated payload fields grounded in the proposal and PARAM-B.3. Do not expand their meaning.
+- Registration locus for O1–O5 remains structurally undefined. PARAM-A.1 says REG is adjacent to the canonical T16 entry, but O1–O5 are not T16 cards. Resolve before any REG act. Do not invent a locus.
+- FINAL-05 reportedly verifies only 38/39 manifest rows.
+- P-6 privacy-path disclosure in the U1–U3 verification report remains outstanding.
+- FINAL-05 contains outdated baseline statements concerning tracked modifications and line/insert counts.
+- FINAL-07 C-5 is stale relative to the current addendum. The current §12.2 row 3 names PARAM-B.6/U4 and says U1, U2 and U4 are no longer open. Do not reapply C-5.
+- FINAL-07 P-7 and FINAL-03 O2 wording differ on U4 open/closed. Reconcile only as required by the existing correction plan; do not change owner decisions.
+- BL-22 remains unsigned.
+- G7 has not been granted.
+- No ledger genesis, REG or VER registration has been instantiated.
+- R6.1–R6.7 implementation has not been authorised.
+
+---
+
+# 2. Architecture and frozen decisions
+
+### 2.1 R6 implementation sequence — not in scope for R6.0
+
+| Phase | Purpose |
+|---|---|
+| R6.1 | Foundation: immutable original request, canonical representation, metadata, policy/capability checks and explicit bypass |
+| R6.2 | RTK-style state optimisation |
+| R6.3 | Caveman simplification |
+| R6.4 | SabiRoute-owned vendored BM25 scorer / select-and-drop |
+| R6.5 | Pipeline orchestration |
+| R6.6 | Synthetic benchmark and adversarial validation |
+| R6.7 | Observability and rollout |
+
+This build map closes R6.0 only. It must not start these implementation phases.
+
+### 2.2 Non-negotiable constraints
+
+1. Preserve immutable original request.
+2. Make canonical representation and metadata explicit.
+3. Policy/capability checks precede transformation.
+4. Preserve explicit bypass.
+5. Keep compression separate from routing policy.
+6. Transform once before the provider-attempt loop, not once per retry.
+7. Preserve original reservation estimate.
+8. Never silently re-baseline reservations.
+9. Unknown usage uses the full original estimate for budget and quota.
+10. No prompt text logging or persistence.
+11. No provider-specific prompt mutation without explicit policy.
+12. Do not adopt `litellm.compress()` without source-level inspection of installed LiteLLM and its dependencies.
+13. Seven-mode vocabulary is discovery terminology only.
+14. No production/customer-readiness claims without evidence.
+
+### 2.3 Registration and verification architecture
+
+- REG and VER are distinct acts.
+- REG is adjacent to the canonical T16 entry only where the protocol defines a valid locus. O1–O5 locus must be resolved before registration.
+- VER uses a separate append-only JSONL ledger.
+- Canonical JSON per line.
+- Chained entries use `seq`, `prev`, `entry_sha256` and approved `entry_type`.
+- Genesis uses the approved nine-field schema and UUIDv4 ledger ID; domain-separated.
+- Each successfully appended VER entry receives a trusted checkpoint.
+- Checkpoint independently preserved/authenticated outside the mutable workspace.
+- Selected free approach: OpenSSH Ed25519 detached signature and owner-controlled private key; verifier uses public key only.
+- Public repository may host public registration evidence. Require offline copy plus independent cloud copy. Cloud sync alone is not immutable.
+- No automatic stale-lock deletion/recovery. Require explicit authority, retain evidence and fail closed on contention.
+- No fabricated historical accounting IDs or backfill.
+- No ledger or registration instantiation until owner authorises the act and prerequisites are satisfied.
+
+---
+
+# 3. Remaining R6.0 work packages
+
+Execute in order. Each package has an exit gate. Stop at owner-decision and independent-verification boundaries.
+
+## WP-0 — Live baseline
+
+**Objective:** establish the actual starting state.
+
+Inspect:
+
+- Branch, HEAD and full Git status.
+- All R6 documents and their hashes.
+- T16, registration protocol and addendum.
+- FINAL-04/05/06/07.
+- U1–U3 reports.
+- O3/O4/O5 decision pack and correction proposal.
+- Tests and manifest scope.
+- Active security work. Do not interfere with it.
+
+**Deliverable:** concise live baseline with exact measurements and evidence references.
+
+**Exit gate:** reproducible baseline, no destructive actions, no branch switch, all untracked work preserved.
+
+If state differs from this map, record it and adapt only within existing authority.
+
+## WP-1 — Phase 1 verification and U2 vector refresh
+
+**Objective:** verify C-02 reconciliation and restore the relevant conformance fixture.
+
+1. VS Code Copilot performs read-only verification of Amendment 1/2, §12.1, §12.4, O1/O2 values, C-5 and current digest.
+2. Record the same-length historical comparison limitation. Do not overclaim byte-for-byte confinement.
+3. Recompute current addendum digest and bytes.
+4. Update only the ADDENDUM vector in `tests/test_r6_registration_digest_conformance.py`.
+5. Run focused U2 digest reproduction and CRLF-invariance tests.
+6. Run relevant registration digest conformance tests.
+7. Record exact before/after vector and test output.
+
+**Trade-off:** refresh the fixture to represent current published bytes without weakening its assertion.
+
+**Exit gate:**
+
+- Copilot report exists.
+- Digest independently measured.
+- Only ADDENDUM vector changed.
+- Focused tests pass.
+- Other vectors and semantics unchanged.
+
+Stop if addendum bytes are unstable or Copilot finds a substantive provenance defect.
+
+## WP-2 — Phase 2 protocol and schema reconciliation
+
+**Objective:** align the normative protocol with selected O1–O5, JSONL authority, O4 genesis and approved S3 fields.
+
+Use the existing correction proposal and approved addendum as source of truth. Do not invent schema.
+
+Bounded corrections:
+
+- Reconcile obsolete §6 HTML-comment VER authority so append-only JSONL is the sole authoritative VER format.
+- Preserve the original six VER fields and `result ∈ {PASS, FAIL}`.
+- Include `card_sha256` and `file_sha256` only as approved O5-designated payload fields.
+- Document approved envelope fields `seq`, `prev`, `entry_type`, `entry_sha256`.
+- Document `entry_type` as part of the existing approved schema where the proposal/genesis schema supports it.
+- Keep the nine-field genesis schema, UUIDv4 ledger ID and domain-separated genesis consistent.
+- Preserve REG/VER separation.
+- Keep PARAM-B.6 exact marker bytes: complete canonical REG:v1 marker including `<!--` and `-->`, excluding terminating line break, with no extra normalisation.
+- Correct the O4 proposal pointer if still wrong: genesis payload table §3.2; canonicalisation §3.1.
+- Do not change selected parameter values.
+- Do not instantiate a ledger.
+
+**Unresolved structural issue:** registration locus for O1–O5 is undefined. Present exact options and consequences to the owner before any REG act. Document the blocker; do not choose a locus.
+
+**Trade-off:** one authoritative machine-readable ledger format is more important than preserving obsolete prose examples. Mark historical references superseded rather than silently erasing history.
+
+**Exit gate:**
+
+- Protocol/addendum internally consistent.
+- Fields trace to approved decisions.
+- No invented owner decision.
+- Registration-locus blocker explicit.
+- Relevant read-only tests/schema checks pass.
+- No ledger, genesis, REG or VER created.
+
+## WP-3 — Phase 3 manifest and historical corrections
+
+**Objective:** reconcile the manifest and historical reports without rewriting history.
+
+Known constraints:
+
+- FINAL-04 originally has 39 manifest rows and self-excludes because it cannot hash itself.
+- Later inventory reported 42 `docs/r6-*.md` files.
+- Under the existing scope, the expected set is 41 manifest rows plus self-excluded FINAL-04 = 42 documents, **only if live inventory confirms**.
+- Preserve the historical 39-row table and add a dated revision note with FINAL-06 and FINAL-07 if live inventory confirms they are the two additions.
+- Recalculate every digest from current bytes.
+- Do not infer manifest membership from filename if the manifest scope says otherwise.
+- Reconcile FINAL-05's 38/39 verification gap.
+- Correct FINAL-05 baseline claims using live Git evidence.
+- Correct FINAL-06 stale O1/O2 status if still present.
+- Correct the O4 pointer if still wrong.
+- Resolve P-6 privacy-path disclosure or record an owner-blocking exception. Do not expose secrets or unnecessary sensitive local paths.
+- Reconcile FINAL-07 C-5/P-7 descriptions with current content without reapplying C-5 or changing owner decisions.
+- Preserve historical reports and dates. Use dated correction notes or superseding records.
+
+**Trade-off:** retain auditable history; correct it through dated notes rather than pretending the old state never existed.
+
+**Exit gate:**
+
+- Manifest scope reconciles.
+- Every required digest is reproducible.
+- FINAL-05 gap is resolved or explicitly owner-blocked.
+- Privacy issue is resolved or owner-blocked.
+- Historical reports distinguish old state from current state.
+- No unsupported verification claims.
+
+## WP-4 — Phase 4 independent verification
+
+**Objective:** VS Code Copilot independently verifies the complete R6.0 closure package.
+
+Copilot is read-only and must not verify work it authored.
+
+Verify:
+
+- T16 card count and exact owner selections.
+- Selected vs approved vs registered vs verified status.
+- ADR-2 draft foundation contract and open fields.
+- Settlement integrity evidence and tests.
+- Deadline/retry decisions.
+- Registration protocol schema and field provenance.
+- Addendum digest and U2 conformance.
+- REG/VER authority separation.
+- Manifest coverage and digests.
+- Privacy review.
+- Trusted checkpoint design and preservation.
+- O1–O5 registration locus.
+- BL-22 readiness and G7 prerequisites.
+
+Classify every requirement PASS/FAIL/BLOCKED and cite exact file, line, test and hash evidence.
+
+**Exit gate:** complete independent report; blocking discrepancies resolved or explicitly presented to the owner; no formal closure claim before owner acceptance.
+
+## WP-5 — Owner closure decision
+
+Prepare a concise decision pack, not another broad audit.
+
+Show:
+
+- What was selected, approved, implemented, tested and independently verified.
+- What remains blocked.
+- Exact evidence references.
+- BL-22 proposed disposition.
+- G7 proposed disposition.
+- Remaining owner decisions, including O1–O5 registration locus.
+
+Only the owner may approve remaining decisions, sign BL-22 and grant G7.
+
+**Exit gate:** explicit owner acceptance. Until then R6.0 remains OPEN.
+
+---
+
+# 4. Owner decisions and authority boundaries
+
+### 4.1 Selected decisions — do not reopen without new evidence
+
+- A3 Option A: ADR-1 conditional target architecture; not implemented.
+- B1 Option A + C-1: ADR-2 as draft R6.1 foundation contract; draft only.
+- B6 Option A: monotone-shrink; no silent reservation re-baselining.
+- B5 Option A: unknown usage wins at full original estimate for budget and quota.
+- Seven-mode vocabulary Option B: discovery terminology only.
+- Q2 Option A: internal developer gateway/dev-loop anchor.
+- Q3 Option B: mechanical B1 and semantic B2 both block R6.6 exit; routing invariance mandatory.
+- Q5 Option C: dual measurement, details remain unresolved.
+- O1–O8 and D1–D7 selected registration design choices, as recorded.
+- C-02 Reading B: 13 total / 10 outstanding, non-card governance interpretation.
+- Registrar: Claude Code.
+- Independent verifier: VS Code GitHub Copilot.
+- Claude Code Terminal and Desktop: collaborative builders.
+
+### 4.2 Owner-only decisions still outstanding
+
+Do not infer or manufacture:
+
+- Formal approvals for T16 cards.
+- Registration locus for O1–O5.
+- Resolution of conflicting legacy budget limits where relevant.
+- Exceptions to privacy/evidence requirements.
+- BL-22 signature.
+- G7 grant.
+- Authority to implement R6.1–R6.7.
+- Migration, deployment, production or customer-facing claims.
+
+If a decision is required, stop and present:
+
+1. Exact question.
+2. Two or three viable options.
+3. Consequences and trade-offs.
+4. Recommended option with evidence.
+5. What work is blocked.
+
+Do not ask the owner to repeat settled decisions.
+
+---
+
+# 5. Failure handling — mandatory
+
+When a test, gate, tool, schema, workflow or model action fails:
+
+1. Preserve the exact error and context.
+2. Identify the layer: architecture, policy, implementation, test fixture, environment, permission, evidence or governance.
+3. Determine whether it exposes a design flaw, missing invariant, stale evidence, environmental limitation or real regression.
+4. Never bypass it to make the run green.
+5. Never weaken tests or thresholds to fit current behaviour.
+6. Propose the smallest correction consistent with approved architecture.
+7. Identify whether the correction is authorised or requires an owner decision.
+8. Add a regression test or durable evidence where appropriate.
+9. Rerun affected checks.
+10. Record the failure and resolution in the build report.
+
+Permission denial is neither proof an action is unsafe nor permission to use an unapproved workaround.
+
+A failing test is not automatically a product defect. Investigate first.
+
+---
+
+# 6. Repository and operational safety
+
+- Inspect live state before acting.
+- Preserve untracked and uncommitted work.
+- No `git reset`, `git clean`, blanket stash, branch switch, rebase or force push.
+- No `git add .` or blanket staging.
+- Stage only explicitly authorised files and only after owner approval.
+- No commit, push, deployment or migration without explicit owner approval.
+- No secrets in reports, logs, screenshots or prompts. Do not expose `.env`, `.env.backup`, API keys or tokens.
+- No credential rotation without owner approval.
+- No tests that mutate shared databases or incur provider spend without explicit approval.
+- Do not modify the active security remediation lane.
+- One writer per file. Reviewers are read-only.
+- Keep R6 governance separate from security remediation.
+- Never claim a command/test ran unless actual output was observed.
+- Never claim a file changed without diff or byte evidence.
+- Never claim a gate passed merely because a document says it passed.
+
+---
+
+# 7. Required deliverables
+
+Produce one concise, evidence-linked closure bundle, reusing existing naming conventions. Avoid duplicate reports.
+
+Required:
+
+1. Live baseline.
+2. Phase 1 C-02 verification.
+3. Updated U2 vector and focused test evidence.
+4. Phase 2 protocol/schema reconciliation.
+5. Phase 3 manifest/historical correction report.
+6. Phase 4 Copilot independent verification.
+7. Owner closure decision pack.
+8. One final R6.0 status summary.
+
+Every report states:
+
+- Actor and date.
+- Exact files inspected or changed.
+- Before/after hashes where relevant.
+- Commands/tests actually run.
+- PASS/FAIL/BLOCKED.
+- Unresolved limitations.
+- Whether owner approval was required and obtained.
+
+---
+
+# 8. Mermaid maps
+
+### 8.1 Closure flow
+
+```mermaid
+flowchart TD
+ A[WP-0 Live baseline] --> B[WP-1 Phase 1 verification]
+ B --> C[Refresh ADDENDUM U2 vector]
+ C --> D[Focused conformance tests]
+ D --> E[WP-2 Protocol/schema reconciliation]
+ E --> F{Owner decision needed?}
+ F -- Yes --> G[Present options and stop]
+ G --> E
+ F -- No --> H[WP-3 Manifest and historical corrections]
+ H --> I[WP-4 Copilot independent verification]
+ I --> J{Blocking findings?}
+ J -- Yes --> K[Builder correction under authority]
+ K --> I
+ J -- No --> L[WP-5 Owner closure pack]
+ L --> M[Owner decision: BL-22 / G7]
+ M --> N[R6.0 closed only if accepted]
+```
+
+### 8.2 Collaboration
+
+```mermaid
+flowchart LR
+ O[Owner] -->|Decisions and scope| D[Claude Code Desktop]
+ D <-->|Coordination| T[Claude Code Terminal]
+ T -->|Repository changes and tests| E[Evidence bundle]
+ D -->|Architecture consistency| E
+ E -->|Read-only verification| C[VS Code Copilot]
+ C -->|Findings| O
+ O -->|Accept/reject/correction authority| D
+```
+
+Copilot must not verify changes it authored. If it repairs something, arrange a fresh independent verifier or have the owner explicitly revise the assignment.
+
+---
+
+# 9. Execution prompt for Claude Code Desktop
+
+Use this document as the controlling brief.
+
+> Read **The Build Map for the Models — SabiRoute R6.0 Remaining Closure Work** completely.
+>
+> You and Claude Code in the terminal are collaborative builders. VS Code GitHub Copilot is the independent verifier. The owner retains architecture, approval, scope and closure authority.
+>
+> Start at WP-0. Inspect the live repository and evidence; do not assume historical SHAs or statuses remain current.
+>
+> Produce one consolidated execution plan from WP-0 through WP-5. Combine safe tasks where practical, but stop at owner decisions and independent-verification boundaries.
+>
+> Execute only work already authorised by this map. Verify Phase 1, refresh the stale ADDENDUM U2 vector using a newly measured digest, run focused tests, then proceed through bounded protocol and manifest corrections.
+>
+> Do not instantiate ledgers, create REG/VER entries, sign checkpoints, approve T16 cards, sign BL-22, grant G7 or begin R6.1–R6.7 implementation.
+>
+> Treat failures as architectural evidence. Preserve untracked work. Do not stage, commit, push, deploy, switch branches or bypass permissions.
+>
+> Coordinate terminal work with one writer per file. Maintain an evidence log with exact files, hashes, tests and blockers.
+>
+> At owner-decision boundaries, stop and present the exact decision with options and trade-offs. Do not ask the owner to repeat settled decisions.
+>
+> Stop when the closure package is ready for Copilot's independent verification. Do not self-certify final closure.
+
+---
+
+# 10. Definition of done
+
+R6.0 is not complete merely because documents look consistent or tests pass.
+
+It is complete only when:
+
+- Canonical decision register is accurate.
+- Owner selections and formal approvals are distinguished.
+- Foundation contract is documented without claiming implementation.
+- Registration and verification protocols are internally consistent.
+- Required evidence manifests reconcile.
+- Privacy and trusted-checkpoint requirements are addressed.
+- VS Code Copilot completes independent verification.
+- Blocking findings are resolved or explicitly accepted by the owner.
+- BL-22 is signed as required.
+- G7 is explicitly granted by the owner.
+- Owner formally accepts R6.0 closure.
+
+Until then, status is **R6.0 OPEN**.
+
+**Goal: disciplined closure, not endless governance. Finish the agreed work, preserve evidence, ask only genuinely necessary owner decisions, and return SabiRoute to implementation when the owner grants the next gate.**

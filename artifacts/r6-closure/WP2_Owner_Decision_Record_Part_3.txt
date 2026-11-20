@@ -1,0 +1,215 @@
+# SABIROUTE R6.0 — WP-2 OWNER DECISION RECORD
+## PART 3 OF 4
+
+**Record date:** 11 November 2026
+**Decision authority:** Project Owner
+**Workstream:** R6.0 Closure — WP-2
+**Prepared by:** Claude Code Desktop (coordinator — not the independent verifier)
+**Status:** OWNER DECISIONS APPROVED — IMPLEMENTATION NOT AUTHORISED
+**Part status:** This is part 3 of 4. The record is **not complete** (3 of 4 delivered).
+
+**Sections included in this part:** §10 WP2-D3 · §11 WP2-D6 · §12 WP2-D9 · §13 WP2-D11 · Part 3 checklist.
+
+---
+
+## §10 WP2-D3 — qualified confirmation: N1-O1–O5 are parameters, not registrable decisions
+
+**Owner code, verbatim:** `confirm-qualified`
+
+### §10.1 The decision
+
+O1–O5 are confirmed to be **protocol parameters, not registrable decisions**. On that basis **no REG locus is required for them**, and the WP-1 §4 blocker is **withdrawn**.
+
+The confirmation is *qualified*, not absolute. It holds because three properties are true of O1–O5 and must remain true:
+
+1. They are recorded in the **owner-parameter addendum**, not in T16.
+2. Their identifiers are **namespaced `PARAM-`**, and exist only in that document.
+3. They are **not members of any decision-register family** — they do not extend `PROTOCOL/D-1`…`PROTOCOL/D-5` and are not cards.
+
+If any of those three stops being true, the confirmation no longer applies and the blocker returns. That is what "qualified" means here, and it is why the namespace rule is load-bearing rather than stylistic.
+
+### §10.2 The blocker this dissolves
+
+WP-1 recorded the blocker at `artifacts/r6-closure/wp0-wp1-evidence-2026-11-09.md:186-193`:
+
+> **Registration locus for O1–O5 is structurally undefined.** PARAM-A.1 says REG is adjacent to the canonical T16 entry, but O1–O5 are **not** T16 cards (T16 holds A1–A4, B1–B9, C1–C4, D1–D6 = 23 cards). No valid locus exists in the current text.
+>
+> Per WP-2: *"Present exact options and consequences to the owner before any REG act. Document the blocker; do not choose a locus."* **No locus has been chosen. No REG act has occurred.**
+
+The blocker was real and was correctly recorded. It rested on an unstated premise: that everything owner-selected must eventually be *registered*. D3 denies that premise for O1–O5. A parameter is not a decision; a parameter is not registered; therefore a parameter does not need a registration locus. **The blocker dissolves rather than being answered** — no locus is chosen, and none is needed.
+
+### §10.3 The namespace rule that carries it
+
+The qualification rests on the addendum's own namespace rule at `:94-99`:
+
+> **Namespace rule.** Parameters in this addendum are identified `PARAM-A` … `PARAM-G`. These identifiers exist **only** in this document. They are not decision cards, are not members of any decision-register family, do **not** extend `PROTOCOL/D-1`…`PROTOCOL/D-5`, and must not be written as `D1`–`D7` or as a bare `C-1`. No existing register family is created, merged, renamed, or extended by this addendum.
+
+That paragraph is unchanged by D3. D3 **confirms** it and draws the consequence. This is exactly why §8.1 records the superseded E5 anchor `:93-99` as dangerous: `:93-99` overlaps the namespace rule's opening, and an edit there could have rewritten the sentence D3 depends on.
+
+### §10.4 What D3 does not do
+
+- It does **not** register O1–O5.
+- It does **not** create a REG or VER record, a ledger, a key, a signature or a checkpoint.
+- It does **not** approve any T16 decision. All 23 approval records remain `NOT APPROVED`.
+- It does **not** authorise the REGISTER procedure.
+- It does **not** assert that the O1–O5 provenance is independently verified. The Amendment 2 note at addendum `:23-37` governs that, and it says the opposite.
+- It does **not** license a bare `C-` or `D-` identifier anywhere. F-WP2-4's identifier collision must still be resolved by register-qualified names.
+
+### §10.5 Recorded status
+
+**Blocker `WP-1 §4` — WITHDRAWN on the basis of WP2-D3, 2026-11-11.** Withdrawal is a documentary act. No file in `docs/`, `tests/` or `src/` was edited to record it, and none needed to be.
+
+---
+
+## §11 WP2-D6 — O4-A, and the `/`-unescaping hazard retained
+
+**Owner code, verbatim:** `A`
+
+### §11.1 The decision
+
+The normative citation for canonical JSON is **O4-A** — the proposal's own §3.1 canonicalisation — and not `O4-B` (RFC 8785 JCS).
+
+The choice is a **citation** choice, not a byte choice. For this field set the two produce **byte-identical output**, so adopting O4-A changes no digest and no schema. A future implementation may cite JCS without changing a single byte, and this record does not forbid that.
+
+### §11.2 The hazard is retained, not removed
+
+The `/`-unescaping interop hazard is **retained as a mandatory conformance case**. It is not "fixed", not softened and not deferred.
+
+**What the hazard is.** A conforming JSON encoder may legitimately escape `/` as `\/`. Two encoders — one escaping, one not — produce different byte strings for the same object. Because `entry_sha256` is computed over canonical bytes, an escaped solidus silently changes the digest and silently breaks chain continuity. There is no error, no warning, and no way to detect it from the record itself.
+
+**Why recognition rather than removal.** Removing the hazard would mean accepting both forms as canonical. That would make two distinct byte strings both "canonical", so `entry_sha256` would no longer identify a unique line, and duplicate detection (§12 of the protocol) would fail on the same logical entry. The hazard must therefore be **rejected**, not tolerated: `\/`-escaped `/` **fails closed**.
+
+The behaviour is pinned in the test module at `tests/test_r6_registration_digest_conformance.py:584-591`, which asserts that canonical output contains `/`, contains no `\/`, contains no `\u`, and that the literal and escaped byte strings differ. D9 group 1 (§12 below) makes it a negative case in its own right.
+
+### §11.3 Recorded status
+
+**`O4-A` — RETAINED. `/`-unescaping hazard — RETAINED. No byte change.** No file edited.
+
+---
+
+## §12 WP2-D9 — the five negative-first test groups, sequenced after D8
+
+**Owner code, verbatim:** `approve`
+
+### §12.1 What "negative-first" means here
+
+Each group must establish that **malformed input fails closed** before — or at least alongside — establishing that well-formed input passes. A group that only demonstrates the happy path does not satisfy D9. This ordering is deliberate: a test that passes for the wrong reason is worse than no test, and in this corpus (F-WP1-1, F-WP2-2) the failure mode of interest is always *silence*.
+
+### §12.2 The five groups
+
+| # | Group | Negative cases that must fail closed | Positive assertion |
+|---|---|---|---|
+| 1 | **VER schema** | duplicate key; `\/`-escaped `/`; reordered keys; space after `:`; `seq` as `0.0`; `seq` as `"0"` — six cases already specified at decision pack §3.6 | a conforming 12-key entry canonicalises and hashes |
+| 2 | **F7 bound** | `items_checked` outside the bound; `result=PASS` with `items_checked < 10` | a `PASS` entry with exactly 10 is accepted |
+| 3 | **REG/VER separation** | a VER entry co-located with a REG; `entry_type` carrying a `REG` member | `entry_type` domain is exactly `{"GENESIS","VER"}` |
+| 4 | **`COMPLETE` derivation** | missing, malformed, mismatched, and `FAIL` VER records each make `COMPLETE` invalid (`PARAM-A.4`; 03B-R1 §6, §16) | `COMPLETE` is valid only with a matching `PASS` entry plus read-back |
+| 5 | **Genesis conformance** | the `+LF` form must **differ** from the no-LF form | the 508-byte preimage reproduces `ad1484b0758f0accfd9986ed6f2d5f8fac1ded3a83d95974ed58af7fc74caf28`; `452a05bb…` is the `+LF` digest and must not equal it |
+
+**Group 5 is the only group that touches a published digest vector**, and it reproduces the one at decision pack `:324-325`. It is a conformance check on the *computation*, not a claim that a real chain head exists — see §12.5.
+
+### §12.3 Sequencing — after D8, not before
+
+The groups are authored **after** the D8 single pass. Reason: groups 1 and 2 assert properties of a schema that E2 and E8 have not yet written into the protocol. Authored before the edit, they would either fail against the old schema or — worse — be written to match the old schema and then silently bless it. Authored after, they test what the document actually says.
+
+**One file, no new module.** The groups extend `tests/test_r6_registration_digest_conformance.py` by appending. No second test file is created, so the WP-3 document inventory is untouched.
+
+### §12.4 What the groups must not do
+
+- They must **not** instantiate a ledger, create a `ledger_id`, or emit a genesis entry to make a test pass. The existing skip at `:555-570` stays a skip.
+- They must **not** be written to pass by weakening an assertion until it holds.
+- They must **not** import a new dependency, a shell tool, or a reference generator that does not exist in the tree.
+- They must **not** assert that any registration has occurred.
+
+### §12.5 The skip that remains
+
+`test_u11_genesis_entry_hash_is_computable` (`:555-570`) remains **skipped**: *"awaiting authorised ledger instantiation"*. This is a **finding, not a pass**. Group 5 tests the *computation* on the published worked example; it does not and cannot substitute for a real genesis entry, because no `ledger_id` exists and creating one is the separate first-execution authority (addendum §10).
+
+**Recorded count expectation:** 81 passed / 1 skipped before the groups are appended; 81 + the appended groups / **1 skipped** after. The skipped count must not fall.
+
+---
+
+## §13 WP2-D11 — `1 ≤ items_checked ≤ 10`, and `PASS` requires exactly 10
+
+**Owner code, verbatim:** `approve-refined`
+
+### §13.1 The decision, stated with its divergence in the same paragraph
+
+**The owner's refined decision is `1 ≤ items_checked ≤ 10`, and a `PASS` result requires exactly 10.** The source proposal from which this was refined reads `0 ≤ items_checked ≤ 10` (S8 `:457`). Both values appear here, in that order, because this is a **divergence from the proposal and not a restatement of it**: the lower bound moved from `0` to `1`, and the proposal placed no additional condition on `PASS`. A reader who takes this section as a paraphrase of S8 will get the boundary wrong at exactly the two points that matter.
+
+| Property | Source proposal (S8 `:457`) | **Owner decision (governing)** |
+|---|---|---|
+| Lower bound | `0` | **`1`** |
+| Upper bound | `10` | **`10`** |
+| `PASS` + `items_checked < 10` | not addressed | **rejected** — `PASS` requires exactly `10` |
+| `FAIL` + `items_checked` in `1..10` | permitted | **permitted** |
+| `items_checked = 0` | permitted | **rejected** |
+
+### §13.2 Why the refinement is coherent
+
+The ten-item inventory is protocol §7 (`:137-166`). `items_checked` is *the integer count of the ten-item inventory* (correction proposal §4.5, "VER record" row 6), whose status the proposal already recorded as *"Defined, but **no bound stated**"* — finding R4.
+
+- **Lower bound `1`.** A verification that checked nothing is not a verification. `0` would permit a `VER` entry asserting a check that never happened, which is precisely the status-inflation failure this corpus keeps guarding against.
+- **`PASS` requires exactly `10`.** `PASS` is a claim about the whole inventory. Nine of ten cannot support it. A `FAIL` at any count in `1..10` is honest — it reports that the check stopped.
+
+The bound is **normative** and is the only edit in this set that adds a constraint the owner had not previously approved. It is therefore carried under its own decision code (D11) and applied as its own step, never folded silently into D2.
+
+### §13.3 Application
+
+Applied at **protocol §6**, after E1–E4, in the same single pass. Recorded as **E8**. It changes no field name, no field order, and no hash input — it constrains a value domain only.
+
+**The consolidated pack's citation defect.** `wp2-consolidated-decision-pack-2026-11-10.md:331` records E8's file as "addendum §6". The addendum has no §6. The protocol does, and it is the section that defines `items_checked`. E8 is applied at **protocol §6**; the defect is recorded rather than silently corrected (see Part 2 §6.2).
+
+### §13.4 What D11 does not do
+
+- It does **not** redefine the ten-item inventory.
+- It does **not** add a field.
+- It does **not** make `items_checked` a hash input beyond its existing presence in the payload.
+- It does **not** authorise any `VER` entry to be written.
+
+---
+
+## Part 3 checklist
+
+| # | Requirement | Status |
+|---|---|:--|
+| 1 | **WP2-D3** recorded with owner code `confirm-qualified`, verbatim | ✅ §10 heading |
+| 2 | O1–O5 confirmed as parameters, not registrable decisions | ✅ §10.1 |
+| 3 | The qualification stated — three properties whose failure voids it | ✅ §10.1 |
+| 4 | WP-1 §4 blocker quoted and **withdrawn** on D3's basis | ✅ §10.2, §10.5 |
+| 5 | Namespace rule `:94-99` identified as the load-bearing text, and linked to the E5 anchor hazard | ✅ §10.3 |
+| 6 | **WP2-D6** recorded with owner code `A`, verbatim | ✅ §11 heading |
+| 7 | `O4-A` recorded as the citation, with JCS byte-equivalence noted | ✅ §11.1 |
+| 8 | `/`-unescaping hazard **retained** as a mandatory case, with the mechanism explained | ✅ §11.2 |
+| 9 | **WP2-D9** recorded with owner code `approve`, verbatim | ✅ §12 heading |
+| 10 | All five groups enumerated, negative-first, with fail-closed cases | ✅ §12.2 |
+| 11 | Sequencing after D8 justified, one file, no new module | ✅ §12.3 |
+| 12 | The skip is preserved and explicitly called a finding, not a pass | ✅ §12.5 |
+| 13 | **WP2-D11** recorded with owner code `approve-refined`, verbatim | ✅ §13 heading |
+| 14 | **Divergence stated in the same paragraph as the decision**, `0 ≤` then `1 ≤` | ✅ §13.1 |
+| 15 | `PASS` ⇒ exactly 10 stated, with `FAIL` behaviour distinguished | ✅ §13.1, §13.2 |
+| 16 | E8's locus defect ("addendum §6") recorded, applied at protocol §6 | ✅ §13.3 |
+| 17 | No claim that any edit has been implemented | ✅ |
+| 18 | No file modified · no tests run · no staging/commit · no repository operation | ✅ |
+
+**Part 3 checklist: 18 of 18 items delivered.** The only matter deferred onward is the O5 provenance row's *actual* placement, which is an implementation act under Part 2 §9.4 and is confirmed in Part 4 §16.
+
+---
+
+**END OF PART 3 OF 4 — RECORD NOT COMPLETE (3 of 4)**
+**RECORDING ONLY. NOT AN EXECUTION AUTHORISATION.**
+**NOTHING IMPLEMENTED · NO FILE EDITED · BL-22 NOT SIGNED · G7 NOT GRANTED · WP-2 REMAINS BLOCKED**
+
+---
+
+`─────────────────────────────────────────`
+` ✓ PART 1 : authority, codes, sources, conventions`
+` ✓ PART 2 : E1-E7 · 12-key table · O5 provenance row`
+` ✓ PART 3 : D3 · D6 · D9 · D11 (incl. refined bound)`
+` ⧗ PART 4 : deferred, unlocated, checklist`
+`─────────────────────────────────────────`
+
+Two notes on this part.
+
+**D11's table is the whole point.** The divergence is stated as a five-row table with both columns present, because a prose sentence can be skimmed and a table cannot. The `0 → 1` move and the `PASS`-requires-10 rule are the two places an implementer will otherwise guess.
+
+**The blocker is withdrawn, not answered.** D3 does not choose a registration locus for O1–O5 — it removes the need for one. If a future pass finds itself hunting for a locus, that is the signal that someone has started treating a parameter as a card, and the qualification in §10.1 has been broken.

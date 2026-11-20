@@ -1,0 +1,134 @@
+[
+  {
+    "asset_id": "CG029-P01",
+    "filename": "01-logo-family-and-variants.png",
+    "section": "Logo family and variants",
+    "dimensions_px": [
+      518,
+      329
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Reference only; includes multiple logo concepts and embedded labels, not separate logo exports."
+  },
+  {
+    "asset_id": "CG029-P02",
+    "filename": "02-website-hero-banner.png",
+    "section": "Website hero banner concept",
+    "dimensions_px": [
+      707,
+      329
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Reference only; this is a website mockup panel with text/navigation, not a standalone background image."
+  },
+  {
+    "asset_id": "CG029-P03",
+    "filename": "03-app-icons-and-favicons.png",
+    "section": "App icons and favicon concepts",
+    "dimensions_px": [
+      293,
+      329
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Reference only; icons are displayed within a labeled panel and are not individual icon exports."
+  },
+  {
+    "asset_id": "CG029-P04",
+    "filename": "04-architecture-diagram.png",
+    "section": "Architecture diagram concept",
+    "dimensions_px": [
+      612,
+      343
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Unverified illustration; use only as a visual reference until labels and flows are checked against source code."
+  },
+  {
+    "asset_id": "CG029-P05",
+    "filename": "05-github-repository-preview.png",
+    "section": "GitHub repository preview concept",
+    "dimensions_px": [
+      399,
+      343
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Mockup only; embedded repo statistics and interface details are unverified and must not be published as facts."
+  },
+  {
+    "asset_id": "CG029-P06",
+    "filename": "06-readme-hero-banner.png",
+    "section": "README hero banner concept",
+    "dimensions_px": [
+      507,
+      343
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Reference only; not an extracted clean background or verified repository asset."
+  },
+  {
+    "asset_id": "CG029-P07",
+    "filename": "07-documentation-covers.png",
+    "section": "Documentation cover family",
+    "dimensions_px": [
+      774,
+      200
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Contains multiple small cover designs; treat as a selection board, not individual final covers."
+  },
+  {
+    "asset_id": "CG029-P08",
+    "filename": "08-social-media-assets.png",
+    "section": "Social media asset concepts",
+    "dimensions_px": [
+      344,
+      200
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Contains multiple small social concepts; crop or recreate an individual design only after selecting it."
+  },
+  {
+    "asset_id": "CG029-P09",
+    "filename": "09-brand-colours-and-typography.png",
+    "section": "Brand colours and typography reference",
+    "dimensions_px": [
+      400,
+      200
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Visual reference only; verify exact hex values and typography choices before adopting as canonical."
+  },
+  {
+    "asset_id": "CG029-P10",
+    "filename": "10-motion-gif-frames.png",
+    "section": "Motion/GIF frame storyboard",
+    "dimensions_px": [
+      472,
+      141
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Storyboard only; frames are not isolated originals and no GIF is produced by this crop."
+  },
+  {
+    "asset_id": "CG029-P11",
+    "filename": "11-marketing-and-presentation.png",
+    "section": "Marketing and presentation concepts",
+    "dimensions_px": [
+      464,
+      141
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Reference only; not an individually exported campaign visual."
+  },
+  {
+    "asset_id": "CG029-P12",
+    "filename": "12-file-structure-and-zip-preview.png",
+    "section": "File structure / ZIP preview panel",
+    "dimensions_px": [
+      582,
+      142
+    ],
+    "status": "CROPPED_REFERENCE",
+    "notes": "Illustrative mockup only; does not itself prove package contents or downloadable archive availability."
+  }
+]

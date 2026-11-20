@@ -1,0 +1,884 @@
+[
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A01",
+    "Required deliverable": "Primary SabiRoute logo",
+    "Coverage status": "Exported standalone SVG/PNG \u2014 owner approval pending",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/01-logo-family/svg/sabiroute-logo-horizontal-dark.svg",
+    "Gap / limitation": "Reconstructed vector, not canonical owner-approved mark; inspect edges and select preferred variant.",
+    "Next action": "Review and approve one canonical logo family; then integrate selected files."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A02",
+    "Required deliverable": "Symbol-only identity",
+    "Coverage status": "Exported standalone SVG/PNG \u2014 owner approval pending",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/01-logo-family/svg/sabiroute-symbol-dark.svg",
+    "Gap / limitation": "Reconstructed vector, not canonical owner-approved mark; inspect edges and select preferred variant.",
+    "Next action": "Review and approve one canonical logo family; then integrate selected files."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A03",
+    "Required deliverable": "Light-background logo",
+    "Coverage status": "Exported standalone SVG/PNG \u2014 owner approval pending",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/01-logo-family/svg/sabiroute-logo-horizontal-light.svg",
+    "Gap / limitation": "Reconstructed vector, not canonical owner-approved mark; inspect edges and select preferred variant.",
+    "Next action": "Review and approve one canonical logo family; then integrate selected files."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A04",
+    "Required deliverable": "Monochrome identity",
+    "Coverage status": "Exported standalone SVG/PNG \u2014 owner approval pending",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/01-logo-family/svg/sabiroute-logo-horizontal-mono-white.svg",
+    "Gap / limitation": "Reconstructed vector, not canonical owner-approved mark; inspect edges and select preferred variant.",
+    "Next action": "Review and approve one canonical logo family; then integrate selected files."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A05",
+    "Required deliverable": "Brand pattern",
+    "Coverage status": "Exported reference asset(s)",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/00-brand-system/abstract-routing-line-pattern.svg",
+    "Gap / limitation": "Owner review required; repeat seams, palette lock, and canonical identity have not been formally approved.",
+    "Next action": "Review brand system and choose final reusable variants."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A06",
+    "Required deliverable": "Technical texture collection",
+    "Coverage status": "Exported reference asset(s)",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/00-brand-system/textures/",
+    "Gap / limitation": "Owner review required; repeat seams, palette lock, and canonical identity have not been formally approved.",
+    "Next action": "Review brand system and choose final reusable variants."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A07",
+    "Required deliverable": "Abstract routing motif",
+    "Coverage status": "Exported reference asset(s)",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/00-brand-system/abstract-routing-line-pattern.svg",
+    "Gap / limitation": "Owner review required; repeat seams, palette lock, and canonical identity have not been formally approved.",
+    "Next action": "Review brand system and choose final reusable variants."
+  },
+  {
+    "Family": "A \u2014 Brand",
+    "Asset ID": "A08",
+    "Required deliverable": "Brand reference board",
+    "Coverage status": "Exported reference asset(s)",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/00-brand-system/brand-colour-typography-and-logo-usage.svg",
+    "Gap / limitation": "Owner review required; repeat seams, palette lock, and canonical identity have not been formally approved.",
+    "Next action": "Review brand system and choose final reusable variants."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B01",
+    "Required deliverable": "Homepage hero background",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/sabiroute-hero-desktop-background.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B02",
+    "Required deliverable": "Separately composed mobile hero",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/sabiroute-hero-mobile-background.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B03",
+    "Required deliverable": "How-it-works illustration",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/how-it-works-request-flow.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B04",
+    "Required deliverable": "Intelligent-routing artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-intelligent-routing.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B05",
+    "Required deliverable": "Security/admission artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-security-admission.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B06",
+    "Required deliverable": "Bounded-fallback illustration",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-bounded-fallback.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B07",
+    "Required deliverable": "Health/resilience illustration",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-health-resilience.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B08",
+    "Required deliverable": "Observability artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-observability.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B09",
+    "Required deliverable": "Provider-abstraction artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/provider-abstraction.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B10",
+    "Required deliverable": "Developer-experience artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/feature-developer-first.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B11",
+    "Required deliverable": "Open-source credibility visual",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/open-source-credibility.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "B \u2014 Website",
+    "Asset ID": "B12",
+    "Required deliverable": "Website background textures",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/03-website/website-background-texture-light.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C01",
+    "Required deliverable": "GitHub repository social preview (1280x640)",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/04-github-readme/sabiroute-github-social-preview-1280x640.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C02",
+    "Required deliverable": "README hero",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/04-github-readme/sabiroute-readme-hero-1600x800.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C03",
+    "Required deliverable": "README architecture illustration",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/architecture-boundary-overview.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C04",
+    "Required deliverable": "Quickstart companion visual",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/04-github-readme/sabiroute-quickstart-lifecycle-visual.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C05",
+    "Required deliverable": "Routing lifecycle artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/request-lifecycle-reference.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C06",
+    "Required deliverable": "Reliability engineering cover",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-timeouts-cancellation.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C07",
+    "Required deliverable": "ML governance cover",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-ml-governance.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C08",
+    "Required deliverable": "Contributor guide artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/contributor-artwork.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C09",
+    "Required deliverable": "Security policy artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/security-policy-artwork.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "C \u2014 GitHub/README",
+    "Asset ID": "C10",
+    "Required deliverable": "Reusable release/milestone artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/release-template.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D01",
+    "Required deliverable": "System architecture",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/architecture-boundary-overview.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D02",
+    "Required deliverable": "Request lifecycle",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/request-lifecycle-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D03",
+    "Required deliverable": "Routing decision and deterministic scoring",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/routing-decision-scoring-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D04",
+    "Required deliverable": "Bounded fallback state/sequence",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/bounded-fallback-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D05",
+    "Required deliverable": "Health and readiness semantics",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/health-readiness-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D06",
+    "Required deliverable": "Telemetry lifecycle",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/telemetry-lifecycle-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D07",
+    "Required deliverable": "Data/ML safety gates",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/dataset-ml-governance-gates.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D08",
+    "Required deliverable": "Deployment boundary and retry ownership",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/deployment-retry-ownership-boundary.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D09",
+    "Required deliverable": "Failure taxonomy",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/failure-taxonomy-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "D \u2014 Technical diagrams",
+    "Asset ID": "D10",
+    "Required deliverable": "Retry ownership counters",
+    "Coverage status": "Editable diagram exported \u2014 engineering verification required",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/05-technical-diagrams/svg/retry-ownership-reference.svg",
+    "Gap / limitation": "Diagram is based on design context and supplied source archive, not guaranteed to match current working tree.",
+    "Next action": "Validate labels and flow against current source, then approve/publicize."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E01",
+    "Required deliverable": "Architecture documentation cover",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-architecture.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E02",
+    "Required deliverable": "API and gateway overview",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-api-gateway-overview.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E03",
+    "Required deliverable": "Configuration guide",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-configuration.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E04",
+    "Required deliverable": "Local development/testing guide",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-local-development.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E05",
+    "Required deliverable": "Integration-test documentation",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-integration-test-documentation.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E06",
+    "Required deliverable": "Timeout and cancellation semantics",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-timeouts-cancellation.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E07",
+    "Required deliverable": "Failure-injection/retry investigation",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-retry-investigation.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E08",
+    "Required deliverable": "Operational runbooks",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-operational-runbook.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E09",
+    "Required deliverable": "Troubleshooting/failure classes",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-troubleshooting.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E10",
+    "Required deliverable": "Deployment reproducibility",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-deployment.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E11",
+    "Required deliverable": "Observability/telemetry",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-observability.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E12",
+    "Required deliverable": "Routing/fallback safety",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-routing-fallback.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E13",
+    "Required deliverable": "Dataset readiness/ML governance",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-ml-governance.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E14",
+    "Required deliverable": "Security/contributor policies",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-security.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E15",
+    "Required deliverable": "Release changelogs",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-release-changelog.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "E \u2014 Documentation",
+    "Asset ID": "E16",
+    "Required deliverable": "Benchmark methodology",
+    "Coverage status": "Standalone cover exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/06-documentation-covers/doc-cover-benchmark-methodology.svg",
+    "Gap / limitation": "Cover/artwork exists; it does not mean the underlying documentation or benchmark evidence is complete.",
+    "Next action": "Use as a cover/divider after review; create supporting inline diagrams where needed."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F01",
+    "Required deliverable": "Product launch hero",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/launch-hero.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F02",
+    "Required deliverable": "\u201cSabiRoute decides. LiteLLM executes.\u201d composition",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/f02-sabiroute-decides-litellm-executes.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F03",
+    "Required deliverable": "Why a routing gateway?",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/routing-gateway-story.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F04",
+    "Required deliverable": "Engineering transparency",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/engineering-transparency.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F05",
+    "Required deliverable": "Reliability engineering",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/reliability-blog-cover.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F06",
+    "Required deliverable": "Developer-first infrastructure",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/developer-first.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F07",
+    "Required deliverable": "Open-source project card",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/open-source-card.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F08",
+    "Required deliverable": "Technical blog cover: routing",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/blog-routing-cover.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F09",
+    "Required deliverable": "Technical blog cover: reliability",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/blog-reliability-cover.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F10",
+    "Required deliverable": "Technical blog cover: ML governance",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/blog-ml-governance-cover.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F11",
+    "Required deliverable": "Project roadmap cover",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/roadmap-template.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "F \u2014 Marketing",
+    "Asset ID": "F12",
+    "Required deliverable": "Milestone announcement template",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/milestone-template.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G01",
+    "Required deliverable": "LinkedIn banner (~1584x396)",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/sabiroute-linkedin-banner-1584x396.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G02",
+    "Required deliverable": "LinkedIn project announcement",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/linkedin-project-announcement-square.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G03",
+    "Required deliverable": "LinkedIn carousel set (7 independent panels)",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/linkedin-carousel-01-the-problem.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G04",
+    "Required deliverable": "X/Twitter header",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/x-header-1500x500.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G05",
+    "Required deliverable": "X engineering thread cards",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/x-thread-card-01.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G06",
+    "Required deliverable": "Discord/community preview",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/discord-community-preview.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G07",
+    "Required deliverable": "GitHub discussion/issue artwork",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/github-discussion-artwork.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G08",
+    "Required deliverable": "Social announcement templates",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/announcement-feature-template.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G09",
+    "Required deliverable": "Video thumbnail",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/07-social-media/video-thumbnail-one-gateway.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "G \u2014 Social media",
+    "Asset ID": "G10",
+    "Required deliverable": "Presentation title/end cards",
+    "Coverage status": "Standalone export available \u2014 review before publishing",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/overlays/chapter-title-overlay.svg",
+    "Gap / limitation": "Visual export exists, but owner approval and factual/technical review remain; not integrated automatically.",
+    "Next action": "Review dimensions, claims, and intended destination; integrate only after approval."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H01",
+    "Required deliverable": "Routing-flow loop",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-routing-flow-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H02",
+    "Required deliverable": "Bounded-fallback sequence",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-bounded-fallback-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H03",
+    "Required deliverable": "Observability pulse",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-observability-pulse-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H04",
+    "Required deliverable": "Provider-network loop",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-provider-network-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H05",
+    "Required deliverable": "Loading/processing animation",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-loading-processing-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "H \u2014 Motion",
+    "Asset ID": "H06",
+    "Required deliverable": "Architecture reveal",
+    "Coverage status": "GIF and frame sequence exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/08-motion-and-gifs/sabiroute-architecture-reveal-loop.gif",
+    "Gap / limitation": "Deterministically assembled illustration; verify loop continuity and accessibility before deployment.",
+    "Next action": "Review animation at normal speed, optimize sizes, and integrate only if approved."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I01",
+    "Required deliverable": "Video opening frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/01-opening-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I02",
+    "Required deliverable": "Problem statement frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/02-problem-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I03",
+    "Required deliverable": "System architecture frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/03-architecture-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I04",
+    "Required deliverable": "Routing-decision frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/04-eligibility-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I05",
+    "Required deliverable": "Failure/fallback frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/05-fallback-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I06",
+    "Required deliverable": "Observability frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/06-observability-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I07",
+    "Required deliverable": "ML safety frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/07-ml-governance-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I08",
+    "Required deliverable": "Engineering journey frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/08-engineering-journey-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I09",
+    "Required deliverable": "Current-state frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/09-current-state-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I10",
+    "Required deliverable": "Future-roadmap frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "Roadmap-like promotional artwork exists.",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I11",
+    "Required deliverable": "Closing frame",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/stills/10-closing-1920x1080.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I12",
+    "Required deliverable": "Scene backgrounds and overlays",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "Backgrounds and banners exist.",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I13",
+    "Required deliverable": "Lower thirds and title assets",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "v2.3 standalone export: 13-production-assets/09-video-production/overlays/lower-third-transparent.svg",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  },
+  {
+    "Family": "I \u2014 Video production",
+    "Asset ID": "I14",
+    "Required deliverable": "Thumbnail options",
+    "Coverage status": "Standalone 1920x1080 still/overlay exported",
+    "Evidence in v2.2": "Promo/thumbnail-like boards exist.",
+    "Gap / limitation": "A still or overlay is not a final video; timeline edits, audio, and source-state verification remain.",
+    "Next action": "Review sequence, verify claims, and assemble final edit in Brag/Claude Code."
+  }
+]
