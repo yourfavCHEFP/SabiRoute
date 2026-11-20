@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A0F1E"/><stop offset="1" stop-color="#070B16"/></linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06B6D4"/><stop offset="0.55" stop-color="#2563EB"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<g opacity=".16" stroke="#28416D" stroke-width="1">
+<path d="M0 0 V900"/><path d="M80 0 V900"/><path d="M160 0 V900"/><path d="M240 0 V900"/><path d="M320 0 V900"/><path d="M400 0 V900"/><path d="M480 0 V900"/><path d="M560 0 V900"/><path d="M640 0 V900"/><path d="M720 0 V900"/><path d="M800 0 V900"/><path d="M880 0 V900"/><path d="M960 0 V900"/><path d="M1040 0 V900"/><path d="M1120 0 V900"/><path d="M1200 0 V900"/><path d="M1280 0 V900"/><path d="M1360 0 V900"/><path d="M1440 0 V900"/><path d="M1520 0 V900"/><path d="M1600 0 V900"/>
+<path d="M0 0 H1600"/><path d="M0 80 H1600"/><path d="M0 160 H1600"/><path d="M0 240 H1600"/><path d="M0 320 H1600"/><path d="M0 400 H1600"/><path d="M0 480 H1600"/><path d="M0 560 H1600"/><path d="M0 640 H1600"/><path d="M0 720 H1600"/><path d="M0 800 H1600"/><path d="M0 880 H1600"/>
+</g>
+<text x="90" y="105" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="44" font-weight="700">SabiRoute — Fallback Flow (Reference)</text>
+<text x="92" y="151" fill="#06B6D4" font-family="Inter,Arial,sans-serif" font-size="22">Do not infer retry counts or exact fallback semantics from this illustration.</text>
+<path d="M340 335 L430 335" stroke="#06B6D4" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M418 326 L430 335 L418 344" stroke="#06B6D4" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M680 335 L770 285" stroke="#2563EB" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M758 276 L770 285 L758 294" stroke="#2563EB" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M905 350 L905 430" stroke="#F59E0B" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M893 421 L905 430 L893 439" stroke="#F59E0B" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M1040 495 L1160 495" stroke="#8B5CF6" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M1148 486 L1160 495 L1148 504" stroke="#8B5CF6" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="90" y="270" width="250" height="130" rx="18" fill="#111827" stroke="#06B6D4" stroke-width="2"/>
+<rect x="90" y="270" width="250" height="8" rx="4" fill="#06B6D4"/>
+<text x="112" y="318" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700">Incoming Request</text>
+<text x="112" y="358" fill="#AAB8D0" font-family="Inter,Arial,sans-serif" font-size="22">Validate request</text><rect x="430" y="270" width="250" height="130" rx="18" fill="#111827" stroke="#2563EB" stroke-width="2"/>
+<rect x="430" y="270" width="250" height="8" rx="4" fill="#2563EB"/>
+<text x="452" y="318" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700">Route Attempt</text>
+<text x="452" y="358" fill="#AAB8D0" font-family="Inter,Arial,sans-serif" font-size="22">Select eligible target</text><rect x="770" y="220" width="270" height="130" rx="18" fill="#111827" stroke="#10B981" stroke-width="2"/>
+<rect x="770" y="220" width="270" height="8" rx="4" fill="#10B981"/>
+<text x="792" y="268" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700">Success?</text>
+<text x="792" y="308" fill="#AAB8D0" font-family="Inter,Arial,sans-serif" font-size="22">Return successful result</text><rect x="770" y="430" width="270" height="130" rx="18" fill="#111827" stroke="#F59E0B" stroke-width="2"/>
+<rect x="770" y="430" width="270" height="8" rx="4" fill="#F59E0B"/>
+<text x="792" y="478" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700">Recoverable Failure?</text>
+<text x="792" y="518" fill="#AAB8D0" font-family="Inter,Arial,sans-serif" font-size="22">Apply configured policy</text><rect x="1160" y="430" width="300" height="130" rx="18" fill="#111827" stroke="#8B5CF6" stroke-width="2"/>
+<rect x="1160" y="430" width="300" height="8" rx="4" fill="#8B5CF6"/>
+<text x="1182" y="478" fill="#F8FAFC" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700">Next Eligible Target</text>
+<text x="1182" y="518" fill="#AAB8D0" font-family="Inter,Arial,sans-serif" font-size="22">Only if policy permits</text></svg>

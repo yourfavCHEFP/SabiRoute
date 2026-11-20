@@ -1,0 +1,15 @@
+family,deliverable,path,status,remaining_action
+Brand,Proposed dark/light logo SVGs and symbol,01-brand/,PRESENT — PROPOSED,Owner approval required
+README,Desktop hero and social preview,02-readme/,PRESENT — PROPOSED,Review copy and visual direction
+README,Portrait mobile hero,02-readme/mobile-hero-proposed.svg,PRESENT — PROPOSED,Review on actual target viewport
+Architecture,System architecture diagram,03-diagrams/system-architecture-reference.svg,PRESENT — REFERENCE,Verify against current repository
+Architecture,Request lifecycle diagram,03-diagrams/request-lifecycle-reference.svg,PRESENT — REFERENCE,Verify exact request lifecycle
+Architecture,Fallback flow diagram,03-diagrams/fallback-flow-reference.svg,PRESENT — REFERENCE,Verify retry/fallback semantics
+Integration,SabiChat integration diagram,03-diagrams/sabichat-integration-reference.svg,PRESENT — REFERENCE,Verify routes and identity contract
+Developer,Developer workflow visual,06-developer-workflow/developer-workflow-reference.svg,PRESENT — REFERENCE,Verify commands against project docs
+SabiChat,UI concept mockup,04-sabichat/sabichat-interface-concept.svg,PRESENT — CONCEPT,Not a live screenshot
+Icons,Gateway/routing/security/observability/chat icons,05-icons/,PRESENT,Review sizing and style
+Motion,Request flow concept GIF + still,07-motion/,PRESENT — CONCEPT,Label as illustrative
+Full library,Historical v2.3 archive reconciliation,—,BLOCKED,Actual v2.3 ZIP unavailable
+Source-derived technical accuracy,Current repo verification,—,BLOCKED,Repository not available in this session
+Owner approval,Canonical brand selection,—,OWNER DECISION REQUIRED,Select final mark before public use

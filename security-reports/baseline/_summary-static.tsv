@@ -1,0 +1,8 @@
+semgrep	RAN	exit 0 -> semgrep.sarif
+gitleaks	RAN	exit 1 -> gitleaks-worktree.json
+trivy	RAN	exit 0 -> trivy.json
+osv-scanner	RAN	exit 1 -> osv.json
+bandit	RAN	exit 1 -> bandit.json
+npm-audit	RAN	exit 1 -> npm-audit.json
+hadolint	RAN	exit 1 -> hadolint.json
+zizmor	RAN	exit 14 -> zizmor.json
