@@ -675,9 +675,9 @@ async def chat_completions(
         n_features = len(_prf)
         n_outcomes = len(_rd)
         if n_features < n_outcomes:
-            _prf = _prf + [None] * (n_outcomes - n_features)
+            _prf = _prf + [None] * (n_outcomes - n_features)  # type: ignore[list-item]
         elif n_outcomes < n_features:
-            _rd = _rd + [None] * (n_features - n_outcomes)
+            _rd = _rd + [None] * (n_features - n_outcomes)  # type: ignore[list-item]
 
         final_event = replace(
             event,
