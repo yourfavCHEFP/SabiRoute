@@ -40,3 +40,5 @@ reports/*
 !reports/r02-kill-switch-remediation.md
 !reports/reconciliation-plan.md
 !reports/sprint-02b-unattended-core.md
+# Scan output artifacts from temporary mobilization
+artifacts/production-readiness/scan-outputs/
