@@ -660,16 +660,26 @@ async def chat_completions(
         telemetry_tokens = (
             _sum_actual_tokens(actual_usage_parts) if tokens[2] is None else tokens
         )
-        final_event = replace(
         # Ensure feature/outcome count consistency to prevent integrity-check
         # mismatches (feature_outcome_count_mismatch, outcome_without_feature_snapshot).
-        n_features = len(pre_routing_features)
-        n_outcomes = len(routing_decisions)
+        # Use nonlocal-shadowing local variables so we don't create new locals
+        # in this nested function's scope.
+        try:
+            _prf = list(pre_routing_features)
+        except (UnboundLocalError, NameError):
+            _prf = []
+        try:
+            _rd = list(routing_decisions)
+        except (UnboundLocalError, NameError):
+            _rd = []
+        n_features = len(_prf)
+        n_outcomes = len(_rd)
         if n_features < n_outcomes:
-          pre_routing_features = list(pre_routing_features) + [None] * (n_outcomes - n_features)
+            _prf = _prf + [None] * (n_outcomes - n_features)
         elif n_outcomes < n_features:
-          routing_decisions = list(routing_decisions) + [None] * (n_features - n_outcomes)
+            _rd = _rd + [None] * (n_features - n_outcomes)
 
+        final_event = replace(
             event,
             final_deployment=deployment,
             final_status=response.status_code,
@@ -681,9 +691,9 @@ async def chat_completions(
             reserved_tokens=reserved_tokens if budget_reserved else None,
             estimated_cost_usd=estimated_cost,
             actual_cost_usd=actual_cost,
-            routing_decisions=tuple(routing_decisions),
-            feature_schema_version=FEATURE_SCHEMA_VERSION if pre_routing_features else None,
-            pre_routing_features=tuple(pre_routing_features),
+            routing_decisions=tuple(_rd),
+            feature_schema_version=FEATURE_SCHEMA_VERSION if _prf else None,
+            pre_routing_features=tuple(_prf),
         )
         validation_failed = False
         try:
