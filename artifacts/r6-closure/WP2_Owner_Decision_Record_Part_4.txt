@@ -1,0 +1,258 @@
+# SABIROUTE R6.0 — WP-2 OWNER DECISION RECORD
+## PART 4 OF 4
+
+**Record date:** 11 November 2026
+**Decision authority:** Project Owner
+**Workstream:** R6.0 Closure — WP-2
+**Prepared by:** Claude Code Desktop (coordinator — not the independent verifier)
+**Status:** OWNER DECISIONS APPROVED — IMPLEMENTATION NOT AUTHORISED
+**Part status:** This is part 4 of 4. The record is **COMPLETE** (4 of 4 delivered).
+
+**Sections included in this part:** §14 Deferred · §15 Unlocated · §16 Confirmations, documentary matters and withdrawn matters · §17 Closing authority provisions and completeness checklist.
+
+---
+
+## §14 Deferred — the sixth O5 correction
+
+**Owner instruction, verbatim:**
+
+> Keep the sixth O5 correction deferred.
+
+### §14.1 What the sixth correction is
+
+The five mandatory O5 corrections are E1–E3 and E5–E6 (Part 2 §6). The **sixth** is a different question, and it is about the **token**, not the container:
+
+> **The optional sixth.** The pack explicitly did **not** correct the `VER:v1` **token** itself. It appears in §6 and `PARAM-A.4` as a grammar name; retaining it as the *field-name set identifier* (while the container changes) is the least invasive option and keeps `PARAM-A.4` intact. The pack states: *"If the owner prefers to retire the token entirely, that is a sixth correction and a larger edit."*
+> — `artifacts/r6-closure/wp2-decision-clarification-addendum-2026-11-10.md:311-315`
+
+So the deferred question is: **retire the `VER:v1` token entirely, or retain it as the field-name-set identifier while the container changes from an HTML comment to a JSONL line?**
+
+### §14.2 The decision: deferred, not dropped
+
+**The sixth correction is DEFERRED.** It is not approved, not rejected, and not silently resolved by any other decision in this record.
+
+**What deferral means concretely.** The `VER:v1` token is **retained** in protocol §6 and in `PARAM-A.4`. E2 replaces the *fenced HTML-comment block* with the 12-key table and **retains the six field names**; it does not retire the token. `PARAM-A.4` therefore survives E2 unamended, which is the outcome F-WP2-2 requires.
+
+**What deferral does not mean.** It does not mean the token is now permanent. It means the question is open and must be asked again before any act that would make it expensive to answer — specifically before a real `VER` entry is written. A deferred question that is never re-asked becomes a silent decision, and that is the failure this section exists to prevent.
+
+### §14.3 Why it was deferred rather than decided
+
+Retiring the token is a **larger edit** than the five corrections: it touches the grammar name in §6, the reference in `PARAM-A.4`, and any text that names the record by token. It also has no effect on the bytes of any entry, because the token is a grammar identifier and not a field. Deferring it costs nothing today and avoids coupling a cosmetic rename to a byte-moving pass.
+
+**Recorded status: `VER:v1` token — RETAINED, question OPEN, correction DEFERRED.**
+
+---
+
+## §15 Unlocated — O6–O8, the 2026-11-07 work order, and build-map §1.3/§9
+
+**Owner instruction, verbatim:**
+
+> Preserve O6–O8 as historically recorded but source-unlocated.
+
+### §15.1 What is unlocated
+
+| Item | Status | Basis |
+|---|---|---|
+| **O6, O7, O8** | **NOT LOCATED** | `wp2-owner-response-pack-2026-11-10.md:257-299` — §7 "The O1–O8 registration-design series — **NOT LOCATED**" |
+| **The 2026-11-07 owner work order** | **NOT LOCATED** | addendum `:23-37` (Amendment 2) records that it "has **not been independently located** in the available evidence" |
+| **build-map §1.3 / §9** | **NOT LOCATED** | `wp2-owner-response-pack-2026-11-10.md:347` — `UNLOCATED: O1-O8 series (search could not run); build-map §1.3/§9; 2026-11-07 work order` |
+
+### §15.2 What is preserved, and what is not invented
+
+**Preserved as historically recorded.** The O-series is recorded as `O1`, `O2`, `O3`, `O4` in the addendum, appearing inline in the Source column of §12.1 at `:538` (`(O4)`) and `:539` (`(O1)`), and in the §12.4 provenance paragraphs at `:614-619` and `:626`. `O5` is recorded in this record (Part 2 §9.4) as the decision that `PARAM-A.2` and `PARAM-A.4` implement. **O6, O7 and O8 have no recorded content anywhere in this workspace.**
+
+**Not invented.** This record states **no content** for O6, O7 or O8. It does not guess what they were, does not infer them from the O1–O5 pattern, and does not reconstruct the 2026-11-07 work order. The gap is preserved as a gap.
+
+**Why the gap is preserved rather than closed.** The owner-response pack records the search itself as **NOT PERFORMED** — *"Cross-file whole-corpus searches (e.g. `O6`/`O7`/`O8`) | **NOT PERFORMED** — no shell"* (`:33`). So the absence is an absence of *search*, not a proven absence of *content*. Recording "O6–O8 do not exist" would be a claim the evidence does not support. Recording "O6–O8 are unlocated" is the accurate statement, and it is the one made here.
+
+### §15.3 The O1–O8 series discrepancy
+
+`wp2-owner-response-pack-2026-11-10.md:283` records the discrepancy and its two candidate explanations:
+
+> **O1–O8**, that source is either (a) counting a different register, (b) counting O1–O5 **plus** the …
+
+The discrepancy is **recorded, not resolved**. Resolving it requires the whole-corpus search that was not performed. It is carried forward as a finding.
+
+### §15.4 What this section forbids
+
+- It forbids asserting any content for O6–O8.
+- It forbids asserting that the 2026-11-07 work order has been located.
+- It forbids treating "unlocated" as "does not exist".
+- It forbids closing the O1–O8 discrepancy by assumption.
+
+**Recorded status: O6–O8 — UNLOCATED. 2026-11-07 work order — UNLOCATED. build-map §1.3/§9 — UNLOCATED. No content invented.**
+
+---
+
+## §16 Confirmations, documentary matters and withdrawn matters
+
+These three classes are kept **separate**. A confirmation is not a documentary correction, and neither is a withdrawal. Collapsing them is how a record starts to overstate itself.
+
+### §16.1 Confirmations
+
+| # | Confirmation | Where recorded |
+|---|---|---|
+| 1 | **WP-1 EXIT PASS accepted** by the owner, 2026-11-11, on the recovered blob `531480e2c7bbc5986fee47633d54644de3236500` (SHA-256 `835555927658d2f6f16579482cd24baf8b1c6ad2426f74da47cc4e42f250fd63`) | Part 1, "Status update — subsequent owner directive (2026-11-11) → WP-1 exit" |
+| 2 | **WP2-D8 single-pass ordering confirmed** — E1–E3/E5–E6 → 12-key table + asymmetry note → E8 → E7 last → one vector recomputation → D9 groups | Part 1, "WP2-D8 ordering confirmation" |
+| 3 | **WP-1 §4 blocker withdrawn** on the basis of WP2-D3 | Part 3 §10.2, §10.5 |
+| 4 | **The five decisions stand unchanged** — D2 expanded, D3 qualified, D6 O4-A, D9 approved, D11 refined | Parts 1–3 |
+
+A confirmation records that a matter is settled. It does not authenticate the underlying evidence and does not upgrade any label.
+
+### §16.2 Documentary matters
+
+| # | Matter | Status |
+|---|---|---|
+| 1 | **WP2-D12** — correction-proposal status banner (`:3`) and §2 stale line counts (349→348, 499→646) | **Separate item.** Not approved by the five decisions. Authorised, if at all, only by the 2026-11-16 build map §0.2 |
+| 2 | **E5/E6 anchor correction** — `:93-99` → `:122-126`; `:110-116` → `:134-139`, in **both** the WP-2 pack and the O3/O4/O5 decision pack | Recorded Part 2 §8.4 |
+| 3 | **E8 locus defect** — "addendum §6" in the consolidated pack; the addendum has no §6 | Recorded Part 2 §6.2, Part 3 §13.3 |
+| 4 | **`§5.2` citation defect** — the clarification addendum cites "§5.2" without naming a document | Recorded Part 2 §9.3 |
+| 5 | **F-WP2-4 identifier collision** — `close-final-07 C-n` vs `O3/O4/O5-pack C-n` vs `correction-proposal C-1…C-7` vs `T16 C1–C4` | Recorded Part 3 §10.4; all references must be register-qualified |
+| 6 | **F-WP2-1 auditability paradox** — the corrections land on untracked files and produce no `git diff` | Carried; the byte-level diff record is the substitute |
+| 7 | **F-WP2-3** — digest values in the WP-2 packs are reported, not re-measured | Carried; re-measured in this session's baseline |
+
+### §16.3 Withdrawn matters
+
+| # | Withdrawn | Basis |
+|---|---|---|
+| 1 | **WP-1 §4 registration-locus blocker** | WP2-D3 — a parameter needs no locus |
+| 2 | **Scheme A labelling** (E1–E5 sequential) | WP2-D2 — Scheme B governs |
+| 3 | **The `:93-99` / `:110-116` addendum anchors** | Measured — they point at the namespace rule, the provenance table row, the §3 heading and `PARAM-A.1` |
+| 4 | **The "addendum §6" E8 locus** | Measured — the addendum has no §6 |
+| 5 | **Part 1's part-allocation plan** (§6–§9 for D2, §10–§13 for D3/D6/D9/D11) | Part 2 preamble — §6–§9 delivered in Part 2; §10–§13 in Part 3 |
+
+A withdrawal removes a *position*, not a *record*. What was previously proposed stands unchanged in the historical record; what is withdrawn is its standing as the governing position.
+
+### §16.4 Correction to Part 1's own standing note
+
+Part 1 states, at its "Record completeness and authority boundary" paragraph:
+
+> Only Parts 1 and 2 of the four-part decision record are present in the repository or the searched project-transfer locations. Parts 3 and 4 were not found and are not reconstructed here. The record remains **incomplete**.
+
+**That statement is false, and this part corrects it.** Part 2 was **never written** as a numbered part file. What existed was a *transmitted draft* of Part 2 — `artifacts/r6-closure/Pasted text(20261111-123928).txt` (26,435 bytes) and a similar `artifacts/r6-closure/Build_Map_for_the_Models_v1.0.txt` (26,329 bytes) — neither of which is `WP2_Owner_Decision_Record_Part_2.txt`. Part 1's note counted a transmission as a part.
+
+**The corrected position:** the record was **1 of 4** delivered, not 2 of 4. With Parts 2, 3 and 4 now written, it is **4 of 4** and **COMPLETE**.
+
+This correction is recorded here rather than by editing Part 1, because Part 1 is a prior record and editing it would be a silent history rewrite. The false sentence stands in Part 1 as written; this paragraph supersedes it.
+
+---
+
+## §17 Closing authority provisions and completeness checklist
+
+### §17.1 Authority provisions
+
+**This record is recording only.** It authorises nothing. Specifically, nothing in Parts 1–4 constitutes or implies authorisation to:
+
+- edit `docs/`, `tests/` or `src/` — except as separately authorised by the 2026-11-16 build map §0.2;
+- implement any correction in the E1–E8 inventory;
+- run tests — except as separately authorised;
+- stage, commit, push, tag, rebase or switch branches;
+- **track the R6 governance corpus** — R6.0-D step 2, a separate repository act, **not approved**;
+- perform any registration act; create or instantiate a ledger; author a REG marker, VER entry, marker, key, signature or checkpoint;
+- sign **BL-22** (`NOT SIGNED`) or advance **G7** (`NOT GRANTED`);
+- start **R6.1–R6.7**;
+- revisit, re-open or re-decide any already-settled matter.
+
+**Two matters remain outside the five decisions and must not be read as approved by them:** **WP2-D12** (documentary correction) and **R6.0-D step 2** (corpus tracking).
+
+### §17.2 Completeness checklist
+
+| # | Requirement | Part / § | Status |
+|---|---|---|:--|
+| 1 | Part 1 delivered — authority, codes, sources, conventions | Part 1 | ✅ |
+| 2 | Part 2 delivered — Scheme B, E1–E7, 12-key table, O5 row | Part 2 | ✅ |
+| 3 | Part 3 delivered — D3, D6, D9, D11 | Part 3 | ✅ |
+| 4 | Part 4 delivered — deferred, unlocated, confirmations, closing | Part 4 | ✅ |
+| 5 | Every decision carries its owner code verbatim | Parts 1–3 | ✅ |
+| 6 | **D11's divergence stated in the same paragraph as the decision** | Part 3 §13.1 | ✅ |
+| 7 | **The sixth O5 correction is deferred, not resolved** | §14 | ✅ |
+| 8 | **O6–O8 preserved as unlocated, with no invented content** | §15 | ✅ |
+| 9 | **Part 4 corrects Part 1's false "Parts 1 and 2 present" note** | §16.4 | ✅ |
+| 10 | Confirmations, documentary matters and withdrawals kept separate | §16.1–§16.3 | ✅ |
+| 11 | The 12-key VER table is complete, envelope + payload | Part 2 §9.1 | ✅ |
+| 12 | `entry_sha256` computed, excluded from hash input | Part 2 §9.2 | ✅ |
+| 13 | The seventh correction **applied** at its two loci, not merely recorded | Part 2 §9.4; applied 2026-11-16 at addendum §12.1 (`PARAM-A.7`, `PARAM-A.2`) and §12.4 | ✅ |
+| 14 | E5/E6 corrected anchors recorded in both affected records | Part 2 §8.4 | ✅ |
+| 15 | The five D9 groups enumerated, negative-first | Part 3 §12.2 | ✅ |
+| 16 | The skip is called a finding, not a pass | Part 3 §12.5 | ✅ |
+| 17 | No file in `docs/`, `tests/` or `src/` was touched by this record | — | ✅ |
+| 18 | No claim that any correction has been implemented | throughout | ✅ |
+| 19 | No registration act, ledger, key, signature or checkpoint created | — | ✅ |
+| 20 | BL-22 not signed · G7 not granted · R6.0-D step 2 not performed | — | ✅ |
+
+**Completeness: 20 of 20 items delivered. The record is COMPLETE (4 of 4).**
+
+**Note on item 13 (updated 2026-11-16).** Item 13 previously read "recorded with
+its two loci" and its ✅ rested on the *recording* alone. It now rests on the
+**application**. On 2026-11-16 the seventh correction was applied to
+`docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md` at its two
+loci — §12.1 (`PARAM-A.7` Source column; `PARAM-A.2` cross-reference) and §12.4
+(new N1-O5 provenance paragraph) — taking the addendum from 38,699 B / 647 L
+(`a3195ac6…`) to 39,784 B / 661 L (`9a817f6d…`). The application is evidenced
+line-by-line in `artifacts/r6-closure/wp2-byte-diff-2026-11-16.md` §9, and the
+addendum's digest vector was recomputed once in witness
+(`tests/test_r6_registration_digest_conformance.py:174`), with T16 and PROTOCOL
+confirmed unmoved. Suites: 104 passed / 1 skipped and 6 passed.
+
+**Reconciliation with items 17 and 18.** Items 17 and 18 remain ✅ and are not
+inconsistent with the updated item 13. Both are claims about *this record*: that
+Parts 1–4, as a document, neither edited `docs/`, `tests/` or `src/` nor asserted
+that any correction had been implemented. That remains true — this record still
+implements nothing and claims nothing of itself. The implementation recorded in
+item 13 and in the note above was performed by the build under §6C of the build
+map, is evidenced in the byte-diff record rather than in this document, and
+carries no owner approval, no commit, no signature and no G7 grant.
+
+---
+
+**END OF PART 4 OF 4 — RECORD COMPLETE (4 of 4)**
+**RECORDING ONLY. NOT AN EXECUTION AUTHORISATION.**
+**NOTHING IMPLEMENTED BY THIS RECORD · BL-22 NOT SIGNED · G7 NOT GRANTED · R6.0-D STEP 2 NOT PERFORMED**
+
+---
+
+`─────────────────────────────────────────`
+` ✓ PART 1 : authority, codes, sources, conventions`
+` ✓ PART 2 : E1-E7 · 12-key table · O5 provenance row`
+` ✓ PART 3 : D3 · D6 · D9 · D11 (incl. refined bound)`
+` ✓ PART 4 : deferred, unlocated, checklist`
+`─────────────────────────────────────────`
+
+Three notes on this final part.
+
+**The record is complete; the work is not.** Completeness here means the four parts exist and every decision is recorded. It does not mean any correction has been applied. The nine-step edit sequence is a separate act under a separate authorisation, and until it runs, the protocol still says "separate structured comment" and the addendum still has zero `O5` references.
+
+**Supersession of the paragraph above (2026-11-16).** The paragraph immediately
+above is retained verbatim as the historical record and is **not** rewritten, in
+keeping with the convention stated in the next paragraph: prior statements are
+superseded in place, not edited to match today. Its closing clause is now false
+on both halves. It asserted that the nine-step edit sequence had not run, and
+that consequently the protocol still said "separate structured comment" and the
+addendum carried **zero** `O5` references. The nine-step sequence ran under §6B
+of the build map, and a second pass under §6C followed on **2026-11-16**; the
+protocol no longer says "separate structured comment", and the addendum now
+carries **four** `O5` references, at `:528` (`PARAM-A.2` Source column), `:533`
+(`PARAM-A.7` Source column), `:644` (the N1-O5 provenance paragraph heading) and
+`:646` (its body). The falsification is evidenced in
+`artifacts/r6-closure/wp2-byte-diff-2026-11-16.md` §9. Nothing in this
+supersession attaches any owner approval, commit, signature or G7 grant: the
+corpus remains untracked, BL-22 remains unsigned, and G7 remains ungranted.
+
+**Anchor re-measurement (2026-11-16).** Every line anchor cited in this part was
+re-measured against today's addendum (661 lines) rather than carried forward from
+the 646-line state in which this record was written. Two were stale by one and
+have been corrected in place: the §12.1 Source-column anchors at `:62` now read
+`:538` (`(O4)`, the `PARAM-B.5` row) and `:539` (`(O1)`, the `PARAM-B.6` row),
+having previously read `:537` and `:538`. The remaining anchors were re-measured
+and still resolve to the content they name: `:23-37` (Amendment 2, containing
+"has not been independently located"), `:93-99` (the namespace rule), `:110-116`
+(the provenance table row, the §3 heading and `PARAM-A.1`), `:614-619` (the
+Amendment 1 provenance paragraph) and `:626` (the Phase 1 provenance paragraph).
+The `:122-126` and `:134-139` anchors at `:107` are not anchors of this record but
+a recorded finding about the WP-2 pack and the O3/O4/O5 decision pack; they are
+left as recorded, since that correction was never written into those two upstream
+records and rewriting the finding here would misrepresent it.
+
+**Part 1's false note is corrected, not erased.** §16.4 supersedes it in place. Part 1 still reads "Only Parts 1 and 2 … are present", because editing a prior record to match today is the failure mode this corpus names explicitly. A reader who finds only Part 1 will be wrong about the record's state, and §16.4 is the only place that says so — which is why it is stated plainly rather than in a footnote.
+
+**The deferred sixth is the one item most likely to be lost.** It has no owner code, no edit, and no test. It is recorded here so that the next pass cannot retire the `VER:v1` token by accident, and cannot keep it by accident either.

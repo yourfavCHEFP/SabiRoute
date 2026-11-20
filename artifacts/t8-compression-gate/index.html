@@ -1,0 +1,700 @@
+<title>T8 Compression Gate</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout concept: a verification receipt — one measured column of ledger rows,
+     with tinted bands reserved for the two facts that change the decision. */
+  :root {
+    --bg: #f2f5f6;
+    --surface: #ffffff;
+    --surface-2: #e9eef0;
+    --fg: #111a1e;
+    --muted: #56676f;
+    --rule: #d3dde1;
+    --accent: #0d6a68;
+    --ok: #1c6f47;
+    --warn: #8f5c05;
+    --bad: #a33121;
+    --code-bg: #e6edef;
+    --band: #e3efee;
+
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --display: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1216;
+      --surface: #131c21;
+      --surface-2: #182329;
+      --fg: #e4edf1;
+      --muted: #91a5af;
+      --rule: #25333a;
+      --accent: #4cc4bd;
+      --ok: #5ed29b;
+      --warn: #dfa239;
+      --bad: #f07c6c;
+      --code-bg: #101a1f;
+      --band: #10262a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1216;
+    --surface: #131c21;
+    --surface-2: #182329;
+    --fg: #e4edf1;
+    --muted: #91a5af;
+    --rule: #25333a;
+    --accent: #4cc4bd;
+    --ok: #5ed29b;
+    --warn: #dfa239;
+    --bad: #f07c6c;
+    --code-bg: #101a1f;
+    --band: #10262a;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 960px; margin-inline: auto; padding-block: 40px 56px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Masthead */
+  .masthead { border-bottom: 1px solid var(--rule); padding-bottom: 26px; }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5.2vw, 3.15rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 10px 0 0;
+  }
+  .standfirst {
+    font-size: 1.06rem;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 14px 0 0;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 26px;
+  }
+  .fact { background: var(--surface); padding: 12px 14px; min-width: 0; }
+  .fact dt {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .fact dd {
+    margin: 5px 0 0;
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  /* Verdict band */
+  .verdict {
+    margin-top: 34px;
+    background: var(--band);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--bad);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .verdict p { margin: 8px 0 0; max-width: 68ch; }
+  .verdict strong { font-weight: 600; }
+
+  section { margin-top: 44px; }
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin: 6px 0 0;
+    text-wrap: balance;
+  }
+  .lede { margin: 10px 0 0; max-width: 68ch; }
+  section > p { max-width: 68ch; }
+
+  /* Ledger tables */
+  .tbl {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin-top: 18px;
+    background: var(--surface);
+  }
+  table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 0.89rem; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 13px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    min-width: 0;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.ev { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+  td strong { font-weight: 600; }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .chip.ok { color: var(--ok); }
+  .chip.warn { color: var(--warn); }
+  .chip.bad { color: var(--bad); }
+  .chip.info { color: var(--accent); }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 18px 0 0;
+    tab-size: 2;
+  }
+  code { font-family: var(--mono); font-size: 0.88em; }
+  p code, li code, td code {
+    background: var(--code-bg);
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .hit { color: var(--bad); font-weight: 500; }
+
+  /* Decision options */
+  .opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .opt {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--muted);
+    border-radius: 10px;
+    padding: 16px 17px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .opt.rec { border-top-color: var(--accent); }
+  .opt.out { border-top-color: var(--bad); }
+  .opt.no { border-top-color: var(--warn); }
+  .opt h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.06rem;
+    margin: 0;
+    line-height: 1.25;
+  }
+  .opt p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .opt .chip { align-self: flex-start; }
+
+  /* Register */
+  ol.reg { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  ol.reg li { background: var(--surface); padding: 13px 16px; display: grid; grid-template-columns: 2.6rem 1fr; gap: 12px; align-items: start; }
+  .num { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px; }
+  .reg-body { min-width: 0; }
+  .reg-txt { margin: 0; font-size: 0.93rem; }
+  .reg-meta { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.03em; }
+
+  ul.gates { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 8px; }
+  ul.gates li {
+    display: flex;
+    gap: 11px;
+    align-items: baseline;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 0.93rem;
+    min-width: 0;
+  }
+  .box {
+    flex: 0 0 auto;
+    width: 13px; height: 13px;
+    border: 1.5px solid var(--muted);
+    border-radius: 3px;
+    transform: translateY(1px);
+  }
+  .gate-owner { margin-left: auto; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+  footer {
+    margin-top: 52px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 0.84rem;
+    color: var(--muted);
+    max-width: 72ch;
+  }
+  footer p { margin: 0 0 9px; }
+  footer .stamp { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    a { transition: color 120ms ease; }
+  }
+  @media (max-width: 520px) {
+    ol.reg li { grid-template-columns: 1fr; gap: 4px; }
+    .num { padding-bottom: 2px; }
+    .gate-owner { margin-left: 0; width: 100%; }
+    ul.gates li { flex-wrap: wrap; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Sprint 9 gate · Track B · read-only</p>
+    <h1>Nothing was built. The decision is the deliverable.</h1>
+    <p class="standfirst">
+      The inherited session state describes a working compression package. It does not exist —
+      not on this branch, not on any branch, not in any commit. What the repository actually holds
+      is a frozen design packet and a revalidation of it. That makes the open work a choice, not a
+      repair: <strong>build, adopt, or wrap the compression engine LiteLLM already ships.</strong>
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Live HEAD</dt><dd>319a711</dd></div>
+      <div class="fact"><dt>Repo compression code</dt><dd>none</dd></div>
+      <div class="fact"><dt>Compression commits</dt><dd>0</dd></div>
+      <div class="fact"><dt>Gate</dt><dd>closed · 8 open</dd></div>
+    </dl>
+  </header>
+
+  <div class="verdict">
+    <p class="eyebrow" style="color: var(--bad)">Correction to inherited state</p>
+    <p>
+      <strong>A compression implementation was never merged into this repository.</strong>
+      There is no <code>src/sabiroute/compression/</code>, no <code>compress.py</code>, no
+      <code>smartcrush.py</code>, no <code>semantic.py</code>, no <code>llmlingua_impl.py</code>,
+      no <code>integrity.py</code>, and zero compression tests. <code>git log --all</code> finds no
+      commit that added any of them, and the claimed base commit
+      <code>707d4c4</code> is not a valid object in this repository. Any plan that treats the
+      engine as existing and needing a fix is built on a state that was never real.
+    </p>
+  </div>
+
+  <section>
+    <p class="eyebrow">Evidence</p>
+    <h2>What is actually there</h2>
+    <p class="lede">
+      Every row below was re-checked against the working tree at <code>319a711</code> during this
+      review. Nothing here is carried over from the session summary.
+    </p>
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr><th>Fact</th><th>Verified value</th><th>Method</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Branch / HEAD</td><td><code>feat/sabiroute-routing-foundation</code> @ <code>319a711</code></td><td class="ev">git rev-parse</td></tr>
+          <tr><td>Tracked changes</td><td>0 staged, 0 modified</td><td class="ev">git status --porcelain</td></tr>
+          <tr><td>Untracked scope</td><td>18 top-level entries, 1,341 files</td><td class="ev">git ls-files --others</td></tr>
+          <tr><td>Compression package</td><td><strong>absent</strong> — no <code>src/sabiroute/compression/</code></td><td class="ev">find · ls src/sabiroute/</td></tr>
+          <tr><td>Compression symbols</td><td>0 hits for <code>_SEMANTIC_HEAD</code>, <code>length_ratio</code>, <code>SmartCrush</code>, <code>llmlingua</code></td><td class="ev">grep -rl src/</td></tr>
+          <tr><td>Compression commits</td><td>0 across all branches</td><td class="ev">git log --all --grep · git log --all -- path</td></tr>
+          <tr><td>Compression tests</td><td>0 files; suite is 52 files / 596 test functions</td><td class="ev">ls tests/ · grep -c "def test_"</td></tr>
+          <tr><td>Placeholder modules</td><td>4 files at exactly 0 bytes (<code>intelligence/</code> ×3, <code>routing/intelligent.py</code>)</td><td class="ev">wc -c</td></tr>
+          <tr><td>Gate documents in VCS?</td><td><strong>Neither.</strong> Packet and preflight are both untracked</td><td class="ev">git ls-files --error-unmatch</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Refutation</p>
+    <h2>Five inherited claims, none of which survive contact with the tree</h2>
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr><th>Inherited claim</th><th>What the repository shows</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A compression package with five modules, plus <code>compress.py</code></td>
+            <td>The directory does not exist in the working tree or in any branch's history.</td>
+            <td><span class="chip bad">false</span></td>
+          </tr>
+          <tr>
+            <td><code>_SEMANTIC_HEAD</code> and <code>length_ratio</code> implemented</td>
+            <td>Zero occurrences of either symbol anywhere under <code>src/</code>.</td>
+            <td><span class="chip bad">false</span></td>
+          </tr>
+          <tr>
+            <td>40+ compression tests added</td>
+            <td>No <code>tests/test_compression_*</code> file exists.</td>
+            <td><span class="chip bad">false</span></td>
+          </tr>
+          <tr>
+            <td>HEAD was <code>707d4c4</code> with 2,640 tests</td>
+            <td><code>707d4c4</code> is not a valid object; HEAD is <code>319a711</code>; the suite holds 596 test functions in 52 files.</td>
+            <td><span class="chip bad">false</span></td>
+          </tr>
+          <tr>
+            <td>Gaps and blockers were fixed</td>
+            <td>Nothing under <code>src/</code> or <code>tests/</code> mentions compression. The gate is closed and unbuilt by design.</td>
+            <td><span class="chip bad">false</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px">
+      This matters beyond bookkeeping. The packet exists because the work is <em>authorised to be
+      designed and forbidden to be built</em> until Track A is green, T8 accepts the design, and the
+      owner authorises Sprint 9. A fabricated implementation state quietly overrides all three gates.
+    </p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Revalidation audit</p>
+    <h2>The preflight holds up, with three defects of its own</h2>
+    <p class="lede">
+      The revalidation packet (<code>artifacts/compression-preflight/</code>) is substantially
+      accurate. Its line-level citations across <code>completions.py</code>,
+      <code>budgets.py</code>, <code>deadline.py</code>, <code>chat.py</code>,
+      <code>dataset.py</code> and <code>litellm_client.py</code> were sampled and every one resolved
+      to the cited content. Three claims did not.
+    </p>
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr><th>Preflight claim</th><th>Verified at 319a711</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>~60 line citations across six modules</td>
+            <td>All sampled citations resolve exactly — e.g. <code>:1443</code> snapshot read, <code>:1520</code> stream open, <code>:1529</code> first frame, <code>:1539</code> non-stream call, <code>:1606–1608</code> retry ceiling, <code>:943</code> one-shot estimate.</td>
+            <td><span class="chip ok">confirmed</span></td>
+          </tr>
+          <tr>
+            <td>LiteLLM ships a compression engine (1.103.0)</td>
+            <td>Exported at <code>litellm/__init__.py:1335</code>. It is a <strong>synchronous</strong> function returning <code>CompressedResult</code>.</td>
+            <td><span class="chip ok">confirmed</span></td>
+          </tr>
+          <tr>
+            <td>“CLAUDE.md line 267 lists Phase 14 Benchmarking — Planned”</td>
+            <td>Line <strong>266</strong> is <code>14 Benchmarking  Planned</code>. Line 267 is <code>15 Admin Dashboard</code>.</td>
+            <td><span class="chip warn">corrected</span></td>
+          </tr>
+          <tr>
+            <td>“4 commits ahead, no divergence”</td>
+            <td>True against <code>b360ffc</code>. Against origin: <strong>6 ahead, 3 behind</strong> — the divergence the packet named still applies.</td>
+            <td><span class="chip warn">corrected</span></td>
+          </tr>
+          <tr>
+            <td>Track A file sizes</td>
+            <td>Drifted: <code>main.py</code> 7.7 KB (said 7.9), <code>gateway.py</code> 10.3 KB (10.6), <code>store.py</code> 64.0 KB (65.5).</td>
+            <td><span class="chip info">minor</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px">
+      A document whose purpose was correcting the packet's citations carried its own citation error,
+      so the correction register below absorbs both.
+    </p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Decisive finding</p>
+    <h2>The config-only adoption path cannot reach SabiRoute</h2>
+    <p class="lede">
+      The preflight identified the vendored interception logger as “a second seam.” It is one — but
+      it is gated to a call type SabiRoute never issues, which rules out the cheapest option on the
+      table. This is the finding the review decisions turn on.
+    </p>
+    <pre><code><span class="hit">async def async_pre_call_deployment_hook(</span>
+    self, kwargs: dict[str, Any], call_type: CallTypes | None
+) -&gt; dict[str, object] | None:
+    if not self.enabled:
+        return None
+<span class="hit">    if call_type is not None and call_type != CallTypes.anthropic_messages:
+        return None</span>
+    ...
+    compressed = await asyncify(compress)(...)   # offloaded to a thread</code></pre>
+    <p class="eyebrow" style="margin-top:10px">
+      litellm/integrations/compression_interception/handler.py:137–157
+    </p>
+    <p style="margin-top:16px">
+      SabiRoute's entire provider surface is two OpenAI-shape calls —
+      <code>chat_completion</code> and <code>start_chat_completion_stream</code>
+      (<code>litellm_client.py:71</code>, <code>:133</code>) — and there is no Anthropic code
+      anywhere in <code>src/</code>. Setting
+      <code>litellm_settings.compression_interception_params</code> in
+      <code>config/config.yaml</code> would therefore install a callback that returns
+      <code>None</code> on every request the gateway actually serves.
+    </p>
+  </section>
+
+  <section>
+    <p class="eyebrow">The challenge</p>
+    <h2>Three positions, one recommendation</h2>
+    <div class="opts">
+      <div class="opt out">
+        <span class="chip bad">ruled out</span>
+        <h3>Adopt via proxy callback</h3>
+        <p>Turn it on in <code>litellm_settings</code> with no SabiRoute code. Blocked by the
+          <code>anthropic_messages</code> guard: a no-op on the gateway's only call path.</p>
+      </div>
+      <div class="opt rec">
+        <span class="chip info">recommended</span>
+        <h3>Wrap <code>litellm.compress()</code></h3>
+        <p>Call the function directly at the verified seam, offload it off the event loop, and keep
+          policy, preservation and telemetry inside SabiRoute. Reuses shipping BM25 stubbing and
+          token accounting without inheriting the call-type guard.</p>
+      </div>
+      <div class="opt no">
+        <span class="chip warn">not advised</span>
+        <h3>Build a new engine</h3>
+        <p>The packet's original CD3 shape. Reimplements stubbing, relevance scoring, a retrieval
+          cache and a savings ledger that the declared dependency already provides.</p>
+      </div>
+    </div>
+    <p style="margin-top:16px">
+      The recommendation is to <strong>wrap</strong>, and the reason is narrower than preference:
+      <code>litellm.compress()</code> already returns <code>original_tokens</code>,
+      <code>compressed_tokens</code>, <code>compression_ratio</code>, a retrieval cache and a
+      <code>compression_skipped_reason</code>
+      (<code>litellm/types/compression.py:15–22</code>) — which is most of the CD4 contract, already
+      implemented, at no new dependency cost. Wrapping keeps that and still lets SabiRoute own the
+      decisions CD4 reserves: when to run, what to preserve, and what to record.
+    </p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Constraints</p>
+    <h2>What any chosen option still has to satisfy</h2>
+    <p class="lede">
+      These are verified properties of the live gateway, not design opinions. They survive whichever
+      position T8 takes.
+    </p>
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr><th>Constraint</th><th>Live evidence</th><th>Consequence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>300-second absolute deadline</td>
+            <td class="ev">deadline.py:13 — DEFAULT_REQUEST_DEADLINE_SECONDS = 300.0; checks at completions.py:1346, :1626</td>
+            <td>The transform needs its own time box. A slow compressor is otherwise cancelled and reported as <code>deadline_exceeded</code>, blaming the provider.</td>
+          </tr>
+          <tr>
+            <td>Retry budget uses a stale estimate</td>
+            <td class="ev">completions.py:943 computes estimated_input once; :1606–1608 compares remaining against it</td>
+            <td>After compression the retry arithmetic budgets against a larger number than the wire will carry. Accept explicitly, or revisit the seam.</td>
+          </tr>
+          <tr>
+            <td>Telemetry schema is frozen at 1.1</td>
+            <td class="ev">completions.py:2085 literal "1.1"; dataset.py:109 Literal["1.1"]</td>
+            <td>No <code>attempt_id</code> (only <code>fallback_attempt</code>, :2089) and no <code>decision_id</code> (proxies at :2073, :2084). CD6 asks for identifiers the event does not emit.</td>
+          </tr>
+          <tr>
+            <td>Compression injects a tool</td>
+            <td class="ev">types/compression.py:21 — tools: [litellm_content_retrieve tool definition]</td>
+            <td>Mutating <code>tools</code> collides with CD2's rule that transformation cannot alter tool authorization. The wrapper must define whether the retrieval tool is offered.</td>
+          </tr>
+          <tr>
+            <td><code>tiktoken</code> is undeclared at runtime</td>
+            <td class="ev">0 in pyproject; transitive in uv.lock (litellm dep, v0.14.0); imported at utils.py:43</td>
+            <td>Token counting reaches tiktoken. Adopting or wrapping means promoting it to a declared, range-pinned dependency — the byte estimator is not an alternative under this option.</td>
+          </tr>
+          <tr>
+            <td>Defaults are inert and mis-documented</td>
+            <td class="ev">compress.py:359 trigger = 200_000; target = trigger * 7 // 10, while the docstring says <code>compression_trigger // 2</code></td>
+            <td>Above SabiRoute's typical payload, and the documented target is wrong by design-and-code mismatch upstream. Tune explicitly; do not rely on stated defaults.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Corrections</p>
+    <h2>Register — nine inherited, three added by this review</h2>
+    <p class="lede">
+      Items 01–09 are the preflight's. Items 10–12 correct the preflight itself. Seven are blocking;
+      the gate does not move until each has a written answer.
+    </p>
+    <ol class="reg">
+      <li>
+        <span class="num">01</span>
+        <div class="reg-body">
+          <p class="reg-txt">State an explicit build / adopt / wrap position on <code>litellm.compress()</code>, informed by the anthropic-only interception guard.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD1 · CD3</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">02</span>
+        <div class="reg-body">
+          <p class="reg-txt">Re-pin the baseline from <code>b360ffc</code> to <code>319a711</code> and restate drift as <strong>4 ahead of the pin, 6 ahead / 3 behind origin</strong>. Divergence has not resolved.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> packet header</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">03</span>
+        <div class="reg-body">
+          <p class="reg-txt">Correct “one call site”: two provider invocations (<code>:1520</code> streaming, <code>:1539</code> non-streaming) plus the snapshot read at <code>:1443</code>, and say where in that order the transform applies.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD3</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">04</span>
+        <div class="reg-body">
+          <p class="reg-txt">Name the 300-second deadline interaction: the engine needs a time box that cannot extend the request deadline, and a slow compressor must not be attributed to <code>deadline_exceeded</code>.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD2</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">05</span>
+        <div class="reg-body">
+          <p class="reg-txt">Reconcile CD6 with the seam: correlate on <code>request_id</code> + <code>fallback_attempt</code>, or propose a schema bump to 1.2 with Track A sign-off.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD6</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">06</span>
+        <div class="reg-body">
+          <p class="reg-txt">Resolve the Sprint 9 benchmark corpus against Phase 14 Benchmarking, listed Planned at <code>CLAUDE.md:266</code> — an explicit carve-out or a documented deferral.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD5 · CLAUDE.md §11</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">07</span>
+        <div class="reg-body">
+          <p class="reg-txt">Revise the retry-budget note: <code>estimated_input</code> is computed once at <code>:943</code> and is stale after any compression.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> CD2</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">08</span>
+        <div class="reg-body">
+          <p class="reg-txt">Restate CD1 evidence: two <code>summariz</code> docstring hits exist (<code>dataset.py:787</code>, <code>:1080</code>), so the finding is “no transform module”, not “zero hits”.</p>
+          <p class="reg-meta"><span class="chip warn">non-blocking</span> CD1</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">09</span>
+        <div class="reg-body">
+          <p class="reg-txt">Correct the ADR citation: the roadmap is §4 (line 115) and order H is “Deterministic benchmarks + task-aware experiments” at line 164.</p>
+          <p class="reg-meta"><span class="chip warn">non-blocking</span> packet header</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">10</span>
+        <div class="reg-body">
+          <p class="reg-txt"><strong>New.</strong> Correct the preflight's own citation: Phase 14 Benchmarking is <code>CLAUDE.md:266</code>, not 267. Line 267 is the Admin Dashboard row.</p>
+          <p class="reg-meta"><span class="chip warn">non-blocking</span> preflight T6</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">11</span>
+        <div class="reg-body">
+          <p class="reg-txt"><strong>New.</strong> Withdraw “no divergence”. <code>HEAD...origin</code> is 6 ahead / 3 behind, so the packet's behind-3 finding still stands and the origin Batch 2 line still carries F-04/F-05 absent locally.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> baseline integrity</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">12</span>
+        <div class="reg-body">
+          <p class="reg-txt"><strong>New.</strong> Put the packet and the preflight under version control before T8 convenes. Both are untracked today, so the entire gate input can be lost and is not reviewable by SHA.</p>
+          <p class="reg-meta"><span class="chip bad">blocking</span> governance</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <p class="eyebrow">Gate state</p>
+    <h2>Eight gates, eight open</h2>
+    <ul class="gates">
+      <li><span class="box"></span>CD1–CD6 report complete<span class="gate-owner">T8</span></li>
+      <li><span class="box"></span>Baseline SHA and search scope recorded on the current tree<span class="gate-owner">T8</span></li>
+      <li><span class="box"></span>Hook and file boundary justified — needs the two-call-site correction<span class="gate-owner">Design</span></li>
+      <li><span class="box"></span>Engine contract, policy model and pass-through rules specified<span class="gate-owner">Design</span></li>
+      <li><span class="box"></span>Benchmark corpus and methodology versioned or fully specified<span class="gate-owner">Design</span></li>
+      <li><span class="box"></span>Telemetry correlation and quantitative test criteria specified<span class="gate-owner">Design + Track A</span></li>
+      <li><span class="box"></span>T8 reviews and accepts the design<span class="gate-owner">T8</span></li>
+      <li><span class="box"></span>Owner explicitly authorizes Sprint 9 implementation<span class="gate-owner">Owner</span></li>
+    </ul>
+    <p style="margin-top:16px">
+      The inventory finding survives the whole review: there is no compression code in this
+      repository, no prior work to preserve, and one clean seam where a transform can be inserted
+      without touching routing, credentials or endpoint selection. What has changed is that the first
+      question is now build versus wrap — and that the cheap answer, configuration, is closed.
+    </p>
+  </section>
+
+  <footer>
+    <p class="stamp">Method and limits</p>
+    <p>
+      Read-only inspection at <code>319a711</code>: <code>git</code> rev-parse / status / log / ls-files /
+      rev-list / merge-base, targeted <code>sed</code> and <code>grep</code> over the cited lines, and
+      direct inspection of installed <code>litellm 1.103.0</code> in <code>site-packages</code>.
+    </p>
+    <p>
+      Not done: the test suite was not run, no profiling, and <code>compress()</code> was never
+      executed. No runtime behaviour was exercised. Dependency evidence is limited to
+      <code>pyproject.toml</code>, <code>uv.lock</code> and the installed distribution. No source
+      file was modified.
+    </p>
+  </footer>
+
+</div>

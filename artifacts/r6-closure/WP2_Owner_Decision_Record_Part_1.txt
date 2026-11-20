@@ -1,0 +1,238 @@
+# SABIROUTE R6.0 — WP-2 OWNER DECISION RECORD
+## PART 1 OF 4
+
+**Record date:** 11 November 2026
+**Decision authority:** Project Owner
+**Workstream:** R6.0 Closure — WP-2
+**Prepared by:** Claude Code Desktop (coordinator — not the independent verifier)
+**Status:** OWNER DECISIONS APPROVED — IMPLEMENTATION NOT AUTHORISED
+**Part status:** This is part 1 of 4. The record is **not complete.**
+
+**Sections included in this part:** §1 Purpose and authority · §1.1 What this record is · §1.2 Authority boundary · §1.3 Transmission-defect note · §2 Decision register at a glance · §3 Source inventory · §4 Recording conventions · §5 Structure of parts 2–4.
+
+---
+
+## §1 Purpose and authority
+
+This record assembles the Project Owner's explicit decisions on five WP-2 decisions — **D2, D3, D6, D9 and D11** — together with the deferred and unlocated matters that must not be confused with them. It is prepared from the authoritative source material already present in the workspace, re-read for this purpose, and not from any single transmission.
+
+The decisions recorded here **supersede any conflicting proposed positions in earlier WP-2 decision packs**. They do **not** retrospectively authenticate historical actions or evidence. Where an earlier pack proposed a position that conflicts with a decision below, the proposal is superseded as a *position*; the historical record of what was proposed stands unchanged.
+
+Owner-supplied decision codes, recorded verbatim as given:
+
+| Decision | Owner code |
+|---|---|
+| **WP2-D2** | `approve-expanded` |
+| **WP2-D3** | `confirm-qualified` |
+| **WP2-D6** | `A` |
+| **WP2-D9** | `approve` |
+| **WP2-D11** | `approve-refined` |
+
+Three further owner instructions were supplied with those codes and are recorded here as binding context:
+
+> Keep the sixth O5 correction deferred.
+> Preserve O6–O8 as historically recorded but source-unlocated.
+> These decisions authorise recording the decisions in the governance record only. They do not authorise implementation or repository operations.
+
+---
+
+### §1.1 What this record is
+
+This record is the formal instrument by which the five decisions above enter the governance record. For each decision it recovers the exact requirements from source, distinguishes owner-selected outcomes from proposal text, and states the verified live anchors against which any future edit must be applied.
+
+It is a **record of decisions**, not a plan, not an authorisation, and not a verification. Where a requirement could not be recovered from source or verified against live files, this record names the gap in the part concerned rather than filling it.
+
+---
+
+### §1.2 Authority boundary
+
+The authority granted by these decisions is **recording only**. Nothing in this record constitutes or implies authorisation to:
+
+- edit `docs/`, `tests/` or `src/`; modify any protocol document; touch any existing pack;
+- implement any correction in the E1–E7 inventory or the expanded D2 scope;
+- run tests;
+- stage, commit, push, tag, rebase or switch branches;
+- track the R6 governance corpus (**R6.0-D step 2** — a separate repository act, **not approved by these decisions**);
+- perform any registration act; create or instantiate a ledger; author a REG marker, VER entry, marker, key, signature or checkpoint;
+- sign **BL-22** (`NOT SIGNED`) or advance **G7** (`NOT GRANTED`);
+- revisit, re-open or re-decide any already-settled matter.
+
+Two matters in particular are **not** approved by this record and must not be read as approved: **WP2-D12** (documentary correction — recorded in part 4 as a separate, unapproved item) and **R6.0-D step 2** (corpus tracking). They are kept outside the five genuine decisions throughout.
+
+---
+
+### §1.3 Transmission-defect note
+
+An earlier transmission of this decision record was **truncated during output**, ending mid-sentence within WP2-D2 requirement 6, with D3, D6, D9 and D11 absent from the transmitted text.
+
+**That truncation was an output defect, not an absence of owner decisions.** The five decisions were and remain given. This record is assembled from source material and the owner-supplied codes, and does not treat the missing transmission text as missing authority. No decision is inferred from the truncation, and no requirement is marked absent merely because the transmission stopped.
+
+---
+
+## §2 Decision register at a glance
+
+The five **genuine owner decisions** are the only decisions this record approves:
+
+| ID | Subject | Owner outcome | Detailed in |
+|---|---|---|---|
+| **WP2-D2** | Expanded documentation correction inventory | **APPROVED — EXPANDED SCOPE** | **Part 2** |
+| **WP2-D3** | O1–O5 are protocol parameters, not registrable decisions | **CONFIRMED — QUALIFIED** | **Part 3** |
+| **WP2-D6** | Normative citation for canonical JSON | **O4-A** | **Part 3** |
+| **WP2-D9** | Five negative-first test groups | **APPROVED** | **Part 3** |
+| **WP2-D11** | `items_checked` bound | **APPROVED — REFINED** | **Part 3** |
+
+Two further classes exist and are kept strictly separate, detailed in **Part 4**:
+
+- **Deferred / unlocated** — the sixth O5 correction (deferred); O6–O8 (historically recorded, source-unlocated).
+- **Not approved here** — WP2-D12 (documentary), R6.0-D step 2 (separate act), WP2-D1/D5/D7 (confirmations, unconfirmed), WP2-D4 (subsumed), WP2-D10 (**withdrawn**), and the unverified-authority items (build-map §1.3/§9; the 2026-11-07 work-order artefact).
+- **Separately confirmed** — WP2-D8 ordering only, as recorded below; this does not authorize implementation.
+
+**The five genuine decisions above remain unchanged. WP2-D8 is a separate confirmation of execution ordering only, not a sixth genuine decision or implementation authorisation.**
+
+---
+
+## §3 Source inventory
+
+Sources re-read for this record, with the measurements taken this session. Byte counts and digests are stated only where actually measured; unmeasured values are marked as such rather than asserted.
+
+| # | Source | Path | Measured |
+|---|---|---|---|
+| S1 | Owner decision pack (N1-O3/O4/O5, genesis, §4.5 corrections, §5 schema) | `docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md` | 39,580 B (listing) |
+| S2 | Correction proposal (canonical JSON §3.1; banner) | `docs/r6-registration-protocol-03b-r1-u1-u3-correction-proposal-2026-11-07.md` | 48,596 B (listing) |
+| S3 | Registration protocol 03B-R1 | `docs/r6-registration-protocol-03b-r1.md` | **12,619 B; `3a003632…cd512b`** ✅ measured |
+| S4 | Owner parameter addendum | `docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md` | **38,603 B; `69166509…3399a6`** ✅ measured |
+| S5 | T16 decision option register | `docs/r6-t16-r6-decision-option-register.md` | **52,782 B; `43c7331c…2c558c`** ✅ measured |
+| S6 | Conformance test (U1–U4 vectors) | `tests/test_r6_registration_digest_conformance.py` | byte count not measured |
+| S7 | CLOSE-FINAL-03 / U4 decision pack (namespace N2) | `docs/r6-close-final-03-r6.0-registration-go-no-go-and-u4-decision-pack.md` | 24,579 B (listing) |
+| S8 | WP-2 final owner decision pack (§7 ordering; D-questions) | `artifacts/r6-closure/wp2-final-owner-decision-pack-2026-11-10.md` | 36,638 B (listing) |
+| S9 | WP-2 decision clarification addendum (N1 O1–O5) | `artifacts/r6-closure/wp2-decision-clarification-addendum-2026-11-10.md` | 34,778 B (listing) |
+| S10 | WP-2 consolidated decision pack | `artifacts/r6-closure/wp2-consolidated-decision-pack-2026-11-10.md` | 25,955 B (listing) |
+| S11 | WP-2 owner response pack (measured drift) | `artifacts/r6-closure/wp2-owner-response-pack-2026-11-10.md` | **21,759 B; `92e8f97e…c1ef608`** ✅ measured |
+| S12 | WP-0/WP-1 evidence | `artifacts/r6-closure/wp0-wp1-evidence-2026-11-09.md` | 11,591 B (listing) |
+
+The three U2-bound sources (S3, S4, S5) were re-measured this session and **matched their published vectors exactly**; both genesis vectors were reproduced (`508 B → ad1484b0…caf28`; `509 B → 452a05bb…bbbe`). Those measurements underpin the anchors used in parts 2 and 3.
+
+**One source could not be located and is carried as a gap, not a citation:** the owner-side document enumerating **O6, O7 and O8**. A performed search of `docs/`, `artifacts/` and `tests/` for `O6`, `O7`, `O8` and `O1–O8` returned only S11 — the pack that asks about them. See part 4.
+
+---
+
+## §4 Recording conventions
+
+Three registers are used throughout and must not be conflated:
+
+**Verbatim source text** is quoted in blockquotes and attributed by path and line. Source wording is never paraphrased into a requirement.
+
+**Formal recording of an owner decision** is stated as a decision, in the owner's terms, and marked as such. It carries the authority of §1 and nothing more.
+
+**Reconciliation findings** — verified anchors, measured digests, numbering maps and defect reports — are stated as measured facts with their location. They support the record; they are not decisions and acquire no authority from appearing in it.
+
+Two conventions are load-bearing:
+
+- **O-identifiers are namespace-qualified.** `N1-O1…N1-O5` are the WP-2 protocol parameters (S9 `:79-85`). `N2-O1…N2-O5` are the CLOSE-FINAL-03 closure blockers (S7 `:306-310`), which reassign the same labels. Unqualified `O5` is ambiguous across the corpus and is not used.
+- **E-identifiers follow Scheme B** — the governing numbering (S8 `:500-506`), in which the five §4.5 corrections are E1, E2, E3, E5 and E6, E4 is the REG/VER asymmetry note, and E7 is the addendum's embedded reference. The earlier Scheme A labelling (E1–E5 sequential) is superseded by the owner's decision on D2.
+
+---
+
+## §5 Structure of parts 2–4
+
+| Part | Sections | Content |
+|---|---|---|
+| **2** | §6–§9 | **WP2-D2** expanded documentation correction inventory: governing numbering; E1–E3 preserved; E4 asymmetry note; **E5/E6 corrected to `:122-126` / `:134-139`**; E7 sequenced last; the complete 12-key VER field table and hash-input rule; and the **seventh** correction — the O5 provenance row in §12.1 with its §12.4 reconciliation note |
+| **3** | §10–§13 | **WP2-D3** (qualified confirmation, N1 namespacing) · **WP2-D6** (O4-A, `/`-unescaping hazard retained) · **WP2-D9** (five negative-first groups, sequenced after D8) · **WP2-D11** (`1 ≤ items_checked ≤ 10`, PASS ⇒ exactly 10, with the divergence from the original `0 ≤` proposal flagged) |
+| **4** | §14–§17 | Deferred (sixth O5 correction) · Unlocated (O6–O8, 2026-11-07 work order, build-map §1.3/§9) · Confirmations, documentary and withdrawn matters kept separate · Closing authority provisions · **Completeness checklist** |
+
+No part of this record asserts completion. Part 1 asserts only that §1–§5 above are delivered.
+
+---
+
+**END OF PART 1 OF 4 — RECORD NOT COMPLETE (1 of 4)**
+**RECORDING ONLY. NOT AN EXECUTION AUTHORISATION.**
+**BL-22 NOT SIGNED · G7 NOT GRANTED · R6.0-D STEP 2 NOT PERFORMED · WP-2 REMAINS BLOCKED**
+
+---
+
+`─────────────────────────────────────────`
+`  ✓ PART 1 : authority, codes, sources, conventions`
+`  ⧗ PART 2 : expanded D2 + O5 provenance row`
+`  ⧗ PART 3 : D3 · D6 · D9 · D11`
+`  ⧗ PART 4 : deferred, unlocated, checklist`
+`─────────────────────────────────────────`
+
+Two notes on this part, so nothing surprises you in part 2.
+
+**The seventh correction is now in scope.** D2 is recorded as *expanded*, and part 2 will carry the O5 provenance row in `docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md` §12.1 (`:527-538`) with its §12.4 reconciliation note — the row that records N1-O5 as the decision that `PARAM-A.2` and `PARAM-A.4` implement. That file currently has **zero** O5 references, which is the omission the row closes.
+
+**D11's refined bound will be stated as a divergence, not a substitution.** The source proposal reads `0 ≤ items_checked ≤ 10` (S8 `:457`); your refined decision is `1 ≤ items_checked ≤ 10`. Part 3 will record the refined bound as the decision and flag the original in the same paragraph, so no reader can mistake the record for a restatement of the proposal.
+
+---
+
+## Status update — subsequent owner directive (2026-11-11)
+
+This dated update records the Project Owner's subsequent directive. It does not rewrite the five
+owner decisions in §§1–5, reconstruct Parts 3 or 4, or expand the authority granted by those
+decisions.
+
+### WP-1 exit
+
+The Project Owner accepts **WP-1 EXIT PASS** based on the recovered complete pre-refresh fixture
+and its complete comparison with the current fixture. The recovered blob is
+`531480e2c7bbc5986fee47633d54644de3236500`; its SHA-256 is
+`835555927658d2f6f16579482cd24baf8b1c6ad2426f74da47cc4e42f250fd63`. It is an unreachable
+local Git object; its original pathname, author, and timestamp are unknown. This is an owner
+acceptance, not an independent verification finding.
+
+### WP2-D8 ordering confirmation
+
+The Project Owner confirms WP2-D8's single-pass correction ordering:
+
+1. Apply E1–E3 and E5–E6.
+2. Insert the 12-key VER table and REG/VER asymmetry note.
+3. Apply E8: `1 ≤ items_checked ≤ 10`; a `PASS` result requires exactly 10.
+4. Apply E7 to the addendum's embedded protocol reference last, after steps 1–3.
+5. Recompute the relevant `PROTOCOL` and `ADDENDUM` digest vectors once.
+6. Execute the approved WP2-D9 negative-first test groups.
+
+This confirms the ordering only. The five decisions in §2 remain recording-only; the D8
+confirmation does not authorize WP-2 corrections or test execution. The separate current
+directive authorizes only the governance/evidence record updates made here.
+
+The five recorded decisions remain unchanged: WP2-D2 expanded scope, WP2-D3 qualified
+confirmation that N1-O1–O5 are protocol parameters rather than registrable decisions, WP2-D6
+O4-A, WP2-D9 approval, and WP2-D11's refined bound. D3 resolves the registration-locus blocker
+as recorded; it does not authorize any registration act.
+
+### Record completeness and authority boundary
+
+Only Parts 1 and 2 of the four-part decision record are present in the repository or the searched
+project-transfer locations. Parts 3 and 4 were not found and are not reconstructed here. The
+record remains **incomplete**.
+
+The sixth O5 correction remains **deferred**. O6–O8 remain **historically recorded but
+source-unlocated**. WP2-D12 and R6.0-D step 2 remain outside this confirmation. No registration
+act, ledger, REG/VER entry, key, signature, checkpoint, BL-22 signature, or G7 grant is
+authorised.
+
+---
+
+## Dated supersession — 2026-11-16 (F-05)
+
+Finding F-05 records that Parts 1–3 carry stale measurements with no supersession
+note. The rows below are superseded in place; each original is retained verbatim
+above and is **not** rewritten.
+
+| Locus | Superseded claim | Live measurement, 2026-11-16 |
+|---|---|---|
+| `:101` (S2) | correction proposal `48,596 B` (listing) | **49,995 B**; `b3acfcb3…cd891414` |
+| `:102` (S3) | protocol `12,619 B`; `3a003632…cd512b` | **15,898 B**; `59643d24…69a6590` |
+| `:103` (S4) | addendum `38,603 B`; `69166509…3399a6` | **42,535 B**; `5d1470f5…8e32515` |
+
+Re-measured and still correct: `:100` (S1) owner decision pack `39,580 B`;
+`:104` (S5) T16 `52,782 B`; `43c7331c…2c558c`.
+
+The protocol and addendum values above are post-correction. Both moved twice on
+2026-11-16: the protocol 14,620 → 15,898 B, the addendum 39,784 → 42,535 B. The
+`:101` correction-proposal figure was already stale before this pass and moved
+again when F-04 was corrected.
+
+No owner approval, commit, signature or G7 grant attaches to this note. It
+corrects measurements; it changes no decision and authorises nothing.

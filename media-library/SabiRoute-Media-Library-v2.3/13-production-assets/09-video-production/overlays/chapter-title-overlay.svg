@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs>
+ <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#06B6D4"/><stop offset="0.48" stop-color="#2563EB"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>
+ <linearGradient id="textGrad" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#F8FAFC"/><stop offset=".5" stop-color="#06B6D4"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>
+ <linearGradient id="panelGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0B2342"/><stop offset="1" stop-color="#10102C"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#2563EB" stop-opacity=".30"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></radialGradient>
+ <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8"/></filter>
+ </defs><g transform="translate(80,80) scale(1.0)" fill="none" stroke="url(#routeGrad)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M72 14 C55 7 32 15 24 31 C15 49 30 55 47 59 L60 62 C78 67 78 83 62 91 C49 98 32 94 23 88"/>
+ <path d="M27 22 L40 17 M72 14 L82 24 M23 88 L12 78" stroke-width="6"/>
+ <circle cx="82" cy="24" r="4.2" fill="#06B6D4" stroke="none"/>
+ <circle cx="12" cy="78" r="4.2" fill="#8B5CF6" stroke="none"/>
+ </g><text x="205" y="155" font-family="Inter,Arial,sans-serif" font-size="55" font-weight="750" fill="#F8FAFC" text-anchor="start">SabiRoute</text><rect x="80" y="800" width="1120" height="175" rx="18" fill="#071326" stroke="#06B6D4" stroke-width="2"/><text x="120" y="865" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#06B6D4" text-anchor="start">CHAPTER TITLE</text><text x="120" y="925" font-family="Inter,Arial,sans-serif" font-size="32" font-weight="650" fill="#F8FAFC" text-anchor="start">Editable scene overlay</text></svg>

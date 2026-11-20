@@ -1,0 +1,18 @@
+{
+  "drill": "sprint13-proxy-retry",
+  "image": "ghcr.io/berriai/litellm:main-latest@sha256:de5b050c1e9bd7e6c0aebfa126c5df71de071962592ba3e9638b28e45bed3901",
+  "network": "sabi-drill-net (internal, no egress; host ingress unavailable on this Docker setup, worked around via in-network exec driver)",
+  "proxy_request_timeout": 10,
+  "cases": [
+    {"mode": "success", "proxy_inbound": 1, "stub_requests": 1, "proxy_result": "HTTP 200 drill-ok"},
+    {"mode": "error500", "proxy_inbound": 1, "stub_requests": 3, "proxy_result": "HTTP error"},
+    {"mode": "error401", "proxy_inbound": 1, "stub_requests": 1, "proxy_result": "HTTP error"},
+    {"mode": "reset", "proxy_inbound": 1, "stub_requests": 3, "proxy_result": "HTTP error"},
+    {"mode": "malformed-200", "proxy_inbound": 1, "stub_requests": 3, "proxy_result": "HTTP error"},
+    {"mode": "hang", "proxy_inbound": 1, "stub_requests": 3, "proxy_result": "HTTP error", "elapsed_s": 37},
+    {"mode": "delay12", "proxy_inbound": 1, "stub_requests": 3, "proxy_result": "HTTP error", "elapsed_s": 38}
+  ],
+  "proxy_log_evidence": "LiteLLM Retried: 2 times, LiteLLM Max Retries: 2; No fallback was attempted",
+  "cancellation": "not measured in drill (unit coverage stands)",
+  "conclusion": "Unconfigured pinned proxy retries retryable failures twice (3 upstream attempts per proxy inbound); 401 not retried."
+}

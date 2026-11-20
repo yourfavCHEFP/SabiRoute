@@ -1,0 +1,13 @@
+asset_id,filename,section,width_px,height_px,status,notes
+CG029-P01,01-logo-family-and-variants.png,Logo family and variants,518,329,CROPPED_REFERENCE,"Reference only; includes multiple logo concepts and embedded labels, not separate logo exports."
+CG029-P02,02-website-hero-banner.png,Website hero banner concept,707,329,CROPPED_REFERENCE,"Reference only; this is a website mockup panel with text/navigation, not a standalone background image."
+CG029-P03,03-app-icons-and-favicons.png,App icons and favicon concepts,293,329,CROPPED_REFERENCE,Reference only; icons are displayed within a labeled panel and are not individual icon exports.
+CG029-P04,04-architecture-diagram.png,Architecture diagram concept,612,343,CROPPED_REFERENCE,Unverified illustration; use only as a visual reference until labels and flows are checked against source code.
+CG029-P05,05-github-repository-preview.png,GitHub repository preview concept,399,343,CROPPED_REFERENCE,Mockup only; embedded repo statistics and interface details are unverified and must not be published as facts.
+CG029-P06,06-readme-hero-banner.png,README hero banner concept,507,343,CROPPED_REFERENCE,Reference only; not an extracted clean background or verified repository asset.
+CG029-P07,07-documentation-covers.png,Documentation cover family,774,200,CROPPED_REFERENCE,"Contains multiple small cover designs; treat as a selection board, not individual final covers."
+CG029-P08,08-social-media-assets.png,Social media asset concepts,344,200,CROPPED_REFERENCE,Contains multiple small social concepts; crop or recreate an individual design only after selecting it.
+CG029-P09,09-brand-colours-and-typography.png,Brand colours and typography reference,400,200,CROPPED_REFERENCE,Visual reference only; verify exact hex values and typography choices before adopting as canonical.
+CG029-P10,10-motion-gif-frames.png,Motion/GIF frame storyboard,472,141,CROPPED_REFERENCE,Storyboard only; frames are not isolated originals and no GIF is produced by this crop.
+CG029-P11,11-marketing-and-presentation.png,Marketing and presentation concepts,464,141,CROPPED_REFERENCE,Reference only; not an individually exported campaign visual.
+CG029-P12,12-file-structure-and-zip-preview.png,File structure / ZIP preview panel,582,142,CROPPED_REFERENCE,Illustrative mockup only; does not itself prove package contents or downloadable archive availability.

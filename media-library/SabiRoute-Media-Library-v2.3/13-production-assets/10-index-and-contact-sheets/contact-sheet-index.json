@@ -1,0 +1,88 @@
+{
+  "sheets": [
+    {
+      "group": "brand-and-logos",
+      "page": 1,
+      "asset_count": 6,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-brand-and-logos-page-01.jpg"
+    },
+    {
+      "group": "app-icons",
+      "page": 1,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-app-icons-page-01.jpg"
+    },
+    {
+      "group": "website",
+      "page": 1,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-website-page-01.jpg"
+    },
+    {
+      "group": "github-readme",
+      "page": 1,
+      "asset_count": 3,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-github-readme-page-01.jpg"
+    },
+    {
+      "group": "technical-diagrams",
+      "page": 1,
+      "asset_count": 10,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-technical-diagrams-page-01.jpg"
+    },
+    {
+      "group": "documentation-covers",
+      "page": 1,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-documentation-covers-page-01.jpg"
+    },
+    {
+      "group": "documentation-covers",
+      "page": 2,
+      "asset_count": 4,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-documentation-covers-page-02.jpg"
+    },
+    {
+      "group": "social-media",
+      "page": 1,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-social-media-page-01.jpg"
+    },
+    {
+      "group": "social-media",
+      "page": 2,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-social-media-page-02.jpg"
+    },
+    {
+      "group": "social-media",
+      "page": 3,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-social-media-page-03.jpg"
+    },
+    {
+      "group": "social-media",
+      "page": 4,
+      "asset_count": 4,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-social-media-page-04.jpg"
+    },
+    {
+      "group": "motion-animations",
+      "page": 1,
+      "asset_count": 7,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-motion-animations-page-01.jpg"
+    },
+    {
+      "group": "video-stills-and-overlays",
+      "page": 1,
+      "asset_count": 12,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-video-stills-and-overlays-page-01.jpg"
+    },
+    {
+      "group": "video-stills-and-overlays",
+      "page": 2,
+      "asset_count": 5,
+      "path": "13-production-assets/10-index-and-contact-sheets/contact-sheet-video-stills-and-overlays-page-02.jpg"
+    }
+  ]
+}

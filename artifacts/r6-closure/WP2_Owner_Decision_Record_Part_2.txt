@@ -1,0 +1,417 @@
+# SABIROUTE R6.0 — WP-2 OWNER DECISION RECORD
+## PART 2 OF 4
+
+**Record date:** 11 November 2026
+**Decision authority:** Project Owner
+**Workstream:** R6.0 Closure — WP-2
+**Prepared by:** Claude Code Desktop (coordinator — not the independent verifier)
+**Status:** OWNER DECISIONS APPROVED — IMPLEMENTATION NOT AUTHORISED
+**Part status:** This is part 2 of 4. The record is **not complete** (2 of 4 delivered).
+
+**Sections included in this part:** §6 Governing numbering — Scheme B · §7 Protocol-side corrections E1, E2, E3, E4 · §8 Addendum-side corrections E5, E6, E7 · §9 The 12-key VER table, the hash-input rule, and the seventh correction · Part 2 checklist.
+
+**Correction to the part plan stated in part 1:** §5 of part 1 reserved §6–§9 for D2 and §10–§13 for D3/D6/D9/D11. That allocation is **withdrawn**. §6–§9 are delivered here; part 3 uses §10–§13 for its own subjects, and part 4 §14–§17. No content moved; only the section numbers of parts 3 and 4 are renumbered.
+
+---
+
+## §6 Governing numbering — Scheme B
+
+**Source requirement.** The governing implementation sequence numbers the corrections as follows (`artifacts/r6-closure/wp2-final-owner-decision-pack-2026-11-10.md:500-506`):
+
+> `| 1 | Apply the five §4.5 corrections (E1–E3, E5–E6) | WP2-D2 | … |`
+> `| 2 | Insert the consolidated 12-key VER table + REG/VER asymmetry note (E2, E4) | WP2-D2 | … |`
+> `| 3 | Insert the items_checked bound (E8) | WP2-D11 | … |`
+> `| 4 | Correct the addendum's embedded 03B-R1 line count + digest :9-11 to post-step-2 values (E7) — after steps 1–3 | WP2-D8 | … |`
+
+**Owner decision — WP2-D2, `approve-expanded`.** The governing **Scheme B** numbering is adopted. The five §4.5 corrections are **E1, E2, E3, E5 and E6**. **E4** is the REG/VER asymmetry note. **E7** is the addendum's embedded-reference correction.
+
+**Reconciliation finding (measured, not a decision).** Two schemes exist in source for the same five passages. Scheme A (`artifacts/r6-closure/wp2-owner-response-pack-2026-11-10.md:70-76`) labels them sequentially E1–E5, assigning E4 and E5 to the addendum corrections. Scheme B assigns those two passages **E5 and E6**, reserving E4 for the asymmetry note. Scheme A's anchors are correct; **its labels are wrong for two of five edits.** Scheme B governs under this decision.
+
+| Passage | Scheme A label (superseded) | **Scheme B label (governing)** |
+|---|---|---|
+| Protocol `:112` | E1 | **E1** |
+| Protocol `:114-117` | E2 | **E2** |
+| Protocol `:130-135` | E3 | **E3** |
+| *(new note, protocol §6)* | — | **E4** |
+| Addendum `PARAM-A.2` | E4 | **E5** |
+| Addendum `PARAM-A.4` | E5 | **E6** |
+| Addendum `:10-12` embedded ref | E7 | **E7** |
+
+### §6.1 Expanded scope — what WP2-D2 now comprises
+
+The owner's `approve-expanded` adds a **seventh** correction to the six-item set recorded in source. The source set was:
+
+> "the five §4.5 corrections **plus** the consolidated 12-key VER table (F2), including the one-line REG/VER asymmetry note (F6 residue)"
+> — `wp2-final-owner-decision-pack-2026-11-10.md:453`
+
+**Recorded scope of WP2-D2 under this decision:**
+
+| # | Correction | Locus |
+|---|---|---|
+| 1 | **E1** — structured-comment sentence → ledger-entry sentence | protocol `:112` |
+| 2 | **E2** — HTML-comment fence → the 12-key VER table (six names retained) | protocol `:114-117` |
+| 3 | **E3** — "VER record" → "VER **ledger entry**" | protocol `:130-135` |
+| 4 | **E4** — REG/VER asymmetry note | protocol §6 (new line) |
+| 5 | **E5** — JSONL realisation appended to `PARAM-A.2` | addendum **`:122-126`** |
+| 6 | **E6** — "`VER:v1` record" → "VER **ledger entry**" | addendum **`:134-139`** |
+| 7 | **E7** — embedded 03B-R1 line-count + digest, sequenced **last** | addendum **`:10-12`** |
+| 8 | **12-key VER field table + hash-input rule** | carried by E2 (protocol §6) |
+| 9 | **N1-O5 provenance row + §12.4 reconciliation note** — **the seventh correction** | addendum `:532` / §12.4 |
+
+The seventh correction is **not** in the source six-item set. It is recorded here as an owner-expanded requirement and is detailed in §9.4.
+
+### §6.2 E8 — the bound, which is a separate decision
+
+**E8** is not part of WP2-D2. It is the `items_checked` bound and it rides **WP2-D11** (`approve-refined`). It is listed in part 3 §13 and is applied in the same single pass, at protocol §6, after E1–E4.
+
+> **Note on E8's locus.** `wp2-consolidated-decision-pack-2026-11-10.md:331` records E8's file as "addendum §6". The addendum has no §6 — it runs §1–§12. The protocol has a §6, and it is the section that defines the VER grammar and the `items_checked` field. The bound is therefore applied at **protocol §6**, and the earlier "addendum §6" citation is recorded here as a documentary defect rather than silently corrected.
+
+---
+
+## §7 Protocol-side corrections — E1, E2, E3, E4
+
+All four targets are in `docs/r6-registration-protocol-03b-r1.md` — measured this session as **12,619 bytes, SHA-256 `3a00363278de1427945a8ab7f77870f3a10f07b1acd09031c6f174e9c3cd512b`, 348 lines**.
+
+### §7.1 E1 — `:112` (preserved)
+
+**Verbatim source requirement** (`docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md:450`):
+
+> | 1 | `r6-registration-protocol-03b-r1.md` | `:112` | "Verification is a separate structured comment:" | "Verification is a separate append-only ledger entry (`PARAM-A.2`), one canonical JSON object per line:" |
+
+**Owned wording (required change):** replace the current-text sentence with:
+
+> "Verification is a separate append-only ledger entry (`PARAM-A.2`), one canonical JSON object per line:"
+
+**Measured live anchor — verified this session.** Line 112 reads exactly:
+
+> `Verification is a separate structured comment:`
+
+Anchor is **exact**; no correction needed. **Not implemented** — the file still carries the old sentence.
+
+### §7.2 E2 — `:114-117` (preserved)
+
+**Verbatim source requirement** (`:451`):
+
+> | 2 | `r6-registration-protocol-03b-r1.md` | `:114-117` | fenced `<!-- VER:v1 … -->` block | replace with the S3 JSONL field table; retain the six field names |
+
+**Measured live anchor — verified this session.** The fenced region is `:114-117`: opener ```` ```text ```` at `:114`, content at `:115-116`, closer at `:117`. Content as measured:
+
+> `:115` `<!-- VER:v1 decision=<ID> verifier=<ID> verified=<YYYY-MM-DD>`
+> `:116` ` result=<PASS|FAIL> marker_sha256=<HEX64> items_checked=<N> -->`
+
+Anchor is **exact**. The six field names to be retained are enumerated in the same section at `:121-126` (`decision`, `verifier`, `verified`, `result`, `marker_sha256`, `items_checked`), with the `result` restriction at `:128`. **Not implemented.**
+
+**E2 carries three requirements, not one** — the table replacement, the hash-input rule (§9.2), and the `§5.2` citation fix (§9.3). Source treats them as one edit; they are kept together under E2 so a single pass cannot satisfy two of three and declare the correction done.
+
+### §7.3 E3 — `:130-135` (preserved)
+
+**Verbatim source requirement** (`:452`):
+
+> | 3 | `r6-registration-protocol-03b-r1.md` | `:130-135` | "a matching VER record exists" | "a matching VER **ledger entry** exists" |
+
+**Measured live anchor — verified this session.** The paragraph spans `:130-135`; the target phrase sits at **`:131`**:
+
+> `:131` `when a matching VER record exists with `result=PASS`, and the mandatory`
+
+Anchor block is **exact**; the phrase is one line inside it. **Not implemented.**
+
+### §7.4 E4 — the REG/VER asymmetry note (new content)
+
+**Owner decision.** E4 is **included** in the WP2-D2 scope as a one-line explanatory note recording that REG and VER are deliberately asymmetric: REG is an HTML-comment marker adjacent to a T16 decision card; VER is a JSONL line in a separate append-only ledger.
+
+**Source basis** (`wp2-final-owner-decision-pack-2026-11-10.md:178`):
+
+> `**Final status: REJECTED.** Note rides **WP2-D2**. **Owner decision: none for the schema.**`
+
+and at `:260`:
+
+> `documentary rationale note that rides **WP2-D2**. → **subsumed, no owner answer.**`
+
+**Reconciliation support (measured).** `PARAM-A.1` places REG adjacent to T16 at addendum `:116-120`; `PARAM-A.7` places VER in the ledger at `:154-166`; `:155` states *"The verification ledger is **append-only JSONL**: one canonical JSON object per line"*. The asymmetry is real in live text and is nowhere **stated as intentional** — which is E4's entire purpose.
+
+**Proposed insertion locus (not measured — a proposal).** Within protocol §6, after the `result` restriction at `:128` and before `## 7. Ten-item registration inventory` at `:137`. This is a **proposed future edit location**, not a live anchor; no such note exists today.
+
+**E4 adds no schema constraint and changes no field name.**
+
+---
+
+## §8 Addendum-side corrections — E5, E6, E7
+
+All three targets are in `docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md` — measured this session as **38,603 bytes, SHA-256 `6916650940b73219f20f427227f4f677ea6f84bcd0ab727135d25b28b63399a6`, 646 lines**.
+
+> **File-identity warning, carried from part 1.** This is the **owner-parameter addendum** (`docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md`). It is **not** the **WP-2 decision clarification addendum** (`artifacts/r6-closure/wp2-decision-clarification-addendum-2026-11-10.md`). The two are different documents with different contents and different digests. Every E5/E6/E7 edit below applies to the **owner-parameter addendum only**.
+
+### §8.1 E5 — corrected anchor: `PARAM-A.2`, `:122-126`
+
+**Verbatim source requirement — as issued** (`docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md:453`):
+
+> | 4 | `r6-registration-protocol-03b-r1-owner-parameter-addendum.md` | `:93-99` | "a distinct append-only verification ledger" | append: "— realised as the JSONL ledger of proposal §3.1–§3.3, one canonical JSON object per line" |
+
+**Owner decision — WP2-D2 requirement 2.** E5 is applied at **`PARAM-A.2`, lines 122–126**, not `:93-99`.
+
+**Measured live anchor — verified this session.**
+
+| Line | Measured content |
+|---|---|
+| `:122` | `` `PARAM-A.2` — **VER records belong in a separate append-only verification `` |
+| `:123` | `ledger.**` |
+| `:124` | `Verification records are not written adjacent to T16 and are never co-located` |
+| `:125` | `with the REG record they verify. They live in a distinct append-only verification` |
+| `:126` | `ledger (integrity requirements: `PARAM-E.7`).` |
+
+The quoted source text ***"a distinct append-only verification ledger"* is present, split across `:125` and `:126`.** A single-line `grep` for that phrase returns **zero hits**; the text is present and wraps. Any correction pass that relies on a one-line match will wrongly conclude the text is absent.
+
+**What the superseded anchor actually points at (measured):**
+
+- `:92`–`:93` — tail of the §2 "does not grant G7, Track A…" authority bullet (`:93` = `authority (T16:555-567).`)
+- `:94` — blank
+- `:95`–`:100` — the **Namespace rule** paragraph
+
+**Why the superseded anchor is dangerous, not cosmetic.** `:95-100` is the namespace rule that WP2-D3 itself depends on to dissolve the N1 O1–O5 locus blocker. Editing `:93-99` as issued would rewrite that rule, produce valid Markdown, change `addendum_sha256`, and leave the O5 contradiction untouched — a silent failure.
+
+**Upstream origin of the bad anchor.** The `:93-99` citation is inherited from `docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md` §4.1 (`:374-380`), which tabulates the addendum passage at `:93-99`. It was copied faithfully into the WP-2 pack. **Both records require correction**; see §8.4.
+
+**Not implemented.** No edit has been made to any file.
+
+### §8.2 E6 — corrected anchor: `PARAM-A.4`, `:134-139`
+
+**Verbatim source requirement — as issued** (`:454`):
+
+> | 5 | `r6-registration-protocol-03b-r1-owner-parameter-addendum.md` | `:110-116` | "a matching `VER:v1` record has `result=PASS`" | "a matching VER ledger entry has `result=PASS`" |
+
+**Owner decision — WP2-D2 requirement 2.** E6 is applied at **`PARAM-A.4`, lines 134–139**, not `:110-116`.
+
+**Measured live anchor — verified this session.**
+
+| Line | Measured content |
+|---|---|
+| `:134` | `` `PARAM-A.4` — **COMPLETE must be derived from verified evidence, never manually `` |
+| `:135` | `asserted.**` |
+| `:136` | `COMPLETE is a derived reporting state: it is valid only when a matching` |
+| `:137` | `` `VER:v1` record has `result=PASS` **and** the mandatory post-COMPLETE read-back `` |
+| `:138` | `independently confirms both records (03B-R1 §6:130-135, §10 step 8:212-214,` |
+| `:139` | `§15:282-300). It may never be written as an assertion.` |
+
+Target phrase spans **`:136-138`**, inside the `:134-139` block. **Anchor verified exact** at the block level.
+
+**What the superseded anchor actually points at (measured):**
+
+- `:110` — the `UNRESOLVED` provenance-class table row
+- `:112` — `---`
+- `:114` — `## 3. Registration and verification record locations — PARAM-A` heading
+- `:116` — `PARAM-A.1` opening
+
+**Consequence if applied as issued:** the edit would corrupt the provenance-class table's closing row and the `## 3.` heading — both load-bearing elsewhere — while leaving `PARAM-A.4` unchanged. Same silent-failure class as E5.
+
+**Not implemented.**
+
+### §8.3 E7 — embedded reference, `:10-12`, sequenced **last**
+
+**Verbatim source requirement** (`wp2-final-owner-decision-pack-2026-11-10.md:503`):
+
+> `| 4 | Correct the addendum's embedded 03B-R1 line count + digest :9-11 to post-step-2 values (E7) — after steps 1–3 | WP2-D8 | docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md :9-11 |`
+
+**Measured live anchor — verified this session.** The correct locus is **`:10-12`** (off by one from the dated `:9-11`):
+
+| Line | Measured content |
+|---|---|
+| `:9` | `**Addendum to:** `docs/r6-registration-protocol-03b-r1.md`` |
+| `:10` | `(348 lines; SHA-256` |
+| `:11` | `` `3a00363278de1427945a8ab7f77870f3a10f07b1acd09031c6f174e9c3cd512b`) `` |
+| `:12` | blank |
+
+**Why E7 must be sequenced last — measured, not assumed.** The embedded values are **correct today**: the protocol measures 348 lines and `3a003632…cd512b`, both re-measured this session. They become wrong **only after E1–E4 change protocol bytes**. Applying E7 first would "correct" the reference to a value that is already right, and the subsequent protocol edits would immediately re-break it.
+
+**Owner decision.** E7 is **included** and **sequenced last**, under WP2-D8's single pass, as recorded in source at `:441`:
+
+> `| **WP2-D8** | Approve the single-pass stabilisation ordering: (1) apply D2 edits → (2) correct addendum :9-11 embedded reference → (3) recompute PROTOCOL + ADDENDUM vectors once → (4) run suite. |`
+
+**Not implemented.** The addendum still reads `348 lines` / `3a003632…`, which is accurate for the current file state.
+
+### §8.4 Both affected records require the corrected anchors
+
+The corrected E5/E6 anchors must be written into **both** records, not only the WP-2 pack:
+
+| Record | Line | Carries | Required value |
+|---|---|---|---|
+| `artifacts/r6-closure/wp2-final-owner-decision-pack-2026-11-10.md` | `:500` | addendum `:93-99`, `:110-116` | **`:122-126`, `:134-139`** |
+| `docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md` | `:453-454` | addendum `:93-99`, `:110-116` | **`:122-126`, `:134-139`** — **the origin** |
+
+Correcting only the WP-2 pack leaves the owner-recorded decision pack carrying the bad anchors, and the next brief re-inherits them. Both records move in the same pass under WP2-D2, noting that the pass moves `addendum_sha256` — which D8's ordering already absorbs.
+
+---
+
+## §9 The 12-key VER table, the hash-input rule, and the seventh correction
+
+### §9.1 The complete table — 12 keys
+
+**Source.** Envelope at `docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md:478-481`; payload at `:490-491`.
+
+**Envelope — 4 keys**
+
+| # | Key | Type | Rule (verbatim) |
+|---|---|---|---|
+| 1 | `seq` | integer | `0` at genesis, `+1` per entry, no gaps |
+| 2 | `prev` | string | previous `entry_sha256`; genesis uses the domain constant |
+| 3 | `entry_type` | string | `"GENESIS"` or `"VER"` |
+| 4 | `entry_sha256` | string | SHA-256 of canonical JSON bytes **excluding** terminating LF |
+
+**Payload — 8 keys** (verbatim order, `:490-491`):
+
+> `Eight payload fields: decision, verifier, verified, result, marker_sha256, items_checked, card_sha256, file_sha256.`
+
+| # | Key | Source |
+|---|---|---|
+| 5 | `decision` | `:490` |
+| 6 | `verifier` | `:490` |
+| 7 | `verified` | `:490` |
+| 8 | `result` | `:490` |
+| 9 | `marker_sha256` | `:491` |
+| 10 | `items_checked` (integer) | `:491` |
+| 11 | `card_sha256` | `:491` |
+| 12 | `file_sha256` | `:491` |
+
+`4 + 8 = 12` — confirmed. **Six-field preservation:** keys 5–10 are byte-identical to the six names at protocol `:121-126`, and `result`'s `PASS|FAIL` domain is unchanged at `:128`, so `PARAM-A.4` survives E2 without amendment. **`entry_type` has no `REG` member and must not gain one** — `:480` is a closed two-value domain, and adding `REG` would co-locate the two record families in one container, violating `PARAM-A.2` (addendum `:124-126`) and N1-O5.
+
+### §9.2 The exact hash-input treatment — `entry_sha256`
+
+**Owner decision — WP2-D2 requirement 6.** The inserted table must explicitly state that `entry_sha256` is **computed and excluded from the hash input**.
+
+**The defect this prevents.** Read as a plain field table, the twelve keys invite an implementer to serialise all twelve and hash the object — **the hash then covers itself.** No digest can satisfy that, and no two implementations could agree on what to exclude. E2 would install a self-referential rule at the moment it replaces the HTML comment.
+
+**Normative evidence (source).** The only fully specified, reproducible record is at `:314-329` and `:340-354`:
+
+> `:314` `**Canonical genesis line** (508 bytes, no trailing LF in the hashed preimage):`
+> `:328-329` `Key order produced by code-point sort: addendum_sha256, created, entry_type, ledger_id, owner_key_fingerprint, prev, protocol_sha256, seq, t16_sha256.`
+
+`entry_sha256` is **absent** from that key order. `:340-354` builds a 9-key dict and hashes it; the digest is **produced, never inserted**.
+
+**Measured confirmation — this session.** The genesis preimage at `:317` was hashed directly (`sed -n '317p' | head -c 508 | shasum -a 256`):
+
+- **9 keys** present, `entry_sha256` absent ✅
+- **508 bytes** without LF → `ad1484b0758f0accfd9986ed6f2d5f8fac1ded3a83d95974ed58af7fc74caf28` ✅ matches `:324`
+- **509 bytes** with LF → `452a05bb8c241e46b3e86851821dd3daa604e478baad6ed41354e0dda592bbbe` ✅ matches `:325`
+
+**The arithmetic, to be stated in the inserted table:**
+
+| Record | Hashed (serialised) keys | Computed | Total ledger fields |
+|---|---:|---|---:|
+| Genesis | 6 payload + 3 envelope = **9** | `entry_sha256` | 10 |
+| VER entry | 8 payload + 3 envelope = **11** | `entry_sha256` | **12** |
+
+**Rule to be stated:** `entry_sha256` is **computed, never serialised**. A VER entry's hashed object contains **eleven** keys — `seq`, `prev`, `entry_type` and the eight payload fields. The twelve-key count includes the computed digest as a ledger field.
+
+This clarification **changes no schema byte** and is folded into E2 under WP2-D2 rather than raised as a new decision.
+
+**Limitation, stated.** The reference generator at `:340-354` was **not executed**. What is established is the byte length, key membership, key order and both digests of the stored line. What is **not** established is that the nine stated inputs at `:298-312` regenerate that exact line. That residual gap is named, not filled.
+
+### §9.3 Citation defect carried into the table
+
+The clarification addendum (`artifacts/r6-closure/wp2-decision-clarification-addendum-2026-11-10.md`) attributes the envelope to *"the envelope in §5.2"* without naming a document. It is resolvable only by inferring **decision pack §5.2** — the **proposal has no §5.2**; its §5 is "Deliberate deviations" (`:496-519`) and its envelope is §3.1 (`:220-230`).
+
+**Recorded requirement:** the inserted table's provenance line cites `decision pack §5.2 (:474-481)` explicitly. This is documentary and rides E2.
+
+### §9.4 The seventh correction — N1-O5 provenance row and §12.4 reconciliation note
+
+**Owner decision — WP2-D2, `approve-expanded`.** The expanded scope includes recording **N1-O5** — the settled 2026-11-07 decision that the append-only JSONL VER ledger is authoritative — in the owner-parameter addendum, which currently does not mention it at all.
+
+**Measured gap.** `docs/r6-registration-protocol-03b-r1-owner-parameter-addendum.md` contains **zero** occurrences of `O5` (measured: `grep -c "O5"` → `0`). Its O-series is `O1`, `O2`, `O3`, `O4` only, appearing inline in the Source column of §12.1 at `:537` (`(O4)`) and `:538` (`(O1)`), and in the §12.4 provenance paragraphs at `:614-619` and `:626`.
+
+**Why this is material, not cosmetic.** N1-O5 is the decision that `PARAM-A.2` (`:122-126`) and `PARAM-A.4` (`:134-139`) implement — the very passages E5 and E6 edit. The instrument receiving those corrections cites the decision that produced them **nowhere**. A reader of the addendum alone cannot learn that the JSONL form was an owner selection rather than a registrar drafting choice.
+
+**The correction, in two loci:**
+
+**(a) §12.1 Parameter-to-source matrix** — heading at `:522`, header row `:524-525`, data rows from `:526`. The matrix carries **no O-ID column**; O-identifiers appear **inline in the Source column** (`:537` `(O4)`; `:538` `(O1)`). The N1-O5 provenance therefore takes the same inline form, on the row for the parameter N1-O5 produced — **`PARAM-A.7`, row `:532`**:
+
+> current: `| PARAM-A.7 | VER-ledger entry schema (U3) | EXACT OWNER — incorporated 2026-11-07 | Owner work order 2026-11-07; schema detail restated from PARAM-E.7, PARAM-D.3 |`
+
+A cross-reference is also warranted on the **`PARAM-A.2` row (`:527`)**, whose Source column currently reads only `Owner instruction 2026-11-06` — because E5 writes N1-O5's outcome into that parameter.
+
+*This row-and-column placement is a reconciliation proposal, not a source-verbatim instruction. Source does not specify where the O5 provenance belongs; it specifies only that O5 exists (`docs/r6-final-o3-o4-o5-owner-decision-pack-2026-11-07.md:29`) and that `PARAM-A.7` is the parameter it produced (`wp2-decision-clarification-addendum-2026-11-10.md:85`).*
+
+**(b) §12.4 Approval provenance statement** — heading at `:605`. The section currently carries three provenance paragraphs: the `EXACT OWNER` scope statement (`:607-611`), **Amendment 1 provenance, 2026-11-07** (`:613-622`), and **Phase 1 provenance reconciliation, 2026-11-09, C-02** (`:624-`). The reconciliation note is added **in the same class**, as a new paragraph recording that N1-O5 was selected by the owner on **2026-11-07**, that `PARAM-A.2` and `PARAM-A.4` implement it, and that the selection is recorded as an owner selection incorporated into the normative text — **not** as a registrar decision and **not** as an independently verified transcript.
+
+**What this correction must not do.** It must not assert that the 2026-11-07 work-order artefact has been located (§12.4 `:629` records that it has not). It must not create a REG or VER record. It must not claim an approval beyond the owner selection recorded at `:29`.
+
+**Not implemented.** No file has been edited.
+
+---
+
+## Part 2 checklist
+
+| # | Requirement | Status |
+|---|---|:--|
+| 1 | Governing **Scheme B** numbering stated, with Scheme A mapping | ✅ §6 |
+| 2 | **E1** preserved at protocol `:112` — measured exact | ✅ §7.1 |
+| 3 | **E2** preserved at protocol `:114-117` — measured exact; six names retained | ✅ §7.2 |
+| 4 | **E3** preserved at protocol `:130-135` (phrase `:131`) — measured exact | ✅ §7.3 |
+| 5 | **E4** recorded as the REG/VER asymmetry note, with source basis and proposed locus | ✅ §7.4 |
+| 6 | **E5** corrected to `PARAM-A.2` `:122-126`, superseded `:93-99` shown to be the namespace rule | ✅ §8.1 |
+| 7 | **E6** corrected to `PARAM-A.4` `:134-139`, superseded `:110-116` shown to be table row / §3 heading / `PARAM-A.1` | ✅ §8.2 |
+| 8 | **E7** at `:10-12`, sequenced **last**, with measured proof the current values are correct today | ✅ §8.3 |
+| 9 | Corrected anchors required in **both** affected records | ✅ §8.4 |
+| 10 | Complete **12-key** VER field table, envelope + payload, verbatim rules | ✅ §9.1 |
+| 11 | **`entry_sha256` computed, excluded from hash input**; 11 hashed for VER / 9 for genesis, measured | ✅ §9.2 |
+| 12 | Table citation defect (§5.2 must name the decision pack) recorded | ✅ §9.3 |
+| 13 | **Seventh correction** — N1-O5 provenance row in §12.1 and §12.4 reconciliation note | ✅ §9.4 |
+| 14 | Verbatim source text distinguished from formal recording of decision | ✅ throughout |
+| 15 | Measured live anchors distinguished from proposed future edits | ✅ throughout |
+| 16 | Owner-parameter addendum distinguished from clarification addendum | ✅ §8 preamble |
+| 17 | No claim that any correction has been implemented | ✅ stated in every subsection |
+| 18 | No file modified · no tests run · no staging/commit · no repository operation | ✅ |
+| 19 | **E8** recorded as a separate decision (WP2-D11), with its locus defect noted | ✅ §6.2 |
+
+**Part 2 checklist: 19 of 19 items delivered.** No item is deferred to a later part except the D11 dependency on **E8** (`items_checked` bound), which is a separate decision and is detailed in **part 3**.
+
+---
+
+**END OF PART 2 OF 4 — RECORD NOT COMPLETE (2 of 4)**
+**RECORDING ONLY. NOT AN EXECUTION AUTHORISATION.**
+**NOTHING IMPLEMENTED · NO FILE EDITED · BL-22 NOT SIGNED · G7 NOT GRANTED · WP-2 REMAINS BLOCKED**
+
+---
+
+`─────────────────────────────────────────`
+` ✓ PART 1 : authority, codes, sources, conventions`
+` ✓ PART 2 : E1-E7 · 12-key table · O5 provenance row`
+` ⧗ PART 3 : D3 · D6 · D9 · D11 (incl. refined bound)`
+` ⧗ PART 4 : deferred, unlocated, checklist`
+`─────────────────────────────────────────`
+
+Three things in this part to look at before it is accepted.
+
+**The seventh correction has no specified locus in source.** The record proposes `PARAM-A.7` row `:532` — because that is the parameter N1-O5 produced — plus a cross-reference on `PARAM-A.2` `:527`, and a new §12.4 paragraph. That placement is a reconciliation, not an owner instruction, and it is marked as such in §9.4. If it is to be pinned elsewhere, part 4's checklist records where it actually went.
+
+**E2 now carries three requirements, not one.** The table replacement, the hash-input rule, and the `§5.2` citation fix. Source treats them as one edit; they are kept together under E2 so a single pass cannot satisfy two of three and declare the correction done.
+
+**Part 3 will state D11's bound as a written divergence.** The source proposal reads `0 ≤ items_checked ≤ 10`; the refined decision is `1 ≤ items_checked ≤ 10`. Both will appear in the same paragraph, in that order, so the record cannot be misread as restating the proposal.
+
+---
+
+## Dated supersession — 2026-11-16 (F-05)
+
+Finding F-05 records that Parts 1–3 carry stale measurements with no supersession
+note. The statements below are superseded in place; each original is retained
+verbatim above and is **not** rewritten.
+
+- `:73` — "measured this session as **12,619 bytes, SHA-256 `3a003632…`**" for the
+  protocol. Live: **15,898 bytes, `59643d24…69a6590`**.
+- `:219` — the quoted embedded value `(348 lines; SHA-256`. Live: the addendum's
+  embedded reference now reads `(410 lines; SHA-256`.
+- `:220` — the quoted embedded digest `` `3a003632…cd512b` ``. Superseded by
+  `59643d24…69a6590`.
+- `:223` — "the protocol measures 348 lines and `3a003632…cd512b`". Live: **410
+  lines**, `59643d24…69a6590`.
+- `:229` — "the addendum still reads `348 lines` / `3a003632…`". Live: the
+  addendum reads **410 lines** / `59643d24…69a6590`.
+- `:318` — "contains **zero** occurrences of `O5` (measured: `grep -c "O5"` →
+  `0`)". Live: **four** occurrences, at `:528`, `:533`, `:644`, `:646`. The same
+  paragraph's addendum anchors `:537` (`(O4)`) and `:538` (`(O1)`) are stale by
+  one; live is `:538` and `:539`.
+
+The `:318` claim described the addendum as it stood before the WP-2 edit pass. It
+is false of the current addendum, and it was already false when WP-4 read it —
+which is why it is registered as a finding rather than treated as an erratum.
+
+No owner approval, commit, signature or G7 grant attaches to this note. It
+corrects measurements; it changes no decision and authorises nothing.

@@ -1,0 +1,42 @@
+{
+  "experiment": "sprint13-proxy-retry-budget",
+  "image": "ghcr.io/berriai/litellm:main-latest@sha256:de5b050c1e9bd7e6c0aebfa126c5df71de071962592ba3e9638b28e45bed3901",
+  "network": "sabi-policy-net (internal, no egress)",
+  "proxy_request_timeout": 10,
+  "cases": {
+    "base_unset": {
+      "success": {"stub": 1, "result": "HTTP 200"},
+      "error401": {"stub": 1, "result": "HTTP error, no retry"},
+      "error500": {"stub": 3, "result": "HTTP error"},
+      "reset": {"stub": 3, "result": "HTTP error"},
+      "malformed": {"stub": 3, "result": "HTTP error"},
+      "hang": {"stub": 3, "result": "HTTP error", "elapsed_s": 37},
+      "delay12": {"stub": 3, "result": "HTTP error", "elapsed_s": 38}
+    },
+    "r1_num_retries_1": {
+      "success": {"stub": 1, "result": "HTTP 200"},
+      "error401": {"stub": 1, "result": "HTTP error, no retry"},
+      "error500": {"stub": 2, "result": "HTTP error"},
+      "reset": {"stub": 2, "result": "HTTP error"},
+      "malformed": {"stub": 2, "result": "HTTP error"},
+      "hang": {"stub": 2, "result": "HTTP error", "elapsed_s": 25},
+      "delay12": {"stub": 2, "result": "HTTP error", "elapsed_s": 27}
+    },
+    "r0_num_retries_0": {
+      "success": {"stub": 1, "result": "HTTP 200"},
+      "error401": {"stub": 1, "result": "HTTP 401, no retry"},
+      "error500": {"stub": 1, "result": "HTTP error"},
+      "reset": {"stub": 1, "result": "HTTP error"},
+      "malformed": {"stub": 1, "result": "HTTP error"},
+      "hang": {"stub": 1, "result": "HTTP error", "elapsed_s": 13},
+      "delay12": {"stub": 1, "result": "HTTP error", "elapsed_s": 13}
+    }
+  },
+  "log_evidence": {
+    "base": "LiteLLM Retried: 2 times, LiteLLM Max Retries: 2; No fallback was attempted",
+    "r0": "zero Retried: lines in proxy logs"
+  },
+  "anomaly": "First 401-r0 run showed URLError/stub=0: proxy still booting when probed. Re-ran clean: HTTP 401, stub=1. Timing lesson recorded.",
+  "cancellation": "not measured in drill (unit coverage stands)",
+  "conclusion": "Per-deployment litellm_params.num_retries is honored exactly (unset=2 retries, 1=one retry, 0=none); 401 never retried in any variant."
+}
