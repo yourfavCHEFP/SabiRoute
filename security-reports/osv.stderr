@@ -1,0 +1,7 @@
+Scanning dir /Users/airm2/My ML Hub/SabiRoute
+Starting filesystem walk for root: /
+Scanned /Users/airm2/My ML Hub/SabiRoute/requirements.txt file and found 0 packages
+Scanned /Users/airm2/My ML Hub/SabiRoute/uv.lock file and found 174 packages
+Scanned /Users/airm2/My ML Hub/SabiRoute/.claude/skills/ui-styling/scripts/requirements.txt file and found 3 packages
+Scanned /Users/airm2/My ML Hub/SabiRoute/.claude/skills/ui-styling/scripts/tests/requirements.txt file and found 3 packages
+End status: 341 dirs visited, 2185 inodes visited, 4 Extract calls, 44.412583ms elapsed, 44.413ms wall time

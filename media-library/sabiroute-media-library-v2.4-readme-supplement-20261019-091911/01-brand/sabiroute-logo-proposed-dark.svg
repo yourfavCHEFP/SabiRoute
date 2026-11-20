@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#06B6D4"/><stop offset=".52" stop-color="#2563EB"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+<rect width="1200" height="320" fill="#0A0F1E"/>
+<g transform="translate(58,52)"><path d="M100 8 C42 8 12 42 12 83 C12 122 43 149 79 149 C102 149 122 139 139 119 L113 100 C104 112 94 118 80 118 C60 118 45 103 45 83 C45 62 61 40 87 40 L100 8Z" fill="url(#g)"/><path d="M80 149 C139 149 169 115 169 74 C169 35 138 8 102 8 C79 8 59 18 42 38 L68 57 C77 45 87 39 101 39 C121 39 136 54 136 74 C136 95 120 117 94 117 L80 149Z" fill="url(#g)" opacity=".96"/></g>
+<text x="265" y="153" font-family="Inter,Arial,sans-serif" font-size="92" font-weight="700" fill="#F8FAFC">Sabi<tspan fill="#06B6D4">Route</tspan></text>
+<text x="272" y="207" font-family="Inter,Arial,sans-serif" font-size="27" letter-spacing="4" fill="#AAB8D0">AI GATEWAY &amp; ROUTING FOUNDATION</text></svg>

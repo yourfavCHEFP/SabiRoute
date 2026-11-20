@@ -1,0 +1,605 @@
+[
+  {
+    "ident": "artipacked",
+    "desc": "credential persistence through GitHub Actions artifacts",
+    "url": "https://docs.zizmor.sh/audits/#artipacked",
+    "determinations": {
+      "confidence": "Low",
+      "severity": "Medium",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "does not set persist-credentials: false",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 0
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 32,
+              "column": 8
+            },
+            "end_point": {
+              "row": 33,
+              "column": 33
+            },
+            "offset_span": {
+              "start": 767,
+              "end": 827
+            }
+          },
+          "feature": "name: Check out repository\n        uses: actions/checkout@v4",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": [
+      {
+        "title": "set persist-credentials: false",
+        "key": {
+          "Local": {
+            "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+          }
+        },
+        "disposition": "unsafe"
+      }
+    ]
+  },
+  {
+    "ident": "excessive-permissions",
+    "desc": "overly broad permissions",
+    "url": "https://docs.zizmor.sh/audits/#excessive-permissions",
+    "determinations": {
+      "confidence": "Medium",
+      "severity": "Medium",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "this job",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Related"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 14,
+              "column": 2
+            },
+            "end_point": {
+              "row": 57,
+              "column": 0
+            },
+            "offset_span": {
+              "start": 399,
+              "end": 1363
+            }
+          },
+          "feature": "  checks:\n    runs-on: ubuntu-latest\n\n    services:\n      redis:\n        image: redis:7-alpine\n        ports:\n          - 6379:6379\n        options: >-\n          --health-cmd \"redis-cli ping\"\n          --health-interval 10s\n          --health-timeout 5s\n          --health-retries 5\n\n    env:\n      SABIROUTE_TEST_REDIS_URL: redis://localhost:6379/0\n\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up uv\n        uses: astral-sh/setup-uv@v5\n        with:\n          python-version: \"3.11\"\n\n      - name: Install dependencies (locked)\n        run: uv sync --frozen\n\n      - name: Run test suite\n        run: uv run pytest -q\n\n      - name: Ruff check\n        run: uv run ruff check src tests scripts config\n\n      - name: Mypy\n        run: uv run mypy src\n\n      - name: Frontend syntax check\n        run: node --check web/app.js\n\n      - name: Build application container\n        run: docker build -t sabiroute:ci .\n",
+          "comments": []
+        }
+      },
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "default permissions used due to no permissions: block",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 14,
+              "column": 2
+            },
+            "end_point": {
+              "row": 57,
+              "column": 0
+            },
+            "offset_span": {
+              "start": 399,
+              "end": 1363
+            }
+          },
+          "feature": "  checks:\n    runs-on: ubuntu-latest\n\n    services:\n      redis:\n        image: redis:7-alpine\n        ports:\n          - 6379:6379\n        options: >-\n          --health-cmd \"redis-cli ping\"\n          --health-interval 10s\n          --health-timeout 5s\n          --health-retries 5\n\n    env:\n      SABIROUTE_TEST_REDIS_URL: redis://localhost:6379/0\n\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up uv\n        uses: astral-sh/setup-uv@v5\n        with:\n          python-version: \"3.11\"\n\n      - name: Install dependencies (locked)\n        run: uv sync --frozen\n\n      - name: Run test suite\n        run: uv run pytest -q\n\n      - name: Ruff check\n        run: uv run ruff check src tests scripts config\n\n      - name: Mypy\n        run: uv run mypy src\n\n      - name: Frontend syntax check\n        run: node --check web/app.js\n\n      - name: Build application container\n        run: docker build -t sabiroute:ci .\n",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": []
+  },
+  {
+    "ident": "unpinned-uses",
+    "desc": "unpinned action reference",
+    "url": "https://docs.zizmor.sh/audits/#unpinned-uses",
+    "determinations": {
+      "confidence": "High",
+      "severity": "High",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "this step",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 0
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Hidden"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 32,
+              "column": 8
+            },
+            "end_point": {
+              "row": 33,
+              "column": 33
+            },
+            "offset_span": {
+              "start": 767,
+              "end": 827
+            }
+          },
+          "feature": "name: Check out repository\n        uses: actions/checkout@v4",
+          "comments": []
+        }
+      },
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "action is not pinned to a hash (required by blanket policy)",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 0
+              },
+              {
+                "Key": "uses"
+              }
+            ]
+          },
+          "feature_kind": {
+            "Subfeature": {
+              "after": 0,
+              "fragment": {
+                "Raw": "actions/checkout@v4"
+              }
+            }
+          },
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 33,
+              "column": 14
+            },
+            "end_point": {
+              "row": 33,
+              "column": 33
+            },
+            "offset_span": {
+              "start": 808,
+              "end": 827
+            }
+          },
+          "feature": "actions/checkout@v4",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": []
+  },
+  {
+    "ident": "unpinned-uses",
+    "desc": "unpinned action reference",
+    "url": "https://docs.zizmor.sh/audits/#unpinned-uses",
+    "determinations": {
+      "confidence": "High",
+      "severity": "High",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "this step",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 1
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Hidden"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 35,
+              "column": 8
+            },
+            "end_point": {
+              "row": 38,
+              "column": 32
+            },
+            "offset_span": {
+              "start": 837,
+              "end": 935
+            }
+          },
+          "feature": "name: Set up uv\n        uses: astral-sh/setup-uv@v5\n        with:\n          python-version: \"3.11\"",
+          "comments": []
+        }
+      },
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/ci.yml"
+            }
+          },
+          "annotation": "action is not pinned to a hash (required by blanket policy)",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "checks"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 1
+              },
+              {
+                "Key": "uses"
+              }
+            ]
+          },
+          "feature_kind": {
+            "Subfeature": {
+              "after": 0,
+              "fragment": {
+                "Raw": "astral-sh/setup-uv@v5"
+              }
+            }
+          },
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 36,
+              "column": 14
+            },
+            "end_point": {
+              "row": 36,
+              "column": 35
+            },
+            "offset_span": {
+              "start": 867,
+              "end": 888
+            }
+          },
+          "feature": "astral-sh/setup-uv@v5",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": []
+  },
+  {
+    "ident": "dangerous-triggers",
+    "desc": "use of fundamentally insecure workflow trigger",
+    "url": "https://docs.zizmor.sh/audits/#dangerous-triggers",
+    "determinations": {
+      "confidence": "Medium",
+      "severity": "High",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/claude.yml"
+            }
+          },
+          "annotation": "this workflow",
+          "route": {
+            "route": [
+              {
+                "Key": "on"
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Hidden"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 2,
+              "column": 0
+            },
+            "end_point": {
+              "row": 6,
+              "column": 20
+            },
+            "offset_span": {
+              "start": 26,
+              "end": 119
+            }
+          },
+          "feature": "on:\n  issue_comment:\n    types: [created]\n  pull_request_review_comment:\n    types: [created]",
+          "comments": []
+        }
+      },
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/claude.yml"
+            }
+          },
+          "annotation": "issue_comment is almost always used insecurely",
+          "route": {
+            "route": [
+              {
+                "Key": "on"
+              },
+              {
+                "Key": "issue_comment"
+              }
+            ]
+          },
+          "feature_kind": "KeyOnly",
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 3,
+              "column": 2
+            },
+            "end_point": {
+              "row": 3,
+              "column": 15
+            },
+            "offset_span": {
+              "start": 32,
+              "end": 45
+            }
+          },
+          "feature": "issue_comment",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": []
+  },
+  {
+    "ident": "unpinned-uses",
+    "desc": "unpinned action reference",
+    "url": "https://docs.zizmor.sh/audits/#unpinned-uses",
+    "determinations": {
+      "confidence": "High",
+      "severity": "High",
+      "persona": "Regular"
+    },
+    "locations": [
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/claude.yml"
+            }
+          },
+          "annotation": "this step",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "claude"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 0
+              }
+            ]
+          },
+          "feature_kind": "Normal",
+          "kind": "Hidden"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 24,
+              "column": 8
+            },
+            "end_point": {
+              "row": 34,
+              "column": 0
+            },
+            "offset_span": {
+              "start": 528,
+              "end": 883
+            }
+          },
+          "feature": "name: Run Claude Code\n        uses: anthropics/claude-code-action@v1\n        env:\n          ANTHROPIC_BASE_URL: https://brewkeg.dev\n          ANTHROPIC_AUTH_TOKEN: ${{ secrets.BREWKEG_API_KEY }}\n        with:\n          anthropic_api_key: ${{ secrets.BREWKEG_API_KEY }}\n          claude_args: |\n            --model claude-fable-5\n            --max-turns 3\n",
+          "comments": []
+        }
+      },
+      {
+        "symbolic": {
+          "key": {
+            "Local": {
+              "verbatim_path": "/Users/airm2/My ML Hub/SabiRoute/.github/workflows/claude.yml"
+            }
+          },
+          "annotation": "action is not pinned to a hash (required by blanket policy)",
+          "route": {
+            "route": [
+              {
+                "Key": "jobs"
+              },
+              {
+                "Key": "claude"
+              },
+              {
+                "Key": "steps"
+              },
+              {
+                "Index": 0
+              },
+              {
+                "Key": "uses"
+              }
+            ]
+          },
+          "feature_kind": {
+            "Subfeature": {
+              "after": 0,
+              "fragment": {
+                "Raw": "anthropics/claude-code-action@v1"
+              }
+            }
+          },
+          "kind": "Primary"
+        },
+        "concrete": {
+          "location": {
+            "start_point": {
+              "row": 25,
+              "column": 14
+            },
+            "end_point": {
+              "row": 25,
+              "column": 46
+            },
+            "offset_span": {
+              "start": 564,
+              "end": 596
+            }
+          },
+          "feature": "anthropics/claude-code-action@v1",
+          "comments": []
+        }
+      }
+    ],
+    "ignored": false,
+    "fixes": []
+  }
+]

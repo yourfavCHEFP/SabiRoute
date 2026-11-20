@@ -1,0 +1,362 @@
+{
+  "package": "SabiRoute Media Library README Supplement v2.4",
+  "status": "NOT GREEN for full library; supplemental pack only",
+  "source_archive_available": false,
+  "svg_checks": [
+    [
+      "01-brand/sabiroute-logo-proposed-dark.svg",
+      "PASS"
+    ],
+    [
+      "01-brand/sabiroute-logo-proposed-light.svg",
+      "PASS"
+    ],
+    [
+      "01-brand/sabiroute-symbol-proposed.svg",
+      "PASS"
+    ],
+    [
+      "02-readme/README-hero-proposed.svg",
+      "PASS"
+    ],
+    [
+      "02-readme/mobile-hero-proposed.svg",
+      "PASS"
+    ],
+    [
+      "02-readme/social-preview-proposed.svg",
+      "PASS"
+    ],
+    [
+      "03-diagrams/developer-workflow-reference.svg",
+      "PASS"
+    ],
+    [
+      "03-diagrams/fallback-flow-reference.svg",
+      "PASS"
+    ],
+    [
+      "03-diagrams/request-lifecycle-reference.svg",
+      "PASS"
+    ],
+    [
+      "03-diagrams/sabichat-integration-reference.svg",
+      "PASS"
+    ],
+    [
+      "03-diagrams/system-architecture-reference.svg",
+      "PASS"
+    ],
+    [
+      "04-sabichat/sabichat-interface-concept.svg",
+      "PASS"
+    ],
+    [
+      "06-developer-workflow/developer-workflow-reference.svg",
+      "PASS"
+    ]
+  ],
+  "png_checks": [
+    [
+      "01-brand/sabiroute-logo-proposed-dark.png",
+      "PASS"
+    ],
+    [
+      "01-brand/sabiroute-logo-proposed-light.png",
+      "PASS"
+    ],
+    [
+      "01-brand/sabiroute-symbol-proposed-512.png",
+      "PASS"
+    ],
+    [
+      "02-readme/README-hero-proposed.png",
+      "PASS"
+    ],
+    [
+      "02-readme/mobile-hero-proposed.png",
+      "PASS"
+    ],
+    [
+      "02-readme/social-preview-proposed.png",
+      "PASS"
+    ],
+    [
+      "03-diagrams/developer-workflow-reference.png",
+      "PASS"
+    ],
+    [
+      "03-diagrams/fallback-flow-reference.png",
+      "PASS"
+    ],
+    [
+      "03-diagrams/request-lifecycle-reference.png",
+      "PASS"
+    ],
+    [
+      "03-diagrams/sabichat-integration-reference.png",
+      "PASS"
+    ],
+    [
+      "03-diagrams/system-architecture-reference.png",
+      "PASS"
+    ],
+    [
+      "04-sabichat/sabichat-interface-concept.png",
+      "PASS"
+    ],
+    [
+      "05-icons/icon-chat-256.png",
+      "PASS"
+    ],
+    [
+      "05-icons/icon-gateway-256.png",
+      "PASS"
+    ],
+    [
+      "05-icons/icon-observability-256.png",
+      "PASS"
+    ],
+    [
+      "05-icons/icon-routing-256.png",
+      "PASS"
+    ],
+    [
+      "05-icons/icon-security-256.png",
+      "PASS"
+    ],
+    [
+      "06-developer-workflow/developer-workflow-reference.png",
+      "PASS"
+    ],
+    [
+      "07-motion/request-flow-concept-still.png",
+      "PASS"
+    ]
+  ],
+  "gif_frames": 15,
+  "files": [
+    {
+      "path": "01-brand/sabiroute-logo-proposed-dark.png",
+      "size_bytes": 30207,
+      "sha256": "fb4a995d585fe24da665f986eb195287e8cdb9accddfd0ca51603cbe5469cb82",
+      "extension": ".png"
+    },
+    {
+      "path": "01-brand/sabiroute-logo-proposed-dark.svg",
+      "size_bytes": 1045,
+      "sha256": "31f802a760c84fe2b412618d3db05d1e1c5d0dc789f6bb71971d34bf32cd2c96",
+      "extension": ".svg"
+    },
+    {
+      "path": "01-brand/sabiroute-logo-proposed-light.png",
+      "size_bytes": 29990,
+      "sha256": "08b1753d51b3ff8a8e2f398198e5a2a34aa6806ec904e7f10bb3478b84842078",
+      "extension": ".png"
+    },
+    {
+      "path": "01-brand/sabiroute-logo-proposed-light.svg",
+      "size_bytes": 1045,
+      "sha256": "9f3d409464583eea7d7ebb086abeef439a9589f7f68ad749341432a1f4877bb7",
+      "extension": ".svg"
+    },
+    {
+      "path": "01-brand/sabiroute-symbol-proposed-512.png",
+      "size_bytes": 29832,
+      "sha256": "0f63c0701c858036fd5aab844497f3f8c1f458e4b02c57ec40776818396d6fc2",
+      "extension": ".png"
+    },
+    {
+      "path": "01-brand/sabiroute-symbol-proposed.svg",
+      "size_bytes": 751,
+      "sha256": "b7ebb8f89619263e6d3b96060b1745a489f8280194208d57ed5974e4cc649b5c",
+      "extension": ".svg"
+    },
+    {
+      "path": "02-readme/README-hero-proposed.png",
+      "size_bytes": 127313,
+      "sha256": "5da35bebd255286a093e27bcc4ceed1b4c1290010480fc654b8f28996145c57c",
+      "extension": ".png"
+    },
+    {
+      "path": "02-readme/README-hero-proposed.svg",
+      "size_bytes": 3485,
+      "sha256": "d9c7dbddaeb8e2b332e7211bbacdddc3a7f9a667e946faab5e014547fd6ec252",
+      "extension": ".svg"
+    },
+    {
+      "path": "02-readme/mobile-hero-proposed.png",
+      "size_bytes": 78261,
+      "sha256": "7daa9b9a2cef33e649a7cfd366dfb0dbc0bf45a46418e9421dbb2750c75b2f0f",
+      "extension": ".png"
+    },
+    {
+      "path": "02-readme/mobile-hero-proposed.svg",
+      "size_bytes": 3803,
+      "sha256": "47d91df3f0afd7f97083e533ef7da8517924e6fa48aaf2f567b4cbf6b464f55b",
+      "extension": ".svg"
+    },
+    {
+      "path": "02-readme/social-preview-proposed.png",
+      "size_bytes": 60888,
+      "sha256": "144175955fcf92a1c3329046a3a3fbeab74194f91ac4163df2a9d0cc93f372b2",
+      "extension": ".png"
+    },
+    {
+      "path": "02-readme/social-preview-proposed.svg",
+      "size_bytes": 3697,
+      "sha256": "b27a0b02515f4a016dd60c7e8cca95c059e996f04f94e6c00df505853ea5231c",
+      "extension": ".svg"
+    },
+    {
+      "path": "03-diagrams/developer-workflow-reference.png",
+      "size_bytes": 84450,
+      "sha256": "5e95ff325e4c7484e02502805e2da5a5c090fac99b7364e02b3678409e46d7ab",
+      "extension": ".png"
+    },
+    {
+      "path": "03-diagrams/developer-workflow-reference.svg",
+      "size_bytes": 5314,
+      "sha256": "7eabb9853aa53c47edc240b93720a6eeb682f4c1e64097c91d42e0c281a91ee9",
+      "extension": ".svg"
+    },
+    {
+      "path": "03-diagrams/fallback-flow-reference.png",
+      "size_bytes": 81875,
+      "sha256": "dd2b3539c8b61231fbfed7336dd73d732d2f1ef015a3038554ce138789a1fecd",
+      "extension": ".png"
+    },
+    {
+      "path": "03-diagrams/fallback-flow-reference.svg",
+      "size_bytes": 4850,
+      "sha256": "dc6eaf0b5ccfe441edb667139aaa99181c21d9f02cd9c6cf9e3ea099e33736c3",
+      "extension": ".svg"
+    },
+    {
+      "path": "03-diagrams/request-lifecycle-reference.png",
+      "size_bytes": 77283,
+      "sha256": "73452eb751969d9879deccbda13492ea4d6c5b4dab075d08e2c07193729400a7",
+      "extension": ".png"
+    },
+    {
+      "path": "03-diagrams/request-lifecycle-reference.svg",
+      "size_bytes": 5392,
+      "sha256": "b5ccbae62f50b8074ba990dc9f0639069a2238505b513bd4ef915793a174827b",
+      "extension": ".svg"
+    },
+    {
+      "path": "03-diagrams/sabichat-integration-reference.png",
+      "size_bytes": 76298,
+      "sha256": "6ee7a1aef0fadb288e192b21230c2c8b9c7a7170c2fc3a60159a0f3fc8990b50",
+      "extension": ".png"
+    },
+    {
+      "path": "03-diagrams/sabichat-integration-reference.svg",
+      "size_bytes": 3887,
+      "sha256": "6183465df2633770c7128c957ed2b89ddabc0c53ed211af8632827aa8f555413",
+      "extension": ".svg"
+    },
+    {
+      "path": "03-diagrams/system-architecture-reference.png",
+      "size_bytes": 99547,
+      "sha256": "2f3c0ab7003be3f6d1cb7569be27dedff44a0bdbece427594f21e903cfb16c73",
+      "extension": ".png"
+    },
+    {
+      "path": "03-diagrams/system-architecture-reference.svg",
+      "size_bytes": 4804,
+      "sha256": "fc0c947b1d0ba43cce45ffb4108f4908a43fb193838305a75a3eda7590a2d78f",
+      "extension": ".svg"
+    },
+    {
+      "path": "04-sabichat/sabichat-interface-concept.png",
+      "size_bytes": 84440,
+      "sha256": "3cf6dcc80038c749d5eb3ab78f754694c02fc838114890eecc4c806c44c36b8f",
+      "extension": ".png"
+    },
+    {
+      "path": "04-sabichat/sabichat-interface-concept.svg",
+      "size_bytes": 3611,
+      "sha256": "3f2dd1d02f11b02cd5b7828898cbf7bd3014c7b64d24f55349f48028fd2d7376",
+      "extension": ".svg"
+    },
+    {
+      "path": "05-icons/icon-chat-256.png",
+      "size_bytes": 1340,
+      "sha256": "07946a722802df3adaa482d8bf54cbe1e91d7c588faff8152cfdf499901ead0f",
+      "extension": ".png"
+    },
+    {
+      "path": "05-icons/icon-gateway-256.png",
+      "size_bytes": 1803,
+      "sha256": "012da19015553603e6a62970dbc1b062af62f7825c4201bf43552bad5d0f6443",
+      "extension": ".png"
+    },
+    {
+      "path": "05-icons/icon-observability-256.png",
+      "size_bytes": 1392,
+      "sha256": "2e048418f32fcf994b90e1af35a490af57aa97e80a9cc2258e5717e96619f0eb",
+      "extension": ".png"
+    },
+    {
+      "path": "05-icons/icon-routing-256.png",
+      "size_bytes": 2049,
+      "sha256": "45fd4b534ebf470e16490dcb239872c4c4c90e03b862d32afedc163a03dd3903",
+      "extension": ".png"
+    },
+    {
+      "path": "05-icons/icon-security-256.png",
+      "size_bytes": 2056,
+      "sha256": "ba40f25684c061944b9fd2fa62524f1cedfcbf2eda321abd641734a7ff2e5ecc",
+      "extension": ".png"
+    },
+    {
+      "path": "06-developer-workflow/developer-workflow-reference.png",
+      "size_bytes": 47416,
+      "sha256": "3fef50c0cd3140cf786b1cf13eece772c04be9cf5c49b78f9939e140edae78e5",
+      "extension": ".png"
+    },
+    {
+      "path": "06-developer-workflow/developer-workflow-reference.svg",
+      "size_bytes": 4103,
+      "sha256": "db3274c2ed6111ec79f5809046a0fc607e3d1641aaefd61feeca7f79d07cf0a7",
+      "extension": ".svg"
+    },
+    {
+      "path": "07-motion/request-flow-concept-still.png",
+      "size_bytes": 15773,
+      "sha256": "4e1d53d5d0240ff5831c4c46bd71debd7e924d3cd5f72972b6184a8e8cefe77c",
+      "extension": ".png"
+    },
+    {
+      "path": "07-motion/request-flow-concept.gif",
+      "size_bytes": 51402,
+      "sha256": "0c05282e5e84cfb912c758a18151ebc0d7065f17ccd0fa1b5873b50aca3a0495",
+      "extension": ".gif"
+    },
+    {
+      "path": "90-legacy-reference-package/sabiroute-media-studio-v1.zip",
+      "size_bytes": 18408106,
+      "sha256": "0b2533454386c7c44df15d764158223af23ce5be3f573909e967c9cc91c76b37",
+      "extension": ".zip"
+    },
+    {
+      "path": "COVERAGE-MATRIX.csv",
+      "size_bytes": 1703,
+      "sha256": "dc21f7beb1c90cc501855bec968d56bd979f889adf9f7d3ae7c196b755fd772f",
+      "extension": ".csv"
+    },
+    {
+      "path": "QA-REPORT.md",
+      "size_bytes": 1223,
+      "sha256": "5064392574d67f1d0f8f395a91110ee1a09a2ff08fd5c533b3b072a49963fcd4",
+      "extension": ".md"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 1752,
+      "sha256": "fe732dfc3c8e4a2c792fbc95e49976cd60a7e57108772056177b3ef0dbf52825",
+      "extension": ".md"
+    }
+  ]
+}
