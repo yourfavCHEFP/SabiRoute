@@ -30,12 +30,17 @@ As of 2026-11-23 it was:
 - **`main` and `origin/main` were identical** — 0 ahead, 0 behind. There is no history
   divergence left to reconcile. `feat/sabiroute-routing-foundation` is fully merged.
 - `origin/main` holds **84 commits**.
-- Three commits sit ahead of `main`, and are the entire point of this task:
+- These commits sit ahead of `main`, and are the entire point of this task:
   - `9475aae` fix(sprint1): correct retired provider model names and regenerate proxy config
   - `380ece4` fix(phase13): scope audit to current feature schema and record the verdict
   - `bb490f6` chore(repo): track the protocol and handoff docs; ignore local agent state
+  - `2623651` docs(sprint3): re-derive repo state and write the guarded push handoff
 
-## Task 1 — Land the three sprint commits on main
+  Re-run `git rev-list --count main..sprint-1-alias-remediation` before merging; if the count
+  is higher than the list above, that is expected — the sprint branch may have gained
+  commits. Merge whatever is there; do not cherry-pick a subset.
+
+## Task 1 — Land the sprint commits on main
 
 1. `git checkout main`, confirm it equals `origin/main`.
 2. `git merge --no-ff sprint-1-alias-remediation` (a merge commit is fine and preferred; it
