@@ -463,7 +463,7 @@ Operational and verification tooling:
 
 | Script | Purpose | Notes |
 |---|---|---|
-| `scripts/audit_routing_dataset.py` | Read-only routing dataset audit; `--export` is readiness-gated candidate JSON and `--diagnostic-export` is diagnostic-only JSON | Requires `DATABASE_URL`; never trains or writes to the database |
+| `scripts/audit_routing_dataset.py` | Read-only routing dataset audit; `--export` is readiness-gated candidate JSON, `--diagnostic-export` is diagnostic-only JSON, and `--exclude-pre-instrumentation` scopes the audit to rows satisfying the current feature schema while naming every excluded row | Requires `DATABASE_URL`; never trains or writes to the database |
 | `scripts/verify_postgres.py` | Temporary-key PostgreSQL lifecycle check, self-cleaning | Prints database/role names, never passwords |
 | `scripts/verify_phase10.py` | Exercises request accounting and rate limits against local services | Local services only |
 | `scripts/benchmark_routing.py` | Synthetic `priority` vs `measured` comparison | No provider calls — methodology check, not provider evidence |
