@@ -36,7 +36,8 @@ on `main`, use the worktree at `../SabiRoute-claude-fix` (branch `main`).
 | 1 | Provider alias remediation | Retired provider model names corrected; proxy config regenerated. [R] |
 | 2 | Phase 13 integrity + audit | Root-caused both blockers to **5 pre-instrumentation rows**, not a live defect. Gate left byte-unchanged; added an opt-in, reported scope filter. Phase 13 `BLOCKED` → `READY_FOR_HUMAN_REVIEW`. |
 | 3 | Branch reconciliation + push | Landing plus a content-neutral co-author rewrite: 92/92 trees identical, 27 trailers removed, `--force-with-lease`. |
-| 4 | Phase 05 fallback proof | Failure injection proved at the HTTP seam **and** through a real LiteLLM Proxy. Not Complete — no real provider failure. |
+| 4 | Phase 05 fallback proof | Failure injection proved at the HTTP seam **and** through a real LiteLLM Proxy. Superseded by sprint 5 for the real-provider leg. |
+| 5 | Phase 05 close + Phase 02 evidence | Real 429 from OpenAI drove a real fallback to nvidia in 2.48s. All 14 aliases probed; **4 working**. |
 
 Source commits now on `main`: `e110491`, `6821ab2`, `3d9901b`, `51f1dc5`, plus the commit that
 adds this file. [V]
@@ -50,10 +51,10 @@ live-verified. Nothing below is Complete by that standard except where marked.
 |---|---|---|---|
 | 00 Architecture & Environment | Complete (as recorded) | — | [R] |
 | 01 Basic LiteLLM Gateway | Complete (as recorded) | — | [R] |
-| 02 Provider Expansion | In progress — **1 of 14** aliases has runtime evidence | Real calls per alias; 7+ blocked on account credit | [V] 14 aliases configured; 12 marked "Configured; unverified" |
+| 02 Provider Expansion | In progress — **4 of 14** aliases verified 2026-11-23 | Real calls per alias; 10 still failing on account balance | [V] `probe_provider_aliases.py`; `docs/providers.md` |
 | 03 Model Registry | Complete | — | [R] |
 | 04 Virtual Models | Complete | — | [R] |
-| 05 Fallback Engine | **Implemented + failure-injection verified; not Complete** | One **real** provider failure through a working alias | [V] Phase 05 proof artifact |
+| 05 Fallback Engine | **Complete** — real 429 drove a real fallback 2026-11-23 | — | [V] `artifacts/sprint-4/PHASE05-REAL-PROVIDER-FAILURE-2026-11-23.md` |
 | 06 Health Monitoring | Implemented — passive cooldown only, active checker unwired | Decide: wire it, or record passive-only as the design | [R] |
 | 07 Observability | Implemented | — | [R] |
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
@@ -87,9 +88,12 @@ emphasis from whatever was discussed earlier.
 
 **Immediate — no external dependency**
 
-1. Close Phase 05 with one real provider failure. Cheapest route: force a genuine 404 from
+1. ~~Close Phase 05 with one real provider failure.~~ **DONE 2026-11-23**, and note the plan
+   here was wrong: a 404 is not retryable, so a retired model id could never have proved a
+   fallback. The working fault was a real 429. Original note: force a genuine 404 from
    `sabiroute-gemini` using a retired model id. No accounts, no spend, no new code.
-2. Reconcile `docs/providers.md` against `config/config.yaml` comments.
+2. ~~Reconcile `docs/providers.md` against `config/config.yaml` comments.~~ **DONE
+   2026-11-23** — the container comments were closer than the doc: 4 of 14 aliases work.
 3. Phase 10 live rejection paths against disposable PG + Redis.
 4. Phase 06: wire the active checker or record passive-only as deliberate.
 
@@ -108,7 +112,7 @@ An owner-maintained tracker was found stale in four places on 2026-11-23:
 
 | It said | Actual |
 |---|---|
-| Phase 02: 3 of 14, with "4 more from a bounded wave" | `docs/providers.md` supports **1**; the bounded-wave claim is not recorded in that file |
+| Phase 02: 3 of 14, with "4 more from a bounded wave" | The tracker is nearest right: the probe found **4 of 14** working. No bounded wave is recorded anywhere |
 | Phase 05: "no live failure-injection evidence" | Superseded — 10/10 direct and 7/7 through a real proxy |
 | Phase 13: "33 rows, BLOCKED" | **145 rows**, 140 clean; status is `READY_FOR_HUMAN_REVIEW` |
 | "`sec/deps-nov` diverged, unresolved" | No divergence: `main` = `origin/main`. Non-`main` branches appear diverged only because of the SHA rewrite |
@@ -136,15 +140,19 @@ independent client tool.
 4. **`CLAUDE.md` roadmap lines are column-padded.** Match on a prefix, not equality.
 5. **A shared LiteLLM Proxy carries deployment-failure state between requests** and can change
    which alias answers. Use a fresh proxy per scenario when measuring routing behaviour.
+6. **A proxy-side timeout surfaces as HTTP 408, which is not in `RETRYABLE_STATUS_CODES`.** A
+slow provider therefore burns the budget and suppresses failover, and it presents as a broken
+fallback when SabiRoute is behaving correctly. Pick a fault that fails fast and retryably.
 
 ## 9. Bottom line
 
 The gateway core is implemented and tested. Production-ready requires every phase Complete,
-and 0 of 21 phases meet that bar on live evidence today. The binding constraints are not the
-unstarted phases — they are Phase 05 and Phase 13, each **one real datapoint** away from being
-honestly defensible, and seven aliases dark on account credit.
+and **1 of 21** phases now meets that bar on live evidence — Phase 05, closed 2026-11-23 by a
+real provider failure driving a real fallback. The binding constraint that remains is Phase 13,
+one human sign-off away, plus ten aliases dark on account balance.
 
 ## Next action
 
-Close Phase 05 with one genuine provider failure through `sabiroute-gemini`, then reconcile
-`docs/providers.md` against the config comments. Both are local and cost nothing.
+Phase 05 and the providers reconciliation are closed. Next is Phase 10's live rejection paths
+against disposable PG + Redis, then Phase 06's active-checker decision. Superseded text:
+`docs/providers.md` against the config comments. Both were local and cost nothing.
