@@ -370,10 +370,33 @@ def _measured_workload(
 
     observations: dict[str, tuple[Observation, ...]] = {}
     distinct: dict[str, int] = {}
+    sample_stats: dict[str, dict[str, Any]] = {}
     for name, items in by_deployment.items():
         distinct[name] = len(items)
+        # Reliability and latency for this alias are summarised from its DISTINCT
+        # real observations here, not from the replayed request stream. Cycling
+        # the samples to fill `--requests` (below) cannot add information: it
+        # only replays the K measurements the probe actually made.
+        sample_stats[name] = _measured_sample_stats(tuple(items))
         observations[name] = tuple(
             items[index % len(items)] for index in range(warmup + requests)
+        )
+
+    multi = any(count > 1 for count in distinct.values())
+    observation_mode = "multi_observation" if multi else "single_observation"
+    if multi:
+        replay_note = (
+            "each alias carries multiple distinct observations; they are "
+            "cycled to fill the request count so N replayed requests are not "
+            "N independent measurements. The per-deployment reliability and "
+            "latency below are computed from the distinct real samples; the "
+            "headline table is over replayed requests"
+        )
+    else:
+        replay_note = (
+            "each alias carries a single observation, cycled to fill the "
+            "request count; N replayed requests are not N independent "
+            "measurements"
         )
 
     provenance = {
@@ -387,12 +410,11 @@ def _measured_workload(
         "spends_provider_credits": False,
         "path": str(path),
         "sha256": digest,
+        "observation_mode": observation_mode,
         "distinct_observations": distinct,
+        "measured_samples": sample_stats,
         "replayed_requests": requests,
-        "replay_note": (
-            "observations are cycled to fill the request count; N replayed "
-            "requests are not N independent measurements"
-        ),
+        "replay_note": replay_note,
         "excluded_no_observation": dict(sorted(excluded.items())),
     }
     return Workload(
@@ -432,6 +454,26 @@ def _latency_stats(values: list[float]) -> dict[str, Any]:
         "p50": round(percentiles[49], 3),
         "p95": round(percentiles[94], 3),
         "note": None,
+    }
+
+
+def _measured_sample_stats(items: tuple[Observation, ...]) -> dict[str, Any]:
+    """Reliability and latency over one alias's DISTINCT real observations.
+
+    This is the honest per-alias summary: it counts the measurements the probe
+    actually made, not the replayed request stream. With one observation the
+    percentiles are a constant and ``percentiles_meaningful`` is false; with
+    several they are real sample percentiles.
+    """
+    count = len(items)
+    successes = sum(1 for item in items if item.succeeded)
+    return {
+        "count": count,
+        "successes": successes,
+        "failures": count - successes,
+        "success_rate": round(successes / count, 6) if count else None,
+        "latency_ms": _latency_stats([item.latency_ms for item in items]),
+        "percentiles_meaningful": count >= 2,
     }
 
 
@@ -681,6 +723,10 @@ def _render(report: dict[str, Any]) -> str:
                 for name, count in provenance["distinct_observations"].items()
             )
         )
+        lines.append(
+            "  observation mode: "
+            + provenance.get("observation_mode", "single_observation")
+        )
         if provenance["excluded_no_observation"]:
             lines.append(
                 "  excluded (no provider observation): "
@@ -702,8 +748,53 @@ def _render(report: dict[str, Any]) -> str:
         f"attempts, {report['warmup_observations_per_deployment']} warm-up "
         "observations per deployment"
     )
-    lines.append(f"Candidates ({len(report['candidates'])}): "
-                 + ", ".join(report["candidates"]))
+    lines.append(
+        f"Candidates ({len(report['candidates'])}): "
+        + ", ".join(report["candidates"])
+    )
+
+    if provenance["source"] == "MEASURED":
+        lines.append("")
+        lines.append(
+            "Measured per-deployment samples (distinct real observations)"
+        )
+        rows = []
+        for name, stats in provenance["measured_samples"].items():
+            latency = stats["latency_ms"]
+            rows.append(
+                [
+                    name,
+                    str(stats["count"]),
+                    f"{stats['successes']}/{stats['count']}",
+                    _fmt(stats["success_rate"], ".1%"),
+                    _fmt(latency["mean"], ".1f"),
+                    _fmt(latency["p50"], ".1f"),
+                    _fmt(latency["p95"], ".1f"),
+                ]
+            )
+        lines.extend(
+            _table(
+                [
+                    "deployment",
+                    "samples",
+                    "ok/total",
+                    "success_rate",
+                    "mean_ms",
+                    "p50_ms",
+                    "p95_ms",
+                ],
+                rows,
+            )
+        )
+        if not all(
+            stats["percentiles_meaningful"]
+            for stats in provenance["measured_samples"].values()
+        ):
+            lines.append(
+                " note: an alias with fewer than 2 distinct observations "
+                "reports its single value for p50/p95, not a distribution"
+            )
+
     lines.append("")
 
     lines.append("Headline comparison (latency over successful requests)")

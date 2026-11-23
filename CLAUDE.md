@@ -293,7 +293,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 11 Routing Intelligence Implemented — chat evidenced for 6 deployments; every other capability UNVERIFIED; breadth blocked on Phase 02
 12 Model Scoring Implemented — deterministic-v1 arithmetic demonstrated on measured signals 2026-11-23; production minimum_samples=5 gate still falls back to priority on a cold process
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized
-14 Benchmarking In progress — scripts/benchmark.py reproducible and provenance-labelled; no measured comparison yet
+14 Benchmarking In progress — 30 real observations recorded; comparison still degenerate because groq is both first-healthy and highest-scoring
 15 Admin Dashboard              Planned
 16 Remote Access / Tailscale    Planned
 17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
