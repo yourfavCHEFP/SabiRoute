@@ -29,19 +29,19 @@ behavior until a request explicitly requires a capability.
 | Deployment alias | `chat` | All other capabilities | Evidence |
 |---|---|---|---|
 | `sabiroute-openai` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-gemini` | true | unknown | Non-empty text completion through LiteLLM; model alias `sabiroute-gemini` |
-| `sabiroute-groq` | true | `streaming` true; all other capabilities unknown | Non-empty completion and 13 content chunks over SSE through SabiRoute → LiteLLM |
+| `sabiroute-gemini` | true | unknown | 2026-10-08 non-empty completion. **2026-11-23 probe: HTTP 503 then timeout — not reproducible today**; keeps its 2026-10-08 basis, is not currently relied on |
+| `sabiroute-groq` | true | `streaming` true; all other capabilities unknown | 2026-10-08 non-empty completion and 13 SSE chunks. **2026-11-23 probe: HTTP 200 with empty assistant text — current state uncertain** |
 | `sabiroute-together` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-deepinfra` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-kimi` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-minimax` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-cloudflare` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-openrouter` | true | unknown | Non-empty text completion through LiteLLM using the configured OpenRouter deployment |
+| `sabiroute-cloudflare` | true | unknown | 2026-11-23 probe: real non-empty completion (2.6s) |
+| `sabiroute-openrouter` | true | unknown | Earlier non-empty completion. **2026-11-23 probe: empty content at `max_tokens` 16, HTTP 402 on a full-length request — account credit, not capability** |
 | `sabiroute-huggingface` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-cerebras` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-nvidia` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-cohere` | unknown | unknown | No deployment-specific runtime evidence collected |
-| `sabiroute-pollinations` | unknown | unknown | No deployment-specific runtime evidence collected |
+| `sabiroute-nvidia` | true | unknown | 2026-11-23 probe: real non-empty completion (1.0s) |
+| `sabiroute-cohere` | true | unknown | 2026-11-23 probe: real non-empty completion (2.9s) |
+| `sabiroute-pollinations` | true | unknown | 2026-11-23 probe: real non-empty completion (1.2s) |
 
 “All other capabilities” means `coding`, `reasoning`, `vision`,
 `long_context`, `tool_use`, `structured_output`, `json`, `streaming`,
@@ -52,6 +52,23 @@ Requests that explicitly set `sabi_route_request_type`, use a route with
 `required_capabilities`, or require a feature such as tool use, JSON output,
 streaming, vision, or multimodal input are filtered against verified metadata.
 Streaming is supported only for deployments explicitly marked `streaming: true`.
+
+## 2026-11-23 probe
+
+`scripts/probe_provider_aliases.py` made one real minimal completion per alias.
+Four deployments returned non-empty assistant text — `cloudflare`, `nvidia`,
+`cohere` and `pollinations` — and each is recorded as `chat: true` on that basis
+alone. Nothing else was tested. No row above gains `coding`, `reasoning`,
+`vision`, `tool_use`, `json`, `streaming` or any other capability from this
+probe.
+
+Three rows contradict the probe and are left standing, with the conflict
+recorded rather than resolved: `gemini` (503 then timeout), `groq` (HTTP 200
+with empty content) and `openrouter` (empty content at small output, 402 on a
+full-length request). An empty completion is not evidence that `chat` is
+unsupported, so no `true` is downgraded on that basis; equally, none of the
+three reproduced its earlier evidence today, so none should be relied on.
+
 
 ## Classification rules
 
