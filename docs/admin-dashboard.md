@@ -99,3 +99,25 @@ Behaviour is covered by:
 `node --check web/app.js` for the SabiChat bundle; extending that step to the
 dashboard file is an owner/CI decision, so this change does not edit
 `.github/**`.
+
+## Browser verification (2026-11-23)
+
+Performed in a real Chrome against a locally running server — not via
+`TestClient`, which is what makes this live verification rather than a serving check.
+
+Harness: `scripts/phase15_browser_verify.py` starts the real app with seeded
+**fixture** telemetry so the page has something worth rendering. That data is a
+UI fixture, not provider evidence; real provider telemetry was verified separately
+in Phase 07 and Phase 12.
+
+| Step | Observed |
+|---|---|
+| Load `/admin/dashboard/` | 200; title "SabiRoute Admin Dashboard"; 5 tables present |
+| Unauthenticated | "Paste your admin key to load the dashboard." |
+| Correct admin key | all five panels populated: 6 requests / 4 successful / 2 failed / 0 rate-limited; per-model request counts; deployment health including the cooldown column; per-deployment latency samples; error categories `server=1`, `auth=1`; token usage 110 / 44 / 80 / 60 |
+| Wrong admin key | "Your admin key was rejected (401). Paste a valid admin key." with **zero rows populated** |
+
+**Recorded minor issue:** after a 401 the rejected key remains in `sessionStorage`
+under `sabirooute.adminKey` until the operator clears it. It is the operator's own
+input in their own tab, so this is a UX wart rather than an exposure. It is
+recorded rather than ignored.

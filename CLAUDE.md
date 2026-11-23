@@ -294,7 +294,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 12 Model Scoring Complete — signals persist to Redis with TTL, hydrate on restart, degrade to in-memory; live-verified 2026-11-23
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized
 14 Benchmarking In progress — 30 real observations recorded; comparison still degenerate because groq is both first-healthy and highest-scoring
-15 Admin Dashboard Implemented — read-only /admin/dashboard over the five admin endpoints; auth unchanged; no real-browser verification yet
+15 Admin Dashboard Complete — read-only /admin/dashboard, browser-verified 2026-11-23; admin auth unchanged
 16 Remote Access / Tailscale    Planned
 17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
 18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
