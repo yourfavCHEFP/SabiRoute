@@ -19,8 +19,8 @@ the command that produced it.
 |---|---|---|
 | `main` vs `origin/main` | `51f1dc5` on both sides, **0 ahead / 0 behind** when this was written; the commit that adds this file puts `main` 1 ahead until it is pushed | [V] `git rev-list --left-right --count` |
 | Hosted CI on `main` | green — runs `45117926289` (`3d9901b`) and `45118591281` (`51f1dc5`) | [V] `gh run list` / [R] Copilot's watch |
-| Test suite | **866 passed, 10 skipped** | [V] `pytest -q` on the `main` worktree |
-| Skips | 9 environment-gated (`SABIROUTE_TEST_REDIS_URL` / `SABIROUTE_TEST_PG_URL`); **1 contract skip** — `tests/test_r6_registration_digest_conformance.py:570` awaits authorised ledger instantiation | [V] pytest skip report |
+| Test suite | **866 passed, 10 skipped** by default; **870 passed, 6 skipped** with `SABIROUTE_TEST_PG_URL` supplied | [V] `pytest -q` on the `main` worktree, both ways |
+| Skips | With PG supplied: **5 Redis-gated** (`SABIROUTE_TEST_REDIS_URL` is set nowhere in this repo) + **1 contract skip** — `tests/test_r6_registration_digest_conformance.py:570` awaits authorised ledger instantiation | [V] pytest skip report, both ways |
 | Node.js | CI emits a Node 20 → 24 deprecation notice for Actions | [R] two CI runs |
 | Checked-out branch | `feat/sabiroute-routing-foundation` @ `1e69ada` — the **pre-rewrite lineage**, not `main` | [V] `git branch --show-current` |
 
@@ -59,8 +59,8 @@ live-verified. Nothing below is Complete by that standard except where marked.
 | 07 Observability | Implemented | — | [R] |
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
 | 09 Auth & API Keys | Complete (documented run) | — | [R] |
-| 10 Budgets & Rate Limits | Implemented — live rejection paths not exercised | Prove exhaustion and 429 + `Retry-After` against real PG/Redis | [R] |
-| 11 Routing Intelligence | Implemented — capability evidence missing for most deployments | `docs/capabilities.md` records **11** aliases with no runtime evidence | [V] |
+| 10 Budgets & Rate Limits | Implemented — 4 PG-backed tests now execute and pass; exhaustion / 429 + `Retry-After` not separately asserted | A disposable Redis, plus an explicit exhaustion assertion | [V] suite with PG supplied, 2026-11-23 |
+| 11 Routing Intelligence | Implemented — 4 aliases now carry `chat` evidence; every other capability untested everywhere | Anyone testing `coding`, `vision`, `tool_use`, `json` or `streaming` | [V] `docs/capabilities.md`, 2026-11-23 |
 | 12 Model Scoring | Implemented — deterministic-v1 live, benchmarks synthetic | — | [R] |
 | 13 ML Router | **`READY_FOR_HUMAN_REVIEW`** — 145 rows, 140 clean, `training_authorized: false` | Owner sign-off, then more telemetry (28-row eval split is far too thin) | [V 2026-11-22] |
 | 14 Benchmarking | Planned | — | [R] |

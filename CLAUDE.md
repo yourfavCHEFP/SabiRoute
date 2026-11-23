@@ -267,9 +267,11 @@ acceptance review.
 | Planned | not started |
 
 **Evidence basis (suite re-verified 2026-11-23; supersedes the 2026-10-10 count of 160 and the
-2026-11-04 count of 663):** **866 tests pass, 10 skipped**. Nine skips are environment-gated on
-`SABIROUTE_TEST_REDIS_URL` / `SABIROUTE_TEST_PG_URL`; **one is a contract skip** —
-`tests/test_r6_registration_digest_conformance.py:570` waits on authorised ledger
+2026-11-04 count of 663):** **866 tests pass, 10 skipped** by default, and **870 pass, 6 skipped**
+when `SABIROUTE_TEST_PG_URL` is supplied — the four PostgreSQL-backed tests then run and pass
+instead of skipping. Nine default skips are environment-gated, and five of those are Redis-gated
+on `SABIROUTE_TEST_REDIS_URL`, which nothing in this repository provides. **One is a contract
+skip** — `tests/test_r6_registration_digest_conformance.py:570` waits on authorised ledger
 instantiation — so the earlier statement that no skip is a contract skip no longer holds.
 `ruff` and `mypy` were not re-run on 2026-11-23; the 2026-11-04 results over **49** source
 files stand only as recorded. Live-path evidence remains **documentary** — the isolated run
