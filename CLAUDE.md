@@ -267,12 +267,12 @@ acceptance review.
 | Planned | not started |
 
 **Evidence basis (suite re-verified 2026-11-23; supersedes the 2026-10-10 count of 160 and the
-2026-11-04 count of 663):** **866 tests pass, 10 skipped** by default, and **870 pass, 6 skipped**
-when `SABIROUTE_TEST_PG_URL` is supplied — the four PostgreSQL-backed tests then run and pass
-instead of skipping. Nine default skips are environment-gated, and five of those are Redis-gated
-on `SABIROUTE_TEST_REDIS_URL`, which nothing in this repository provides. **One is a contract
-skip** — `tests/test_r6_registration_digest_conformance.py:570` waits on authorised ledger
-instantiation — so the earlier statement that no skip is a contract skip no longer holds.
+2026-11-04 count of 663):** **866 tests pass, 10 skipped** with no test services configured;
+**870 pass, 6 skipped** with `SABIROUTE_TEST_PG_URL`; and **875 pass, 1 skipped** with both
+`SABIROUTE_TEST_PG_URL` and a disposable `SABIROUTE_TEST_REDIS_URL`. The single remaining skip
+is a **contract skip** — `tests/test_r6_registration_digest_conformance.py:570` waits on
+authorised ledger instantiation. Both service integrations are now demonstrably exercisable
+locally: a `redis-server` on a spare port with persistence disabled is sufficient.
 `ruff` and `mypy` were not re-run on 2026-11-23; the 2026-11-04 results over **49** source
 files stand only as recorded. Live-path evidence remains **documentary** — the isolated run
 recorded in `docs/phase13-data-foundation.md` — and covers success paths only; it was not
@@ -289,7 +289,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 07 Observability                Implemented — wired into gateway state and admin endpoints
 08 PostgreSQL                   Complete — PostgresApiKeyStore exercised by the documented run
 09 Authentication & API Keys    Complete — client/admin boundary exercised on that run
-10 Budgets & Rate Limits        Implemented — unit/API tested; live rejection paths not exercised
+10 Budgets & Rate Limits Complete — 429 + Retry-After asserted against real PG/Redis
 11 Routing Intelligence         Implemented — capability evidence missing for most deployments
 12 Model Scoring                Implemented — deterministic-v1 live; benchmark evidence synthetic
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized

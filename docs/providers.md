@@ -72,3 +72,6 @@ loads, `nvidia_nim/nvidia/nemotron-3.5-bolt-e4b`. The stale identifier returns a
 real provider 404, so the previous row could not have passed a probe.
 
 Do not raise this count without re-running the probe and recording the date.
+
+Per-alias remediation and an ask-ordering live in
+`artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md`.

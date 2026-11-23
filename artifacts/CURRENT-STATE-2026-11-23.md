@@ -19,8 +19,8 @@ the command that produced it.
 |---|---|---|
 | `main` vs `origin/main` | `51f1dc5` on both sides, **0 ahead / 0 behind** when this was written; the commit that adds this file puts `main` 1 ahead until it is pushed | [V] `git rev-list --left-right --count` |
 | Hosted CI on `main` | green — runs `45117926289` (`3d9901b`) and `45118591281` (`51f1dc5`) | [V] `gh run list` / [R] Copilot's watch |
-| Test suite | **866 passed, 10 skipped** by default; **870 passed, 6 skipped** with `SABIROUTE_TEST_PG_URL` supplied | [V] `pytest -q` on the `main` worktree, both ways |
-| Skips | With PG supplied: **5 Redis-gated** (`SABIROUTE_TEST_REDIS_URL` is set nowhere in this repo) + **1 contract skip** — `tests/test_r6_registration_digest_conformance.py:570` awaits authorised ledger instantiation | [V] pytest skip report, both ways |
+| Test suite | **866/10** bare · **870/6** with PG · **875/1** with PG + disposable Redis | [V] `pytest -q`, all three configurations |
+| Skips | At full configuration only **1**: the contract skip at `tests/test_r6_registration_digest_conformance.py:570` | [V] `pytest -q` with PG + Redis |
 | Node.js | CI emits a Node 20 → 24 deprecation notice for Actions | [R] two CI runs |
 | Checked-out branch | `feat/sabiroute-routing-foundation` @ `1e69ada` — the **pre-rewrite lineage**, not `main` | [V] `git branch --show-current` |
 
@@ -59,7 +59,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 | 07 Observability | Implemented | — | [R] |
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
 | 09 Auth & API Keys | Complete (documented run) | — | [R] |
-| 10 Budgets & Rate Limits | Implemented — 4 PG-backed tests now execute and pass; exhaustion / 429 + `Retry-After` not separately asserted | A disposable Redis, plus an explicit exhaustion assertion | [V] suite with PG supplied, 2026-11-23 |
+| 10 Budgets & Rate Limits | **Complete** — 429 + `Retry-After` asserted against real PG and Redis (875/1) | — | [V] `tests/test_phase10.py:125,767`; suite run 2026-11-23 |
 | 11 Routing Intelligence | Implemented — 4 aliases now carry `chat` evidence; every other capability untested everywhere | Anyone testing `coding`, `vision`, `tool_use`, `json` or `streaming` | [V] `docs/capabilities.md`, 2026-11-23 |
 | 12 Model Scoring | Implemented — deterministic-v1 live, benchmarks synthetic | — | [R] |
 | 13 ML Router | **`READY_FOR_HUMAN_REVIEW`** — 145 rows, 140 clean, `training_authorized: false` | Owner sign-off, then more telemetry (28-row eval split is far too thin) | [V 2026-11-22] |
@@ -75,7 +75,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 
 | Blocker | Detail | Kind |
 |---|---|---|
-| 7 provider aliases | openai 429 (no credits), minimax / cerebras / deepinfra / huggingface 402, kimi 429, together 401; gemini intermittent | **External** — money, not code |
+| 10 provider aliases | openai 429 · kimi 429 · together 401 · deepinfra/minimax/huggingface/cerebras 402 · gemini 503 · groq/openrouter empty content. **Six are money, three are not.** See `artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md` | **Mostly external** |
 | `docs/providers.md` vs `config/config.yaml` | The doc marks only gemini verified; the 2026-10-08 config comments name Groq and OpenRouter. One of them is wrong, and Phase 02's number depends on which | **Local** — solvable today |
 | Phase 13 training | `training_authorized: false`; needs owner approval *and* a healthier sample | **Owner** |
 | Docker build | Fails locally (daemon unavailable); passes in CI | [U] — not re-checked this session |
