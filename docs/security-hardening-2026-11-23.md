@@ -243,3 +243,132 @@ Stated explicitly, because a scan record that overstates itself is worse than no
 
 No label in this document was upgraded without evidence. Where a tool was unavailable, the
 result is recorded as unavailable, never as clean.
+
+---
+
+## 6. Remediation — F-07, F-08, F-09, F-13 (2026-11-23)
+
+This section supersedes the report-only status of §2 and §3 **for these four findings only**.
+F-01…F-06, F-10, F-11 and F-12 remain open exactly as recorded above.
+
+### 6.1 F-07 — redaction gaps (CLOSED)
+
+`src/sabiroute/security/redaction.py` now masks three additional carriers:
+
+| Carrier | Pattern | Replacement |
+|---|---|---|
+| HuggingFace access token | `\bhf_[A-Za-z0-9]{8,}` | `hf_***` |
+| Google API key | `\bAIza[0-9A-Za-z_\-]{20,}` | `AIza***` |
+| Bare JWT | `\beyJ[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{6,}` | `***` |
+
+The JWT rule runs **before** the `sk-` rule: base64url segments may contain `sk-`, and masking
+that fragment first would destroy the JWT shape. No existing pattern was changed or removed.
+
+Proof: `tests/test_phase17_redaction.py` (12 tests) — each new shape is masked, ordinary prose
+(`hf_` as a word, `AIza` as a prefix, `sk-learn`, a bare `JWT` mention) is untouched, the four
+pre-existing carriers still mask, and the new rules are idempotent.
+
+Residual, unchanged: redaction is pattern-based. A secret in none of these shapes is still not
+masked; callers that must guarantee zero leak log the exception class name only.
+
+### 6.2 F-08 — unauthenticated disclosure (CLOSED; public response shape changed)
+
+`GET /health/ready` now returns a bare verdict:
+
+- `200 {"status": "ready"}`
+- `503 {"status": "not_ready"}`
+
+The `components` map (component names, `rate_limiter: configured|absent`) and the `failing` list
+are no longer returned to any caller. This is a **public API response shape change**, stated
+explicitly rather than shipped silently. The Docker `HEALTHCHECK` reads only the HTTP status, so
+it is unaffected. Operators keep the authenticated detail surface at `/admin/health`; startup
+diagnosis remains in `gateway.startup_error` and the startup log line.
+
+**Consequence for existing tests (reported, not edited).** Six existing tests pin the removed
+body and now fail with `KeyError: 'components'` / `KeyError: 'failing'`:
+
+- `tests/test_admin.py::test_readiness_reports_ready_when_request_path_is_servable`
+- `tests/test_admin.py::test_readiness_recovers_after_transient_schema_check_failure`
+- `tests/test_admin.py::test_readiness_fails_when_startup_is_degraded`
+- `tests/test_deployment.py::test_readiness_reports_ready_without_providers`
+- `tests/test_deployment.py::test_readiness_fails_without_request_accounting`
+- `tests/test_deployment_migration_contract.py::test_unmigrated_database_cannot_report_healthy`
+
+They were left untouched because the remediation brief forbids editing existing test files. Their
+status assertions (200/503, `status` value) still hold; only the disclosure assertions fail. They
+need an owner-authorized update to the new shape.
+
+Proof: `tests/test_phase17_health_disclosure.py` — the ready and not-ready bodies are exactly the
+bare verdicts, and none of `components`, `startup`, `registry`, `key_store`, `chat_store`,
+`rate_limiter`, `configured`, `absent` or `failing` appears in the response text.
+
+### 6.3 F-09 — unauthenticated database work (CLOSED)
+
+`src/sabiroute/api/health.py` adds `SchemaCheckCache`, a per-application, 5-second TTL cache
+(`READINESS_SCHEMA_CACHE_SECONDS`) around the schema re-checks. A successful check is cached; a
+failed check is **not** cached, so a transient database fault cannot hold readiness down for the
+TTL and the next probe can recover immediately. The amplification F-09 names is the healthy
+steady state, where every unauthenticated request would otherwise run three schema queries.
+
+Proof: `tests/test_phase17_health_disclosure.py::test_repeated_readiness_calls_do_not_repeat_schema_work`
+asserts one schema call across three probes, then exactly one more after the cache clock passes
+the TTL; `test_failed_schema_check_is_not_cached` asserts a failed probe is re-checked and
+recovers on the next request.
+
+### 6.4 F-13 — security headers (CLOSED)
+
+`src/sabiroute/main.py` adds `SecurityHeadersMiddleware` (pure ASGI, outermost user middleware) and
+emits on every HTTP response:
+
+- `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'`
+- `X-Content-Type-Options: nosniff`
+- `Strict-Transport-Security: max-age=31536000`
+
+CSP compatibility was verified against the shipped assets, not assumed:
+
+- `web/index.html` loads `./styles.css` and `./app.js`; `web/dashboard/index.html` loads
+  `./dashboard.css` and `./dashboard.js` — same-origin, permitted by `script-src`/`style-src 'self'`.
+- Neither page has an inline `<script>`, `<style>`, `style=` attribute, or `on*=` handler.
+- Neither JS file uses `eval`, `new Function`, `innerHTML`, or `document.write`; the only style
+  write is CSSOM (`web/app.js:189`), which CSP does not govern.
+- Both pages declare `href="data:,"` favicons, which `img-src 'self' data:` permits.
+- All `fetch` targets are same-origin, permitted by `connect-src 'self'`.
+
+`/docs` and `/redoc` are exempt from the CSP: the opt-in developer docs bootstrap Swagger UI and
+ReDoc from a CDN with an inline script, which the strict policy would block. The baseline headers
+still apply there. HSTS is emitted unconditionally; browsers ignore STS received over plain HTTP
+(RFC 6797 §8.1), and `includeSubDomains` is deliberately omitted for a local-first gateway.
+
+Proof: `tests/test_phase17_security_headers.py` (7 tests) — headers on a normal response and on a
+503, the policy permits same-origin script/style and contains no `'unsafe-inline'`, `'unsafe-eval'`
+or `*`, both served UIs carry the policy, the asset graph is same-origin and free of blocked
+constructs, and the docs exemption holds.
+
+### 6.5 Not remediated — design items
+
+- **F-10** — rate limiting keyed on `client.host` remains proxy-blind. Needs a trusted-proxy
+  configuration decision; no header trust was added.
+- **F-11** — the SabiChat service key is still minted once and never revoked or expired. Needs a
+  key lifecycle design.
+- **F-12** — thread-per-call in `store_executor.py` is a performance item, not a security defect.
+- **F-01…F-06** — untouched: F-01 needs credential rotation and history work; F-02…F-06 live in
+  `.github/**`, a protected path.
+
+### 6.6 Verification (2026-11-23)
+
+| Command | Result |
+|---|---|
+| `pytest tests/test_phase17_redaction.py tests/test_phase17_health_disclosure.py tests/test_phase17_security_headers.py -q` | **24 passed** |
+| `pytest tests/test_admin.py tests/test_sabichat_web.py tests/test_deployment.py tests/test_health.py tests/test_r3_secret_leakage.py tests/test_deployment_migration_contract.py tests/test_chat_session_hygiene.py tests/test_phase15_dashboard_serving.py -q` | **78 passed, 6 failed** — all six are the F-08 shape assertions listed in §6.2 |
+| `ruff check src tests` | clean |
+| `mypy src` | clean, 63 source files |
+
+Labels: header emission, redaction behaviour, readiness bodies and the cache are **VERIFIED BY
+RUNTIME** (pytest). CSP compatibility with the UIs is **VERIFIED BY INSPECTION** of the asset graph
+and policy; no browser was executed, so browser-side enforcement is **UNVERIFIED**.
+
+### 6.7 Phase 17 status after this pass
+
+**Not Complete.** F-07, F-08, F-09 and F-13 are closed with tests. F-01 (CRITICAL, needs
+credential rotation), F-02…F-06 (CI), F-10, F-11 and F-12 remain open, and no deployed probe or
+penetration test has been run.

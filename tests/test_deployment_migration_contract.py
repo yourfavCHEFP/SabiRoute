@@ -184,11 +184,11 @@ def test_unmigrated_database_cannot_report_healthy(tmp_path):
     assert live.status_code == 200
     # But it must not be considered able to serve.
     assert ready.status_code == 503
-    # Readiness reports the failing component without echoing the raw error
-    # text; the schema diagnosis is carried by ``startup_error``.
+    # F-08: readiness reports a bare verdict and never echoes the raw error;
+    # the diagnosis is carried by ``startup_error`` instead.
     payload = ready.json()
     assert payload["status"] == "not_ready"
-    assert "startup" in payload["failing"]
+    assert set(payload) == {"status"}
     assert state.startup_error is not None
     assert "Incompatible schema" in state.startup_error
     assert "sabiroute_api_keys" in state.startup_error

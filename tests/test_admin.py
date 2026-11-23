@@ -88,10 +88,9 @@ def test_readiness_reports_ready_when_request_path_is_servable():
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ready"
-    assert body["components"]["startup"] == "ok"
-    assert body["components"]["registry"] == "ok"
-    assert body["components"]["key_store"] == "ok"
-    assert body["components"]["rate_limiter"] == "absent"
+    # F-08: component names and whether rate limiting is configured are not
+    # disclosed to an unauthenticated caller. The verdict is the whole body.
+    assert set(body) == {"status"}
 
 
 def test_readiness_recovers_after_transient_schema_check_failure(monkeypatch):
@@ -132,8 +131,8 @@ def test_readiness_recovers_after_transient_schema_check_failure(monkeypatch):
 
     assert first.status_code == 503
     assert second.status_code == 200
-    body = second.json()
-    assert body["components"]["key_store"] == "ok"
+    # F-08: the recovery is observable from the status code alone.
+    assert second.json() == {"status": "ready"}
 
 
 def test_readiness_fails_when_startup_is_degraded():
@@ -147,4 +146,5 @@ def test_readiness_fails_when_startup_is_degraded():
     assert response.status_code == 503
     body = response.json()
     assert body["status"] == "not_ready"
-    assert "startup" in body["failing"] or "registry" in body["failing"]
+    # F-08: which component failed is not disclosed to an anonymous caller.
+    assert set(body) == {"status"}
