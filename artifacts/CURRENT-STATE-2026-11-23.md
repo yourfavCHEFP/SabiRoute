@@ -55,7 +55,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 | 03 Model Registry | Complete | — | [R] |
 | 04 Virtual Models | Complete | — | [R] |
 | 05 Fallback Engine | **Complete** — real 429 drove a real fallback 2026-11-23 | — | [V] `artifacts/sprint-4/PHASE05-REAL-PROVIDER-FAILURE-2026-11-23.md` |
-| 06 Health Monitoring | **Complete** — passive cooldown is the deliberate design, decided 2026-10-11 | Re-opening active probing needs the ADR's prerequisites, not a patch | [V] `docs/routing.md:43-69`; `tests/test_health.py:88-89` pin the absence |
+| 06 Health Monitoring | **Complete** — passive cooldown is the deliberate design; owner accepted 2026-11-23 | Re-open only if all three ADR conditions hold | [V] `docs/routing.md` amendment 2026-11-23 |
 | 07 Observability | Implemented | — | [R] |
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
 | 09 Auth & API Keys | Complete (documented run) | — | [R] |
@@ -143,6 +143,10 @@ independent client tool.
 6. **A proxy-side timeout surfaces as HTTP 408, which is not in `RETRYABLE_STATUS_CODES`.** A
 slow provider therefore burns the budget and suppresses failover, and it presents as a broken
 fallback when SabiRoute is behaving correctly. Pick a fault that fails fast and retryably.
+7. **Passive health cannot see a provider that fails silently.** `HealthRegistry` only
+   observes failures that surface as errors. A provider returning HTTP 200 with empty or
+   unusable content looks perfectly healthy. Groq and OpenRouter both did exactly this on
+   2026-11-23. Do not read "healthy" as "working" — they are different claims.
 
 ## 9. Bottom line
 

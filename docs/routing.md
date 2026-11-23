@@ -67,3 +67,40 @@ never ran). Re-adding active probing later requires: async design, probe
 spend/budget policy, registry integration, persistence decision, tests, and
 explicit owner approval. Health thresholds (`failure_threshold`,
 `cooldown_seconds`) are unchanged.
+
+### Amendment 2026-11-23 — owner accepted passive-only; re-opening conditions
+
+The owner reviewed the decision above and accepted it: passive `HealthRegistry`
+cooldown stays the single health source of truth, and Phase 06 is recorded as
+Complete rather than pending. The earlier phase wording ("active checker
+unwired") read as unfinished work and invited a re-add; it has been corrected.
+
+The cost this decision accepts, stated plainly: **passive health cannot detect a
+dead deployment before it serves a request.** The first three requests to a
+newly-broken provider fail before cooldown trips. That is bounded and it is
+smaller than the alternative, but it is real, and it is the price of the choice.
+
+Re-open active probing only when **all three** of these hold. Any one alone is
+not sufficient:
+
+1. **A route with a single candidate.** With no fallback, a dead deployment is a
+   hard outage and pre-flight probing earns its keep. Every route currently has
+   fallback, so this does not apply today.
+2. **A provider that fails silently.** Passive health only observes failures
+   that surface as errors. A provider returning HTTP 200 with unusable content
+   looks healthy to `HealthRegistry`. This is the one gap passive health cannot
+   close. It is not hypothetical: on 2026-11-23 both `sabiroute-groq` and
+   `sabiroute-openrouter` returned 200 with empty assistant text.
+3. **Probe cost near zero.** A free-tier `/models` endpoint or a cheap
+   token-count call would make probing nearly free and change the arithmetic.
+   With ten of fourteen aliases already failing on account balance, a feature
+   whose purpose is to spend credits on a schedule is the wrong direction.
+
+None of the three holds as of 2026-11-23.
+
+**Cheaper alternative, if the goal is only to stop serving failed requests.**
+Lowering `failure_threshold` for routes with few candidates — or tripping
+cooldown on the first failure of a single-candidate route — captures most of the
+benefit for a fraction of the cost. That is a config change with a test, not a
+subsystem. It is still a behaviour change to health and needs the same explicit
+owner approval.
