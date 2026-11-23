@@ -121,7 +121,7 @@ model_list:
 
   - model_name: sabiroute-kimi
     litellm_params:
-      model: moonshot/moonshot-v1-128k
+      model: moonshot/kimi-k3.1-pro
       api_key: os.environ/MOONSHOT_API_KEY
       num_retries: 1
     capabilities: *unverified_capabilities

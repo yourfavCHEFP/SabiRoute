@@ -46,32 +46,42 @@ from a length stop.
 |---|---|---|
 | `sabiroute-together` | 401 — **"Invalid API key provided"** | A new key from the Together account. The variable is set; the key itself is rejected. Nothing on this side fixes it, and no amount of code work will. |
 
-## Blocked on account tier — 1
+## Blocked on money — kimi, plus a retired model id
 
 | Alias | Result | What it needs |
 |---|---|---|
-| `sabiroute-kimi` | 429 (not a credit-exhaustion message) | Check the account's rate-limit tier and billing state. A 429 that is not about credits is a plan limit. |
+| `sabiroute-kimi` | 429 `exceeded_current_quota_error` — "your account … is **suspended due to insufficient balance**, please recharge your account or check your plan and billing details" | Recharge. The key is valid: `/models` returns 200 with the same credential. |
+
+**Kimi had two problems, not one.** The configured model id `moonshot-v1-128k`
+is **retired** — the account's `/models` list offers only `kimi-k3.1-pro`,
+`kimi-k3`, `kimi-k2.7-code`, `kimi-k2.6` and `kimi-k2.7-code-highspeed`. Even
+after recharging, the old id would have failed with a 404. It has been changed
+to `kimi-k3.1-pro` in `config/config.yaml`.
+
+That change is **unverified**: no completion can be confirmed while the account
+is suspended. If cost matters more than capability, `kimi-k2.6` is the cheaper
+of the offered ids; reverting is a one-line change.
 
 ## Blocked on the provider — 1
 
 | Alias | Result | What it needs |
 |---|---|---|
-| `sabiroute-gemini` | 503 "experiencing high demand", then a 25s timeout | Nothing purchasable. The provider is degraded today. Re-probe later; it was verified working on 2026-10-08. |
+| `sabiroute-gemini` | 503 "experiencing high demand" on **3 of 3** attempts on 2026-11-23 (5.9s, 38.5s, 23.4s) | Nothing purchasable. Re-probed and still degraded: this is not a transient blip to retry in a minute. It was verified working on 2026-10-08. Wait days, not minutes. |
 
 ## What to ask for, in priority order
 
 1. **`sabiroute-together` — one key.** Free to ask for, one action, takes the
    count to 7 and proves the auth path for another provider family.
-2. **`sabiroute-kimi` — check the plan.** Free to check. Likely takes the count
-   to 8.
+2. **`sabiroute-kimi` — recharge.** Not free, and the model id also needed fixing
+   (done). Takes the count to 8.
 3. **Any one of the five 402/429 accounts.** Smallest top-up on offer. Each adds
    one.
 4. **`sabiroute-openai`** — most expensive, most useful for credibility, since it
    is the reference provider for the OpenAI-compatible contract.
 5. **`sabiroute-gemini`** — free; just wait and re-probe.
 
-**Ceiling without payment: 8 of 14.** Items 1, 2 and 5 cost nothing and are
-outstanding only because nobody has done them.
+**Ceiling without payment: 7 of 14.** Only item 1 (together's key) costs nothing;
+item 5 needs time rather than money.
 
 ## What "working" has to mean
 

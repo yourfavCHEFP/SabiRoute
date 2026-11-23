@@ -14,7 +14,7 @@ The registry currently contains these configured aliases:
 | `sabiroute-groq` | `groq/openai/gpt-oss-120b` | `GROQ_API_KEY` | **2026-11-23 probe: OK — real non-empty completion** |
 | `sabiroute-together` | `together_ai/openai/gpt-oss-120B` | `TOGETHERAI_API_KEY` | 2026-11-23 probe: HTTP 401 |
 | `sabiroute-deepinfra` | `deepinfra/meta-llama/Meta-Llama-3-70B-Instruct` | `DEEPINFRA_API_KEY` | 2026-11-23 probe: HTTP 402, positive balance required |
-| `sabiroute-kimi` | `moonshot/moonshot-v1-128k` | `MOONSHOT_API_KEY` | 2026-11-23 probe: HTTP 429 |
+| `sabiroute-kimi` | `moonshot/kimi-k3.1-pro` | `MOONSHOT_API_KEY` | 2026-11-23 probe: HTTP 429 `exceeded_current_quota_error` — account **suspended, insufficient balance**. Key itself is valid (`/models` returns 200). The previously configured `moonshot-v1-128k` is **retired** and absent from that list. Two separate problems; the model id is fixed, the balance is not |
 | `sabiroute-minimax` | `minimax/MiniMax-M2.1` | `MINIMAX_API_KEY` | 2026-11-23 probe: HTTP 402, insufficient balance |
 | `sabiroute-cloudflare` | `cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | `CLOUDFLARE_API_KEY`, `CLOUDFLARE_ACCOUNT_ID` | **2026-11-23 probe: OK — real non-empty completion** |
 | `sabiroute-openrouter` | `openrouter/google/gemini-3.8-flash` | `OPENROUTER_API_KEY` | **2026-11-23 probe: OK — non-empty completion once the output budget exceeds its reasoning trace** |
@@ -75,8 +75,8 @@ what this document said, not what the providers did.
 |---|---|---|
 | Account balance (401/402/429) | openai, deepinfra, minimax, huggingface, cerebras | No — payment only |
 | Invalid credential | together (401, "Invalid API key provided") | No — needs a new key |
-| Rate-limit tier | kimi (429) | No — account plan |
-| Provider degraded | gemini (503 "high demand") | No — wait and re-probe |
+| Account suspended for balance | kimi (429) | No — recharge |
+| Provider degraded | gemini (503 "high demand", 3/3 attempts) | No — wait and re-probe |
 
 Six of the eight are account state and **no code change moves any of them**.
 Per-alias detail and an ask-ordering live in
