@@ -290,14 +290,14 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 08 PostgreSQL                   Complete — PostgresApiKeyStore exercised by the documented run
 09 Authentication & API Keys    Complete — client/admin boundary exercised on that run
 10 Budgets & Rate Limits Complete — 429 + Retry-After asserted against real PG/Redis
-11 Routing Intelligence         Implemented — capability evidence missing for most deployments
-12 Model Scoring                Implemented — deterministic-v1 live; benchmark evidence synthetic
+11 Routing Intelligence Implemented — chat evidenced for 6 deployments; every other capability UNVERIFIED; breadth blocked on Phase 02
+12 Model Scoring Implemented — deterministic-v1 arithmetic demonstrated on measured signals 2026-11-23; production minimum_samples=5 gate still falls back to priority on a cold process
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized
-14 Benchmarking                 Planned
+14 Benchmarking In progress — scripts/benchmark.py reproducible and provenance-labelled; no measured comparison yet
 15 Admin Dashboard              Planned
 16 Remote Access / Tailscale    Planned
-17 Security Hardening           Planned
-18 Testing & Regression         Planned
+17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
+18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
 19 CI/CD Implemented — definition + local execution; hosted CI green on main 46099e4
 20 Production Architecture      Planned
 ```
