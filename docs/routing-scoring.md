@@ -43,9 +43,11 @@ If any currently eligible deployment has fewer than the configured minimum
 reliability outcomes or latency samples, has missing measurements, or has no
 observation within `max_signal_age_seconds`, the scorer falls back to the
 configured route order for the entire eligible set. The scorer does not assign a
-bad score to a new deployment. Telemetry is process-local and resets on restart;
-the durable routing-attempt records preserve decision evidence but are not read
-back into the request path. No database query is issued for a routing decision.
+bad score to a new deployment. By default telemetry is process-local and resets
+on restart; configuring Redis persists it across restarts (see *Cross-restart
+signal persistence* below). The durable routing-attempt records preserve
+decision evidence but are not read back into the request path. No database query
+is issued for a routing decision.
 
 ## Scope and excluded signals
 
@@ -206,3 +208,74 @@ The harness prints one JSON document to stdout (measured calls, both rankings, t
 per-candidate arithmetic, the flip demonstrations, and the policy findings) and a
 compact ranking table to stderr. It spends six provider calls; it never writes a
 report file and prints credential variable names with their set/empty state only.
+
+## Cross-restart signal persistence
+
+### The defect this closes
+
+`HealthRegistry` and `LatencyTracker` originally held their observations only in
+process memory. A cold process therefore could not satisfy
+`routing_scoring.minimum_samples` (default 5) within its first requests for any
+deployment, so `DeterministicScorer` fell back to configured priority order and
+every restart reset the measurement. The six reachable aliases would need 30
+calls per process lifetime before measured routing could engage. Persisting the
+signals — not lowering the threshold — is what lets measured routing engage in
+production.
+
+### Backends
+
+`src/sabiroute/monitoring/signals_store.py` defines the narrow `SignalsBackend`
+protocol with two implementations:
+
+- **`InMemoryBackend`** (default): process-local and identical to the
+  pre-persistence behaviour. A fresh instance starts empty, so a registry that
+  receives no backend behaves exactly as it did before this change.
+- **`RedisBackend`**: writes outcomes and latency samples to Redis sorted sets
+  keyed `sabiroute:signals:v1:{health|latency}:<deployment>`. Each key's TTL is
+  `routing_scoring.max_signal_age_seconds`, so stale observations expire without
+  a sweeper, and each set keeps at most 1000 members.
+
+`build_gateway_state` selects the backend with the same Redis detection as
+request admission: `REDIS_URL` first, then `REDIS_HOST` with `REDIS_PORT`,
+`REDIS_DB` and `REDIS_PASSWORD` (blank means unset). No Redis configuration
+selects `InMemoryBackend`.
+
+### Hydration and what is not restored
+
+`HealthRegistry` and `LatencyTracker` read the backend when they are constructed,
+so a restarted process inherits observations that are still inside the freshness
+window. Reliability totals, last success/failure, latency samples and means are
+restored.
+
+Cooldown state (`healthy`, `consecutive_failures`, `cooldown_until`) is
+deliberately **not** restored: a restart grants one fresh failure budget, exactly
+as before. Persisting a tripped cooldown would change the health contract and is
+out of scope for this fix.
+
+Hydrated observations are attributed to the new process's `state_scope_id`. The
+scope identifies the live registry instance that served the decision; it does not
+identify the process that originally observed each sample.
+
+### Failure behaviour
+
+The store is telemetry. Writes are queued to a bounded background writer, so a
+slow or unavailable Redis never blocks a request; reads return an empty result.
+A failure sets `RedisBackend.degraded`, records a redacted `last_error`, and the
+process continues with in-process behaviour. Observations dropped because the
+writer queue was full are counted in `dropped_observations`. Nothing in the
+routing path raises because the signal store failed.
+
+The writer is a daemon thread: a graceful shutdown drains it, while an abrupt
+`SIGKILL` can lose the last queued observations. Losing a tail of telemetry is
+acceptable; losing routing is not.
+
+### Evidence
+
+`tests/test_phase12_persistence_inmemory.py` needs no service and proves
+in-process behaviour is unchanged, that observations survive a simulated
+restart, that a failing store degrades without raising, and that the scorer
+produces a measured ranking after restart where a cold registry still falls back
+to priority. `tests/test_phase12_persistence_redis.py` repeats the restart and
+scorer proofs against a disposable Redis (opt-in via
+`SABIROUTE_TEST_REDIS_URL`, loopback-only) and additionally proves TTL expiry,
+stale-window pruning, and gateway backend selection.
