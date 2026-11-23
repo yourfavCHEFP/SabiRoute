@@ -296,7 +296,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 14 Benchmarking In progress — 30 real observations recorded; comparison still degenerate because groq is both first-healthy and highest-scoring
 15 Admin Dashboard Complete — read-only /admin/dashboard, browser-verified 2026-11-23; admin auth unchanged
 16 Remote Access / Tailscale    Planned
-17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
+17 Security Hardening In progress — scans recorded; F-07/F-08/F-09/F-13 remediated with 24 tests; F-01 rotation and F-02-F-06 (.github, protected) still open
 18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
 19 CI/CD Complete — hosted Actions green on main 117082f; all five steps passed incl. the application container build
 20 Production Architecture      Planned
