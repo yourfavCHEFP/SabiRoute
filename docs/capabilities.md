@@ -30,13 +30,13 @@ behavior until a request explicitly requires a capability.
 |---|---|---|---|
 | `sabiroute-openai` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-gemini` | true | unknown | 2026-10-08 non-empty completion. **2026-11-23 probe: HTTP 503 then timeout — not reproducible today**; keeps its 2026-10-08 basis, is not currently relied on |
-| `sabiroute-groq` | true | `streaming` true; all other capabilities unknown | 2026-10-08 non-empty completion and 13 SSE chunks. **2026-11-23 probe: HTTP 200 with empty assistant text — current state uncertain** |
+| `sabiroute-groq` | true | `streaming` true; all other capabilities unknown | 2026-10-08 non-empty completion and 13 SSE chunks. **2026-11-23 probe: non-empty completion confirmed**; an earlier empty result that day was a probe budget artefact |
 | `sabiroute-together` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-deepinfra` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-kimi` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-minimax` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-cloudflare` | true | unknown | 2026-11-23 probe: real non-empty completion (2.6s) |
-| `sabiroute-openrouter` | true | unknown | Earlier non-empty completion. **2026-11-23 probe: empty content at `max_tokens` 16, HTTP 402 on a full-length request — account credit, not capability** |
+| `sabiroute-openrouter` | true | unknown | **2026-11-23 probe: non-empty completion confirmed** once the output budget exceeded its reasoning trace |
 | `sabiroute-huggingface` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-cerebras` | unknown | unknown | No deployment-specific runtime evidence collected |
 | `sabiroute-nvidia` | true | unknown | 2026-11-23 probe: real non-empty completion (1.0s) |
@@ -62,12 +62,12 @@ alone. Nothing else was tested. No row above gains `coding`, `reasoning`,
 `vision`, `tool_use`, `json`, `streaming` or any other capability from this
 probe.
 
-Three rows contradict the probe and are left standing, with the conflict
-recorded rather than resolved: `gemini` (503 then timeout), `groq` (HTTP 200
-with empty content) and `openrouter` (empty content at small output, 402 on a
-full-length request). An empty completion is not evidence that `chat` is
-unsupported, so no `true` is downgraded on that basis; equally, none of the
-three reproduced its earlier evidence today, so none should be relied on.
+Six aliases now carry `chat` evidence, counting `groq` and `openrouter`, which
+an earlier run of the same probe wrongly reported as empty: both are reasoning
+models that spent the whole output budget on their reasoning trace. One row
+still contradicts the probe and is left standing: `gemini` (503 then timeout,
+provider-side). An empty completion is not evidence that `chat` is unsupported,
+so no `true` is downgraded on that basis.
 
 
 ## Classification rules

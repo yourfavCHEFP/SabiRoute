@@ -11,13 +11,13 @@ The registry currently contains these configured aliases:
 | --- | --- | --- | --- |
 | `sabiroute-openai` | `openai/gpt-6-luna` | `OPENAI_API_KEY` | 2026-11-23 probe: HTTP 429, no credits remaining |
 | `sabiroute-gemini` | `gemini/gemini-3.8-flash` | `GEMINI_API_KEY` | Verified 2026-10-08; 2026-11-23 probe: HTTP 503 then 25s timeout (provider-side demand) |
-| `sabiroute-groq` | `groq/openai/gpt-oss-120b` | `GROQ_API_KEY` | 2026-11-23 probe: 200 with empty assistant content — not usable |
+| `sabiroute-groq` | `groq/openai/gpt-oss-120b` | `GROQ_API_KEY` | **2026-11-23 probe: OK — real non-empty completion** |
 | `sabiroute-together` | `together_ai/openai/gpt-oss-120B` | `TOGETHERAI_API_KEY` | 2026-11-23 probe: HTTP 401 |
 | `sabiroute-deepinfra` | `deepinfra/meta-llama/Meta-Llama-3-70B-Instruct` | `DEEPINFRA_API_KEY` | 2026-11-23 probe: HTTP 402, positive balance required |
 | `sabiroute-kimi` | `moonshot/moonshot-v1-128k` | `MOONSHOT_API_KEY` | 2026-11-23 probe: HTTP 429 |
 | `sabiroute-minimax` | `minimax/MiniMax-M2.1` | `MINIMAX_API_KEY` | 2026-11-23 probe: HTTP 402, insufficient balance |
 | `sabiroute-cloudflare` | `cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast` | `CLOUDFLARE_API_KEY`, `CLOUDFLARE_ACCOUNT_ID` | **2026-11-23 probe: OK — real non-empty completion** |
-| `sabiroute-openrouter` | `openrouter/google/gemini-3.8-flash` | `OPENROUTER_API_KEY` | 2026-11-23 probe: 200 with empty content at `max_tokens` 16; HTTP 402 on a full-length request |
+| `sabiroute-openrouter` | `openrouter/google/gemini-3.8-flash` | `OPENROUTER_API_KEY` | **2026-11-23 probe: OK — non-empty completion once the output budget exceeds its reasoning trace** |
 | `sabiroute-huggingface` | `huggingface/meta-llama/Llama-3.3-70B-Instruct` | `HF_TOKEN` | 2026-11-23 probe: HTTP 402, pre-paid credits required |
 | `sabiroute-cerebras` | `cerebras/llama3-70b-instruct` | `CEREBRAS_API_KEY` | 2026-11-23 probe: HTTP 402, payment required |
 | `sabiroute-nvidia` | `nvidia_nim/nvidia/nemotron-3.5-bolt-e4b` | `NVIDIA_NIM_API_KEY` | **2026-11-23 probe: OK — real non-empty completion** |
@@ -47,31 +47,46 @@ as working.
 
 ## Phase 02 status
 
-Phase 02 is **4 of 14 verified** as of 2026-11-23, by the probe above:
-`sabiroute-cloudflare`, `sabiroute-nvidia`, `sabiroute-cohere` and
-`sabiroute-pollinations` each returned a real non-empty completion.
+Phase 02 is **6 of 14 verified** as of 2026-11-23: `sabiroute-groq`,
+`sabiroute-cloudflare`, `sabiroute-openrouter`, `sabiroute-nvidia`,
+`sabiroute-cohere` and `sabiroute-pollinations` each returned a real non-empty
+completion.
 
-This supersedes the earlier recorded count of 1. That figure was correct when it
-was written — it reflected this document, and this document recorded only Gemini
-because it had not been re-probed. It also supersedes the claim of 3 that
-appeared in an older `config/config.yaml` comment, which named providers this
-table did not carry.
+### A correction worth keeping
 
-Two distinctions the count depends on, both of which have changed a status
-before and will again:
+An earlier run of the same probe that day reported **4 of 14**, marking Groq and
+OpenRouter as returning HTTP 200 with empty assistant text. That result was an
+**artefact of the probe, not a provider fault**: both are reasoning models that
+spend their output budget on a reasoning trace before emitting any `content`.
+With `max_tokens` capped at 16, the whole budget went to reasoning and `content`
+came back empty with `finish_reason: "length"`.
 
-- **A credential being present is not a provider working.** All fourteen
-  variables are set in the environment; ten aliases still fail.
-- **HTTP 200 is not a usable alias.** Groq and OpenRouter both answered 200 with
-  empty assistant text. OpenRouter additionally returns 402 once a request asks
-  for more than a trivial completion. Neither is counted as working.
+The probe now starts at 64 tokens and escalates once to 512 when it sees an
+empty `content` alongside a length stop. A measurement that cannot tell "the
+model refused" from "I did not give it room to answer" will keep producing this
+error, and it errs in the direction that looks like a failing provider.
 
-The nvidia row's model identifier was corrected on 2026-11-23 from
-`nvidia_nim/meta/llama3-70b-instruct` to the value `config/config.yaml` actually
-loads, `nvidia_nim/nvidia/nemotron-3.5-bolt-e4b`. The stale identifier returns a
-real provider 404, so the previous row could not have passed a probe.
+This also supersedes the counts of 1 and of 3 recorded earlier: those tracked
+what this document said, not what the providers did.
+
+### What still blocks the other eight
+
+| Cause | Aliases | Fixable here? |
+|---|---|---|
+| Account balance (401/402/429) | openai, deepinfra, minimax, huggingface, cerebras | No — payment only |
+| Invalid credential | together (401, "Invalid API key provided") | No — needs a new key |
+| Rate-limit tier | kimi (429) | No — account plan |
+| Provider degraded | gemini (503 "high demand") | No — wait and re-probe |
+
+Six of the eight are account state and **no code change moves any of them**.
+Per-alias detail and an ask-ordering live in
+`artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md`.
+
+### What "working" has to mean
+
+- **A set credential is not a working alias.** All fourteen variables are set;
+  eight aliases still fail.
+- **HTTP 200 is not a working alias** — and an empty completion is not a
+  completion. But check *why* it is empty before blaming the provider.
 
 Do not raise this count without re-running the probe and recording the date.
-
-Per-alias remediation and an ask-ordering live in
-`artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md`.

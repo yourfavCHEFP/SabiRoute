@@ -35,7 +35,12 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-MAX_TOKENS = 16
+# A reasoning model can spend the entire output budget on its reasoning
+# trace and return an empty `content` with finish_reason 'length'. At 16
+# tokens that produced false EMPTY_CONTENT results for reasoning models, so
+# the budget starts higher and escalates once before any conclusion is drawn.
+MAX_TOKENS = 64
+ESCALATED_MAX_TOKENS = 512
 CALL_TIMEOUT = 25
 CONCURRENCY = 6
 
@@ -89,6 +94,20 @@ def _deployments() -> list[dict[str, Any]]:
     return out
 
 
+def _content_of(response: Any) -> str:
+    try:
+        return response.choices[0].message.content or ""
+    except (AttributeError, IndexError, KeyError):
+        return ""
+
+
+def _finish_of(response: Any) -> str | None:
+    try:
+        return response.choices[0].finish_reason
+    except (AttributeError, IndexError, KeyError):
+        return None
+
+
 def _probe(dep: dict[str, Any]) -> dict[str, Any]:
     import litellm
 
@@ -117,17 +136,27 @@ def _probe(dep: dict[str, Any]) -> dict[str, Any]:
     started = time.perf_counter()
     try:
         response = litellm.completion(**kwargs)
+        content = _content_of(response)
+        finish = _finish_of(response)
+
+        escalated = False
+        if not content.strip() and finish == "length":
+            # Empty content with a length stop is a budget artefact, not proof
+            # the provider is broken. Give it room before deciding.
+            escalated = True
+            kwargs["max_tokens"] = ESCALATED_MAX_TOKENS
+            response = litellm.completion(**kwargs)
+            content = _content_of(response)
+            finish = _finish_of(response)
+
         elapsed = round((time.perf_counter() - started) * 1000, 1)
-        content = ""
-        try:
-            content = response.choices[0].message.content or ""
-        except (AttributeError, IndexError, KeyError):
-            content = ""
         return {
             **base,
             "outcome": "OK" if content.strip() else "EMPTY_CONTENT",
             "latency_ms": elapsed,
             "content_preview": content.strip()[:80],
+            "finish_reason": finish,
+            "escalated_budget": escalated,
         }
     except Exception as exc:  # noqa: BLE001 - classified and reported
         elapsed = round((time.perf_counter() - started) * 1000, 1)

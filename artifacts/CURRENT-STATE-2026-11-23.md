@@ -51,7 +51,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 |---|---|---|---|
 | 00 Architecture & Environment | Complete (as recorded) | — | [R] |
 | 01 Basic LiteLLM Gateway | Complete (as recorded) | — | [R] |
-| 02 Provider Expansion | In progress — **4 of 14** aliases verified 2026-11-23 | Real calls per alias; 10 still failing on account balance | [V] `probe_provider_aliases.py`; `docs/providers.md` |
+| 02 Provider Expansion | In progress — **6 of 14** aliases verified 2026-11-23 | Payment for five, a new key for one, a provider to recover | [V] probe; `docs/providers.md` |
 | 03 Model Registry | Complete | — | [R] |
 | 04 Virtual Models | Complete | — | [R] |
 | 05 Fallback Engine | **Complete** — real 429 drove a real fallback 2026-11-23 | — | [V] `artifacts/sprint-4/PHASE05-REAL-PROVIDER-FAILURE-2026-11-23.md` |
@@ -60,7 +60,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
 | 09 Auth & API Keys | Complete (documented run) | — | [R] |
 | 10 Budgets & Rate Limits | **Complete** — 429 + `Retry-After` asserted against real PG and Redis (875/1) | — | [V] `tests/test_phase10.py:125,767`; suite run 2026-11-23 |
-| 11 Routing Intelligence | Implemented — 4 aliases now carry `chat` evidence; every other capability untested everywhere | Anyone testing `coding`, `vision`, `tool_use`, `json` or `streaming` | [V] `docs/capabilities.md`, 2026-11-23 |
+| 11 Routing Intelligence | Implemented — 6 aliases carry `chat` evidence; every other capability untested everywhere | Anyone testing `coding`, `vision`, `tool_use`, `json` or `streaming` | [V] `docs/capabilities.md`, 2026-11-23 |
 | 12 Model Scoring | Implemented — deterministic-v1 live, benchmarks synthetic | — | [R] |
 | 13 ML Router | **`READY_FOR_HUMAN_REVIEW`** — 145 rows, 140 clean, `training_authorized: false` | Owner sign-off, then more telemetry (28-row eval split is far too thin) | [V 2026-11-22] |
 | 14 Benchmarking | Planned | — | [R] |
@@ -75,7 +75,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 
 | Blocker | Detail | Kind |
 |---|---|---|
-| 10 provider aliases | openai 429 · kimi 429 · together 401 · deepinfra/minimax/huggingface/cerebras 402 · gemini 503 · groq/openrouter empty content. **Six are money, three are not.** See `artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md` | **Mostly external** |
+| 8 provider aliases | openai 429 · deepinfra/minimax/huggingface/cerebras 402 · kimi 429 · together 401 · gemini 503. **Six are account state; none is fixed by code.** See `artifacts/PHASE02-PROVIDER-REQUIREMENTS-2026-11-23.md` | **External** |
 | `docs/providers.md` vs `config/config.yaml` | The doc marks only gemini verified; the 2026-10-08 config comments name Groq and OpenRouter. One of them is wrong, and Phase 02's number depends on which | **Local** — solvable today |
 | Phase 13 training | `training_authorized: false`; needs owner approval *and* a healthier sample | **Owner** |
 | Docker build | Fails locally (daemon unavailable); passes in CI | [U] — not re-checked this session |

@@ -281,7 +281,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 ```
 00 Architecture & Environment   Complete — typed config, validation, app factory
 01 Basic LiteLLM Gateway        Complete — non-streaming + streaming live; fallback tested only
-02 Provider Expansion In progress — 4 of 14 aliases verified 2026-11-23 (probe; providers.md)
+02 Provider Expansion In progress — 6 of 14 aliases verified 2026-11-23 (probe; providers.md)
 03 Model Registry               Complete — config/config.yaml is the runtime catalog
 04 Virtual Models               Complete — six route policies validated at startup
 05 Fallback Engine Complete — real provider 429 drove a real fallback 2026-11-23
@@ -302,13 +302,12 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 20 Production Architecture      Planned
 ```
 
-Phase 02's alias-evidence count was corrected to **4 of 14** on 2026-11-23 by
-`scripts/probe_provider_aliases.py`, which made one real minimal completion per alias:
-`cloudflare`, `nvidia`, `cohere` and `pollinations` each returned non-empty assistant text.
-This supersedes the count of 1 recorded earlier the same day — that figure mirrored what
-`docs/providers.md` listed rather than what the providers actually did — and it supersedes the
-disputed count of 3 from the 2026-10-08 config comments. Do not change this number without
-re-running that probe and dating the result in `docs/providers.md`.
+Phase 02's alias-evidence count is **6 of 14**, measured 2026-11-23 by
+`scripts/probe_provider_aliases.py`. An earlier same-day run reported 4 and marked Groq and
+OpenRouter as empty; that was a probe artefact — both are reasoning models whose entire output
+budget was consumed by the reasoning trace at the probe's original 16-token cap. The probe now
+escalates its budget once on a length stop. Do not change this number without re-running that
+probe and dating the result in `docs/providers.md`.
 
 These statuses must match the phase table in root `README.md`. If the two disagree, the
 repository and test evidence decide — then correct both files. Do not renumber Phases 00–20.
