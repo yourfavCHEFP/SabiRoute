@@ -55,7 +55,7 @@ live-verified. Nothing below is Complete by that standard except where marked.
 | 03 Model Registry | Complete | — | [R] |
 | 04 Virtual Models | Complete | — | [R] |
 | 05 Fallback Engine | **Complete** — real 429 drove a real fallback 2026-11-23 | — | [V] `artifacts/sprint-4/PHASE05-REAL-PROVIDER-FAILURE-2026-11-23.md` |
-| 06 Health Monitoring | Implemented — passive cooldown only, active checker unwired | Decide: wire it, or record passive-only as the design | [R] |
+| 06 Health Monitoring | **Complete** — passive cooldown is the deliberate design, decided 2026-10-11 | Re-opening active probing needs the ADR's prerequisites, not a patch | [V] `docs/routing.md:43-69`; `tests/test_health.py:88-89` pin the absence |
 | 07 Observability | Implemented | — | [R] |
 | 08 PostgreSQL | Complete (documented run) | — | [R] |
 | 09 Auth & API Keys | Complete (documented run) | — | [R] |

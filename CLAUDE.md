@@ -285,7 +285,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 03 Model Registry               Complete — config/config.yaml is the runtime catalog
 04 Virtual Models               Complete — six route policies validated at startup
 05 Fallback Engine Complete — real provider 429 drove a real fallback 2026-11-23
-06 Health Monitoring            Implemented — passive cooldown only; active checker unwired
+06 Health Monitoring Complete — passive cooldown is the deliberate design (ADR 2026-10-11)
 07 Observability                Implemented — wired into gateway state and admin endpoints
 08 PostgreSQL                   Complete — PostgresApiKeyStore exercised by the documented run
 09 Authentication & API Keys    Complete — client/admin boundary exercised on that run
@@ -312,6 +312,14 @@ re-running that probe and dating the result in `docs/providers.md`.
 
 These statuses must match the phase table in root `README.md`. If the two disagree, the
 repository and test evidence decide — then correct both files. Do not renumber Phases 00–20.
+
+**Phase 06 is closed, not pending.** Passive `HealthRegistry` cooldown is the deliberate
+design, decided 2026-10-11 in `docs/routing.md:43-69`. An active provider checker was
+considered and rejected there: it is synchronous and would block the async path, bypasses
+`LiteLLMClient`/telemetry/budgets, spends real provider budget per probe, and needs a
+scheduler, persistence and a registry bridge that do not exist. `tests/test_health.py:88-89`
+pins the absence so it cannot be re-added by accident. Do not "wire the checker" as a
+small change; re-opening it needs those prerequisites and explicit owner approval.
 
 Phase 13 remains gated. Do not bypass the Phase 13 dataset-integrity and training-readiness
 gates: no training, no invented labels, no invented timestamps, no invented selection
