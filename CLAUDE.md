@@ -205,7 +205,8 @@ Verified repository state (2026-10-10):
 
 - **C1–C11 have all landed** on this branch. The original and post-rewrite SHAs are tabulated in
   RULE 5; the original history is preserved on `backup/feat-routing-pre-trailer-removal` and
-  `refs/original/refs/heads/feat/sabiroute-routing-foundation`.
+ `refs/original/refs/heads/feat/sabiroute-routing-foundation`
+  (that ref no longer exists, re-verified 2026-11-23; the backup branch is the only copy).
 - The `--max-tokens` provider-harness work is **C11** — complete, and not to be amended,
   extended, re-committed, or absorbed.
 - The branch **has already been pushed**. It was in sync with origin on 2026-10-10 (0 ahead,
@@ -215,16 +216,17 @@ Verified repository state (2026-10-10):
 **Re-verified 2026-11-04 — the branch is DIVERGED from origin. The "in sync" line above is
 superseded.**
 
-- HEAD `319a711`; merge base `3030327`.
+- HEAD `1e69ada` (was `319a711` when last recorded); merge base `3030327`.
 - Origin-only commits (**3**), 2026-10-19 → 2026-10-21: `cf957c2` (Batch 1 core-only release
   candidate, 84 paths), `d5a6268` (Batch 2: F-04 docs policy, F-05 body/message limits, F-06
   credential validation, F-07 purge scheduling, F-08 topology docs, PG CI coverage), `0cb053d`
   (Batch 2: candidate-specific core README, core documentation set, provenance boundary).
-- Local-only commits (**6**), 2026-10-22 → 2026-11-02: `814e6a9`, `b360ffc`, `524a017`,
-  `e9f383b`, `302d76e`, `319a711` — the fuller development line, including the SabiChat surface,
-  the `web/` frontend, the media library and the reports boundary, none of which exist on origin.
+- Local-only commits (**8**), 2026-10-22 → 2026-11-02: `814e6a9`, `b360ffc`, `524a017`,
+  `e9f383b`, `302d76e`, `319a711`, `08201da`, `1e69ada` — the fuller development line,
+  including the SabiChat surface, the `web/` frontend, the media library and the reports
+  boundary, none of which exist on origin.
 - The divergence is **largely one-directional**. Of the 86 paths the origin-only commits touch,
-  **61 are byte-identical to local HEAD**. Local is the newer and much larger tree (663 tests
+  **61 are byte-identical to local HEAD**. Local is the newer and much larger tree (866 passing tests
   versus the candidate's reduced surface). Origin's material unique contributions are narrow:
   a PostgreSQL CI service plus `SABIROUTE_TEST_PG_URL`, `.env.example` documentation of
   `SABIROUTE_DOCS_ENABLED` and `SABIROUTE_MAX_REQUEST_BODY_BYTES` (both already read by code
@@ -264,21 +266,23 @@ acceptance review.
 | Blocked | gated by data, evaluation, or dependency |
 | Planned | not started |
 
-**Evidence basis (re-verified 2026-11-04; supersedes the 2026-10-10 count of 160):** **663 tests
-pass, 9 skipped** — all nine skips are environment-gated on `SABIROUTE_TEST_REDIS_URL` /
-`SABIROUTE_TEST_PG_URL`, none is a contract skip; `ruff check src tests scripts config` clean;
-`mypy src` clean over **49** source files; `git diff --check` clean. Live-path evidence remains
-**documentary** — the isolated run recorded in `docs/phase13-data-foundation.md` — and covers
-success paths only; it was not re-executed for this reconciliation. Do not upgrade a phase status
-without new evidence.
+**Evidence basis (suite re-verified 2026-11-23; supersedes the 2026-10-10 count of 160 and the
+2026-11-04 count of 663):** **866 tests pass, 10 skipped**. Nine skips are environment-gated on
+`SABIROUTE_TEST_REDIS_URL` / `SABIROUTE_TEST_PG_URL`; **one is a contract skip** —
+`tests/test_r6_registration_digest_conformance.py:570` waits on authorised ledger
+instantiation — so the earlier statement that no skip is a contract skip no longer holds.
+`ruff` and `mypy` were not re-run on 2026-11-23; the 2026-11-04 results over **49** source
+files stand only as recorded. Live-path evidence remains **documentary** — the isolated run
+recorded in `docs/phase13-data-foundation.md` — and covers success paths only; it was not
+re-executed for this reconciliation. Do not upgrade a phase status without new evidence.
 
 ```
 00 Architecture & Environment   Complete — typed config, validation, app factory
 01 Basic LiteLLM Gateway        Complete — non-streaming + streaming live; fallback tested only
-02 Provider Expansion           In progress — 3 of 14 aliases have runtime evidence
+02 Provider Expansion In progress — 1 of 14 aliases has runtime evidence (gemini; providers.md)
 03 Model Registry               Complete — config/config.yaml is the runtime catalog
 04 Virtual Models               Complete — six route policies validated at startup
-05 Fallback Engine              Implemented — unit-tested; no live failure-injection evidence
+05 Fallback Engine Implemented — failure injection verified; no real-provider failure yet
 06 Health Monitoring            Implemented — passive cooldown only; active checker unwired
 07 Observability                Implemented — wired into gateway state and admin endpoints
 08 PostgreSQL                   Complete — PostgresApiKeyStore exercised by the documented run
@@ -292,7 +296,7 @@ without new evidence.
 16 Remote Access / Tailscale    Planned
 17 Security Hardening           Planned
 18 Testing & Regression         Planned
-19 CI/CD                        Implemented — definition + local execution; hosted run unverified
+19 CI/CD Implemented — definition + local execution; hosted CI green on main 46099e4
 20 Production Architecture      Planned
 ```
 
