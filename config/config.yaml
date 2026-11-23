@@ -82,7 +82,7 @@ model_list:
       reasoning: unknown
       vision: unknown
       long_context: unknown
-      tool_use: unknown
+      tool_use: true
       structured_output: unknown
       json: unknown
       streaming: true
@@ -150,7 +150,19 @@ model_list:
       api_key: os.environ/CLOUDFLARE_API_KEY
       num_retries: 1
       account_id: os.environ/CLOUDFLARE_ACCOUNT_ID
-    capabilities: *unverified_capabilities
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: true
+      structured_output: true
+      json: true
+      streaming: true
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -169,10 +181,10 @@ model_list:
       reasoning: unknown
       vision: unknown
       long_context: unknown
-      tool_use: unknown
-      structured_output: unknown
-      json: unknown
-      streaming: unknown
+      tool_use: true
+      structured_output: true
+      json: true
+      streaming: true
       low_latency: unknown
       embedding: unknown
       multimodal: unknown
@@ -211,7 +223,19 @@ model_list:
       model: nvidia_nim/nvidia/nemotron-3.5-bolt-e4b
       api_key: os.environ/NVIDIA_NIM_API_KEY
       num_retries: 1
-    capabilities: *unverified_capabilities
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: true
+      structured_output: true
+      json: true
+      streaming: true
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -223,7 +247,19 @@ model_list:
       model: cohere_chat/command-a-03-2025
       api_key: os.environ/COHERE_API_KEY
       num_retries: 1
-    capabilities: *unverified_capabilities
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: true
+      structured_output: unknown
+      json: unknown
+      streaming: true
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
@@ -236,7 +272,19 @@ model_list:
       api_base: https://gen.pollinations.ai/v1
       api_key: os.environ/POLLINATION_API_KEY
       num_retries: 1
-    capabilities: *unverified_capabilities
+    capabilities:
+      chat: true
+      coding: unknown
+      reasoning: unknown
+      vision: unknown
+      long_context: unknown
+      tool_use: true
+      structured_output: true
+      json: true
+      streaming: true
+      low_latency: unknown
+      embedding: unknown
+      multimodal: unknown
 
 
   # ==========================================================
