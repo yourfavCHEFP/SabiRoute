@@ -300,6 +300,11 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 20 Production Architecture      Planned
 ```
 
+Phase 02's alias-evidence count was lowered from 3 to 1 on 2026-11-23. Only `sabiroute-gemini`
+has recorded runtime evidence in `docs/providers.md`; the 2026-10-08 config comments naming
+Groq and OpenRouter conflict with that document and were not treated as current. Do not restore
+3 without a live probe recorded in that file.
+
 These statuses must match the phase table in root `README.md`. If the two disagree, the
 repository and test evidence decide — then correct both files. Do not renumber Phases 00–20.
 
