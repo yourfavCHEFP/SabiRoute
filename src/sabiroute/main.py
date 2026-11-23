@@ -17,6 +17,7 @@ from .api.admin import router as admin_router
 from .api.body_limit import BodySizeMiddleware, request_max_body_bytes
 from .api.chat import router as chat_router
 from .api.completions import router as completions_router
+from .api.dashboard import mount_dashboard
 from .api.deadline import DeadlineMiddleware, request_deadline_seconds
 from .api.health import router as health_router
 from .api.shutdown import router as shutdown_router
@@ -171,6 +172,9 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
         # Mounted under /app so API routes and docs are untouched; the same
         # directory deploys to static hosting unchanged.
         app.mount("/app", StaticFiles(directory=web_dir, html=True), name="sabichat-web")
+        # Phase 15: read-only admin dashboard over the existing /admin
+        # endpoints. Mounted beside, not over, the admin router.
+        mount_dashboard(app, web_dir)
     app.add_middleware(
         DeadlineMiddleware, deadline_seconds=request_deadline_seconds()
     )
