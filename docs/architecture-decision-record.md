@@ -201,3 +201,44 @@ configuration alone.
   - **F-27 post-closure items — explicitly NOT closure blockers:** Q2 (`90d-archive`) → POST-F-27 ROADMAP; Q3 (`1h-conditional`) → POST-F-27 ROADMAP; dangling-lineage auth-denial telemetry → POST-F-27 OBSERVABILITY; D6/A6 integrated acceptance battery → SEPARATE FUTURE GATE (D6 unchanged; D8 is not an A6 sign-off).
   - **D8 scope boundary:** closes F-27 only. Does not close A2, A6, B0 or B1, and asserts no hosted-CI or live-provider evidence.
 - **AMBER-A/B — PREPARED, BLOCKED:** live-provider matrix ready (endpoint/credentials/budget unauthorised — zero live calls); recovery/shutdown mock+disposable tests green, live-procedure runs pending authorization/environment.
+
+## 7. Phase 15 section 10 gate amendment (recorded 2026-11-23)
+
+**D9 Phase 15 Admin Dashboard — GATE CONDITION RECORDED AS MET (owner-decided, `owner-self`):**
+`CLAUDE.md` section 10 says "Until the gateway foundation is proven, do not
+build: ML routing, reinforcement learning, dashboards, the Go rewrite, an
+enterprise control plane, cloud deployment, native IDE extensions, or
+autonomous agents." The dashboard prohibition is the one this entry addresses.
+No other clause of section 10 is relaxed: ML routing, reinforcement learning,
+the Go rewrite, an enterprise control plane, cloud deployment, native IDE
+extensions and autonomous agents all remain prohibited exactly as written.
+
+**Basis for the determination.** The gate reads "until the gateway foundation
+is proven". As of 2026-11-23 phases 00, 01, 03, 04, 05, 06, 08, 09 and 10 are
+Complete, meaning implemented, tested and exercised on a documented real
+request path. Phase 19 (CI/CD) is also Complete on hosted-runner evidence. The
+dashboard's entire data surface already exists, is authenticated, and is
+covered by tests: `GET /admin/health`, `/admin/metrics`, `/admin/latency`,
+`/admin/errors` and `/admin/usage` (`src/sabiroute/api/admin.py`).
+
+**What Phase 15 is permitted to be.** A read-only frontend over those five
+existing endpoints. It adds no new data surface, no new authority, no new
+persistence, and no change to authentication. It does not weaken admin
+authentication, does not expose provider credentials, and does not bypass
+budgets, rate limits, capability filtering or health filtering.
+
+**What this decision does NOT authorise.** Any dashboard that mutates state
+without going through an existing authenticated admin endpoint; any relaxation
+of admin authentication in order to make a browser session easier; any
+exposure of `.env`, provider keys or tenant data beyond what the endpoints
+already return; any claim that Phase 20 production architecture is thereby
+unblocked.
+
+**Reversal condition.** If the "foundation is proven" determination above is
+ever contradicted by evidence, the remedy is to remove the dashboard, not to
+argue that the gate was satisfied. The gate is not amended in the abstract; it
+is satisfied by a specific piece of evidence at a specific commit.
+
+**Provenance.** Decision taken on explicit owner instruction on 2026-11-23,
+recorded here so that the section 10 override is auditable rather than
+implicit. Attribution token `owner-self` per D3; no human identity is invented.

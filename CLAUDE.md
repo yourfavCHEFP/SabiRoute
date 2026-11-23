@@ -286,7 +286,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 04 Virtual Models               Complete — six route policies validated at startup
 05 Fallback Engine Complete — real provider 429 drove a real fallback 2026-11-23
 06 Health Monitoring Complete — passive cooldown is the deliberate design (ADR 2026-10-11)
-07 Observability                Implemented — wired into gateway state and admin endpoints
+07 Observability Complete — live success-path telemetry verified 2026-11-23; live failure categorisation still unit-tested only; trackers in-memory
 08 PostgreSQL                   Complete — PostgresApiKeyStore exercised by the documented run
 09 Authentication & API Keys    Complete — client/admin boundary exercised on that run
 10 Budgets & Rate Limits Complete — 429 + Retry-After asserted against real PG/Redis
@@ -298,7 +298,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 16 Remote Access / Tailscale    Planned
 17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
 18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
-19 CI/CD Implemented — definition + local execution; hosted CI green on main 46099e4
+19 CI/CD Complete — hosted Actions green on main 117082f; all five steps passed incl. the application container build
 20 Production Architecture      Planned
 ```
 
