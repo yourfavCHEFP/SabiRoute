@@ -291,10 +291,10 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 09 Authentication & API Keys    Complete — client/admin boundary exercised on that run
 10 Budgets & Rate Limits Complete — 429 + Retry-After asserted against real PG/Redis
 11 Routing Intelligence Implemented — chat evidenced for 6 deployments; every other capability UNVERIFIED; breadth blocked on Phase 02
-12 Model Scoring Implemented — deterministic-v1 arithmetic demonstrated on measured signals 2026-11-23; production minimum_samples=5 gate still falls back to priority on a cold process
+12 Model Scoring Complete — signals persist to Redis with TTL, hydrate on restart, degrade to in-memory; live-verified 2026-11-23
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized
 14 Benchmarking In progress — 30 real observations recorded; comparison still degenerate because groq is both first-healthy and highest-scoring
-15 Admin Dashboard              Planned
+15 Admin Dashboard Implemented — read-only /admin/dashboard over the five admin endpoints; auth unchanged; no real-browser verification yet
 16 Remote Access / Tailscale    Planned
 17 Security Hardening In progress — independent scans run and recorded 2026-11-23; remediation unstarted
 18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
