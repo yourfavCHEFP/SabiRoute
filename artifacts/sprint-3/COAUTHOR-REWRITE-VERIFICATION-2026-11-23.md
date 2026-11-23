@@ -41,6 +41,38 @@ byte-identical, and all 20 co-author trailers are gone. The rewrite is safe to p
   their own copies of these trailers. They are not being pushed to `main`, so they are out of
   scope unless the owner asks for them separately.
 
+## CORRECTION — executed, figures superseded (added 2026-11-23, after the rewrite ran)
+
+This document was written as a **dry run against the pre-merge repository**. It was correct at
+the moment it was written and is retained unedited above as the record of the proof. Copilot
+then executed the rewrite on the real repository, and the real outcome differs from the dry-run
+figures in four ways. The correction below is authoritative.
+
+| Dry-run figure (above) | Actual executed result |
+|---|---|
+| 84 commits | **92** commits (7 sprint commits + 1 merge landed after this proof was written) |
+| 20 co-author trailers removed | **27** removed (the sprint commits carried trailers too) |
+| `main` tip tree `7202f4b` | `7202f4b` was the **pre-merge** tip; the authoritative pre-rewrite tip at `6291fde` was `577fc808` |
+| 0 occurrences of "claude" in `main` messages | **4** commit bodies contain the word |
+
+The tree-equality conclusion itself still holds, and was re-proven on the real history:
+**92/92 commit trees identical**, and `main` tip tree `577fc808` is unchanged from the mirror.
+
+### The "4 occurrences" are legitimate and must not be "cleaned"
+
+`git log -i --grep=claude main` returns four commits. None is an attribution trailer:
+
+- `e351f8a` — names the tracked `CLAUDE.md` file and the `.claude/` ignore entry
+- `55c7ae3` — records the removal of a stale `sabiroute-claude` config entry
+- `f89c0b5`, `55c958d` — cite this verification's own trailer counts
+
+Attribution removal is complete: `--grep='^Co-Authored-By:.*Claude'` and
+`--grep='x-anthropic-billing-header'` both return **0**. Any future audit that greps the bare
+word will find these four and must leave them alone; removing them would falsify the record.
+
+Executed state: `origin/main` = local `main` = `46099e4`; mirror preserved at `6291fde`;
+`git diff 6291fde main` empty; `README.md` blob `a3e4489` unchanged; no open pull requests.
+
 ## The filter used
 
 ```python
@@ -85,10 +117,10 @@ the real repository after taking a mirror backup, then force-pushes with
 ## CURRENT PROJECT STATUS
 
 ```
-CURRENT GATE: Co-author rewrite proven safe to execute; not yet executed on the real repository.
+CURRENT GATE: Co-author rewrite executed and independently verified on the real repository.
 CURRENT PHASE: Phase 13 READY_FOR_HUMAN_REVIEW (Copilot reviews); training NOT authorized.
-PROVEN: 84/84 trees identical; main tip tree unchanged (7202f4b); 0 Claude trailers and 0 "claude" strings in main messages after rewrite; all 84 SHAs change.
-UNPROVEN: nothing about the rewrite itself; the live force-push is untried by design.
-BLOCKED BY: owner "proceed" plus a mirror backup before any force-push.
-NEXT: Copilot performs the rewrite on the real repo and force-pushes with --force-with-lease.
+PROVEN: origin/main = local main = 46099e4; 92/92 trees identical; tip tree 577fc808 equals the mirror; git diff 6291fde..main empty; README blob a3e4489 unchanged; 27 trailers removed; 0 attribution lines remain; 4 legitimate "claude" word references retained; no open PRs; mirror preserved at 6291fde.
+UNPROVEN: hosted CI on the rewritten main (not yet checked); model utility; sufficiency of the 140-row Phase 13 sample.
+BLOCKED BY: owner review before any Phase 13 training authorization; 7 provider aliases on external account state.
+NEXT: confirm hosted CI green on 46099e4, then Phase 05 live fallback failure-injection evidence.
 ```
