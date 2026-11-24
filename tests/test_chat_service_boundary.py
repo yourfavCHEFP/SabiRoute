@@ -142,3 +142,30 @@ def test_an_unparseable_upstream_body_becomes_an_empty_mapping(
 
     assert status_code == 200
     assert body == {}
+
+
+class _ListJSONResponse:
+    status_code = 200
+    headers: dict[str, str] = {}
+
+    def json(self) -> Any:
+        return []
+
+
+class _ListJSONClient(_FailingClient):
+    async def post(self, *args: Any, **kwargs: Any) -> Any:
+        return _ListJSONResponse()
+
+
+def test_a_non_mapping_upstream_body_is_normalised_to_an_empty_mapping(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(httpx, "AsyncClient", _ListJSONClient(None))
+    service = _service(plaintext="k")
+
+    status_code, _headers, _deployment, body = asyncio.run(
+        service.complete(None, "m", [], user_id="u")
+    )
+
+    assert status_code == 200
+    assert body == {}
