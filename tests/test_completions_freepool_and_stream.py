@@ -196,3 +196,148 @@ def test_a_cleanup_failure_before_completion_is_named() -> None:
     chunks = _drain(_StreamingClient(_TruncatedFailingCloseStream()))
 
     assert chunks
+
+
+class _ExplodingStartStream:
+    async def events(self) -> Any:
+        raise RuntimeError("no first frame")
+        yield b""  # pragma: no cover - unreachable, keeps this a generator
+
+    async def aclose(self) -> None:
+        raise RuntimeError("cleanup also failed")
+
+
+def test_a_cleanup_failure_does_not_mask_the_provider_error() -> None:
+    state, _store, record = _state(
+        _StreamingClient(_ExplodingStartStream()), frozenset({"primary"})
+    )
+    payload = ChatCompletionRequest.model_validate(
+        {
+            "model": "primary",
+            "messages": [{"role": "user", "content": "hello"}],
+            "stream": True,
+        }
+    )
+
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert response.status_code == 502
+
+
+class _UsageFailingClient:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def chat_completion(self, *_args: Any, **_kwargs: Any) -> Any:
+        from sabiroute.providers.litellm_client import LiteLLMClientError
+
+        self.calls += 1
+        raise LiteLLMClientError(
+            "upstream failed after consuming the reservation",
+            status_code=500,
+            response_body={
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 10,
+                    "total_tokens": 20,
+                }
+            },
+        )
+
+    async def start_chat_completion_stream(self, *_args: Any, **_kwargs: Any) -> Any:
+        raise AssertionError("streaming path is not used here")
+
+
+def test_a_retry_that_cannot_fit_the_remaining_budget_stops() -> None:
+    from sabiroute.security.keys import ApiKeyBudget
+
+    client = _UsageFailingClient()
+    store = InMemoryApiKeyStore()
+    state = build_gateway_state(config=make_config(), client=client, key_store=store)
+    record, _secret = issue_api_key(store, project_id="proj-1", name="k")
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=1000))
+
+    payload = ChatCompletionRequest.model_validate(
+        {
+            "model": "primary",
+            "messages": [{"role": "user", "content": "hello"}],
+            "max_tokens": 10,
+        }
+    )
+
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert response.status_code == 502
+    # The first attempt consumed more than the reservation left room for, so
+    # no second provider call was made.
+    assert client.calls == 1
+
+
+class _FlakySharedStore(InMemoryApiKeyStore):
+    """Allows the admission read, then fails the per-attempt re-check."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.reads = 0
+
+    def get_shared_inference(self) -> bool:
+        self.reads += 1
+        if self.reads > 1:
+            raise RuntimeError("shared-inference read lost")
+        return True
+
+
+def test_an_unreadable_shared_inference_flag_denies_the_attempt() -> None:
+    store = _FlakySharedStore()
+    state = build_gateway_state(
+        config=make_config(),
+        client=StubLiteLLMClient(),
+        key_store=store,
+        free_pool=FreePoolPolicy(enabled=True, eligible_deployments=frozenset({"primary"})),
+    )
+    record, _secret = issue_api_key(store, project_id="proj-1", name="sabi")
+
+    response = asyncio.run(
+        chat_completions(_payload(), _request(state, record))
+    )
+
+    assert response.status_code == 403
+    assert "Shared inference is currently disabled" in _body(response)["error"][
+        "message"
+    ]
+
+
+def test_a_budget_released_without_an_attempt_clears_the_reservation() -> None:
+    from sabiroute.routing.router import NoCapableDeploymentError
+    from sabiroute.security.keys import ApiKeyBudget
+
+    state, store, record = _harness_with_budget(ApiKeyBudget(daily_tokens=1000))
+
+    def refuse(*_args: Any, **_kwargs: Any) -> Any:
+        raise NoCapableDeploymentError("nothing routable")
+
+    state.router.choose_deployment = refuse  # type: ignore[assignment]
+
+    response = asyncio.run(chat_completions(_payload_basic(), _request(state, record)))
+
+    assert response.status_code == 502
+
+
+def _harness_with_budget(budget: Any) -> tuple[Any, Any, ApiKeyRecord]:
+    store = InMemoryApiKeyStore()
+    state = build_gateway_state(
+        config=make_config(), client=StubLiteLLMClient(), key_store=store
+    )
+    record, _secret = issue_api_key(store, project_id="proj-1", name="k")
+    store.set_budget(record.key_id, budget)
+    return state, store, record
+
+
+def _payload_basic() -> ChatCompletionRequest:
+    return ChatCompletionRequest.model_validate(
+        {
+            "model": "primary",
+            "messages": [{"role": "user", "content": "hello"}],
+            "max_tokens": 16,
+        }
+    )

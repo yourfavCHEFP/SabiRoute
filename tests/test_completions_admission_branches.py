@@ -247,3 +247,39 @@ def test_a_snapshot_the_store_rejects_as_invalid_fails_closed() -> None:
 
     assert response.status_code == 500
     assert _body(response)["error"]["type"] == "telemetry_integrity_error"
+
+
+def test_a_usage_event_the_store_rejects_at_finalization_is_reported() -> None:
+    from sabiroute.security.keys import UsageEventValidationError
+
+    state, store, record = _harness()
+
+    def reject(*_args: Any, **_kwargs: Any) -> Any:
+        raise UsageEventValidationError("event rejected")
+
+    store.finalize_usage_event = reject  # type: ignore[assignment]
+
+    response = asyncio.run(chat_completions(_payload(), _request(state, record)))
+
+    assert response.status_code == 500
+    assert _body(response)["error"]["type"] == "telemetry_integrity_error"
+
+
+def test_a_quota_settlement_failure_is_reported() -> None:
+    from conftest import _make_free_chat_payload, _make_quota_and_budget_harness
+
+    state, store, _stub, key_id, uid = _make_quota_and_budget_harness()
+
+    def fail(*_args: Any, **_kwargs: Any) -> Any:
+        raise RuntimeError("settlement lost")
+
+    store.settle_quota = fail  # type: ignore[assignment]
+    record = store.records[key_id]
+    payload = _make_free_chat_payload(uid)
+
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert response.status_code == 503
+    assert _body(response)["error"]["message"] == (
+        "Quota reservation could not be reconciled."
+    )
