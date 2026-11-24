@@ -1,17 +1,11 @@
 """Behavioural tests for :mod:`sabiroute.migrate`.
 
-Two contracts are covered:
-
-* ``_database_url()`` -- environment-variable precedence, and a non-zero
-  exit with a stderr diagnostic when no URL is configured.
-* ``main()`` -- dialect routing: PostgreSQL takes a transaction-scoped
-  advisory lock and migrates inside that transaction, SQLite applies the
-  schema directly, every failure path returns 1 with a stderr diagnostic,
-  and success prints the applied groups and returns 0.
-
-The module is also the only supported entry point for schema changes, so
-the ``__main__`` guard surfacing ``main()``'s return code as the process
-exit status is asserted as well.
+Covers the two documented contracts of the module: environment-variable
+precedence for the database URL with a non-zero exit when none is set, and
+dialect routing in ``main()`` -- PostgreSQL takes a transaction-scoped
+advisory lock and migrates inside that transaction, SQLite applies the schema
+directly, every failure path returns 1 with a stderr diagnostic, and success
+prints the applied groups and returns 0.
 """
 from __future__ import annotations
 
