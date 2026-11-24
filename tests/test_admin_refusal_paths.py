@@ -9,6 +9,7 @@ the assertions are about the HTTP outcome, not about routing.
 from __future__ import annotations
 
 import asyncio
+import inspect
 from types import SimpleNamespace
 from typing import Any
 
@@ -149,3 +150,35 @@ def test_clearing_a_budget_is_refused_for_an_unknown_key() -> None:
     )
 
     assert status == 404
+
+
+class _AwaitingExecutor:
+    """Runs the delegated call, awaiting it when it is a coroutine."""
+
+    async def run(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+        result = func(*args, **kwargs)
+        if inspect.isawaitable(result):
+            return await result
+        return result
+
+
+def test_reconcile_refuses_a_key_without_a_lineage() -> None:
+    store = SimpleNamespace(get=lambda _key_id: SimpleNamespace(lineage_id=None))
+    state = SimpleNamespace(key_store=store, store_executor=_AwaitingExecutor())
+
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(admin_module.reconcile_client_lineage("key-1", _request(state)))
+
+    assert excinfo.value.status_code >= 400
+    assert "lineage" in str(excinfo.value.detail)
+
+
+def test_reconcile_refuses_when_the_store_exposes_no_engine() -> None:
+    store = SimpleNamespace(get=lambda _key_id: SimpleNamespace(lineage_id="lineage-1"))
+    state = SimpleNamespace(key_store=store, store_executor=_AwaitingExecutor())
+
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(admin_module.reconcile_client_lineage("key-1", _request(state)))
+
+    assert excinfo.value.status_code >= 400
+    assert "unavailable" in str(excinfo.value.detail)
