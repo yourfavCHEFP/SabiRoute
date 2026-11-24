@@ -193,7 +193,7 @@ def test_store_rewrites_plain_postgres_urls(
             return None
 
     class _NoopBegin:
-        def __enter__(self) -> "_NoopConnection":
+        def __enter__(self) -> _NoopConnection:
             return _NoopConnection()
 
         def __exit__(self, *exc_info: object) -> bool:
@@ -202,10 +202,10 @@ def test_store_rewrites_plain_postgres_urls(
     class _NoopEngine:
         dialect = SimpleNamespace(name="sqlite")
 
-        def begin(self) -> "_NoopBegin":
+        def begin(self) -> _NoopBegin:
             return _NoopBegin()
 
-    def fake_create_engine(url: str, **_kwargs: object) -> "_NoopEngine":
+    def fake_create_engine(url: str, **_kwargs: object) -> _NoopEngine:
         captured.append(url)
         return _NoopEngine()
 
@@ -296,7 +296,7 @@ def test_a_duplicate_lineage_insert_is_idempotent(
 
 def test_reconciliation_refuses_a_keep_key_without_a_budget() -> None:
     class _EmptyResult:
-        def mappings(self) -> "_EmptyResult":
+        def mappings(self) -> _EmptyResult:
             return self
 
         def first(self) -> None:
@@ -306,7 +306,7 @@ def test_reconciliation_refuses_a_keep_key_without_a_budget() -> None:
             return None
 
     class _EmptyConnection:
-        def execute(self, *_args: object, **_kwargs: object) -> "_EmptyResult":
+        def execute(self, *_args: object, **_kwargs: object) -> _EmptyResult:
             return _EmptyResult()
 
     with pytest.raises(ValueError, match="has no budget"):
@@ -320,7 +320,7 @@ def test_reconciliation_refuses_a_lineage_mismatch() -> None:
         def __init__(self, value: object) -> None:
             self._value = value
 
-        def mappings(self) -> "_ScriptedResult":
+        def mappings(self) -> _ScriptedResult:
             return self
 
         def first(self) -> object:
@@ -333,7 +333,7 @@ def test_reconciliation_refuses_a_lineage_mismatch() -> None:
         def __init__(self, results: list[object]) -> None:
             self._results = list(results)
 
-        def execute(self, *_args: object, **_kwargs: object) -> "_ScriptedResult":
+        def execute(self, *_args: object, **_kwargs: object) -> _ScriptedResult:
             return _ScriptedResult(self._results.pop(0))
 
     connection = _ScriptedConnection([{"key_id": "keep-key"}, "other-lineage"])
