@@ -232,3 +232,23 @@ def test_registry_from_config_rejects_an_empty_model() -> None:
         registry_from_config(config)
 
     assert "has no LiteLLM model" in str(excinfo.value)
+
+
+def test_constructor_registers_supplied_providers_and_deployments() -> None:
+    provider = _provider("openai")
+    deployment = _deployment("d1")
+
+    registry = ProviderRegistry(deployments=[deployment], providers=[provider])
+
+    assert registry.list_providers() == [provider]
+    assert registry.get("d1") is deployment
+    assert len(registry) == 1
+
+
+def test_deployment_with_a_blank_provider_is_rejected() -> None:
+    registry = _registry()
+
+    with pytest.raises(ValueError) as excinfo:
+        registry.register(_deployment("d1", provider="   "))
+
+    assert "empty provider" in str(excinfo.value)
