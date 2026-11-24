@@ -192,3 +192,19 @@ def test_a_cap_without_room_for_one_output_token_stops() -> None:
 
     assert response.status_code == 502
     assert client.calls == 1
+
+
+def test_a_retry_with_unknown_spend_stops_on_a_combined_budget() -> None:
+    # A combined token+cost budget passes the token retry gate because the
+    # failed attempt reports one token against a sixteen-token reservation.
+    # The cost block then finds spend it cannot price and stops the retry.
+    client = _Client(usage={"total_tokens": 1})
+
+    response, client = _run(
+        _priced_config(input_price="1", output_price="1"),
+        client,
+        ApiKeyBudget(daily_tokens=1000, daily_cost_usd=Decimal("100")),
+    )
+
+    assert response.status_code == 502
+    assert client.calls == 1
