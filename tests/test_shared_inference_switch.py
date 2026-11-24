@@ -1,4 +1,5 @@
 """Behavioural tests for the shared-inference kill switch (:mod:`sabiroute.api.shutdown`)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -81,7 +82,9 @@ def test_set_applies_the_change_then_returns_fresh_status() -> None:
     executor = _Executor()
 
     status = asyncio.run(
-        shutdown.set_shared_inference(_payload(enabled=False, reason="incident"), _request(store, executor))
+        shutdown.set_shared_inference(
+            _payload(enabled=False, reason="incident"), _request(store, executor)
+        )
     )
 
     assert store.set_calls == [(False, "admin")]
