@@ -7,6 +7,7 @@ can end without a clean completion.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from typing import Any
 
@@ -207,6 +208,69 @@ def test_a_cleanup_failure_before_completion_is_named() -> None:
     assert state.errors.counts() == {"stream_interrupted": 1}
     assert [record.message for record in state.errors.records] == [
         "Provider stream cleanup failed before completion."
+    ]
+
+
+class _BlockedOpenStream:
+    """Opens, then never yields a first frame, and refuses to close cleanly."""
+
+    def __init__(self) -> None:
+        self.close_attempted = False
+
+    async def events(self) -> Any:
+        await asyncio.sleep(3600)
+        yield b"data: [DONE]\n\n"  # pragma: no cover - never reached
+
+    async def aclose(self) -> None:
+        self.close_attempted = True
+        raise RuntimeError("cleanup failed")
+
+
+def test_a_cancelled_attempt_past_its_deadline_closes_the_stream_and_holds_the_budget() -> None:
+    # Cancellation lands inside the attempt, holding an open stream session,
+    # after the published deadline passed and with a budget still reserved.
+    # Three obligations meet here: the close must still be attempted, its
+    # failure must not mask the outcome, and the reservation means usage is now
+    # unknown rather than zero.
+    import time
+
+    from sabiroute.security.keys import ApiKeyBudget
+
+    stream = _BlockedOpenStream()
+    store = InMemoryApiKeyStore()
+    state = build_gateway_state(
+        config=make_config(), client=_StreamingClient(stream), key_store=store
+    )
+    record, _secret = issue_api_key(store, project_id="proj-1", name="k")
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+    request = _request(state, record)
+    # The attempt must start inside a live deadline — one already past breaks
+    # before any upstream work — and then be cancelled after it elapses.
+    request.state.sabiroute_deadline_at = time.monotonic() + 0.05
+    payload = ChatCompletionRequest.model_validate(
+        {
+            "model": "primary",
+            "messages": [{"role": "user", "content": "hello"}],
+            "stream": True,
+            # A budgeted request must state its output bound.
+            "max_tokens": 128,
+        }
+    )
+
+    async def scenario() -> None:
+        attempt = asyncio.create_task(chat_completions(payload, request))
+        await asyncio.sleep(0.2)
+        attempt.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await attempt
+
+    asyncio.run(scenario())
+
+    assert stream.close_attempted
+    # The failing close is absorbed: the deadline is still what telemetry says.
+    assert state.errors.counts() == {"deadline_exceeded": 1}
+    assert [record_.message for record_ in state.errors.records] == [
+        "Request deadline exceeded before the attempt completed."
     ]
 
 
