@@ -7,8 +7,8 @@ Roadmap phase status is unchanged. This document records evidence, not a promoti
 
 | gate | command | result |
 |---|---|---|
-| tests | `uv run pytest -q` | 1106 passed, 9 skipped |
-| coverage | `uv run pytest -q --cov=sabiroute` | 4597 statements, 0 missed, 100% |
+| tests | `uv run pytest -q` | 1107 passed, 9 skipped |
+| coverage | `uv run pytest -q --cov=sabiroute` | 4599 statements, 0 missed, 100% |
 | lint | `uv run ruff check src tests scripts config` | clean |
 | types | `uv run mypy src` | clean, 49 source files |
 | whitespace | `git diff --check` | clean |
@@ -17,9 +17,9 @@ The nine skips are environment-gated on `SABIROUTE_TEST_REDIS_URL` /
 `SABIROUTE_TEST_PG_URL`; none is a contract skip.
 
 An earlier revision of this document recorded "1123 passed". That figure did not
-reproduce: a plain `uv run pytest -q` collects 1115 tests, of which 1106 pass and
+reproduce: a plain `uv run pytest -q` collects 1116 tests, of which 1107 pass and
 9 skip. `scripts/test_models.py` and `scripts/test_providers.py` hold 3 further
-tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1109,
+tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1110,
 not 1123. The recorded number is corrected here rather than explained away.
 
 ## What the 100% does and does not mean
@@ -38,6 +38,15 @@ report. The excluded regions are:
   burst, on both the budget and quota paths, did not reach them
   (`tests/test_completions_cancellation_matrix.py`). This is a record of what
   the sweep did not reach; it is not proof the handlers are unreachable.
+
+  One branch of that region is now exercised and no longer only excluded: the
+  shield loop's exit for a worker that ends *itself* cancelled. Awaiting a
+  cancelled shielded task re-raises on every attempt, so the loop retried
+  forever and the request never completed — the earlier sweep missed it because
+  it cancels the *caller*, never the worker. `test_a_cleanup_that_cancels_itself_does_not_hang_the_request`
+  (`tests/test_completions_cleanup_failures.py`) drives that path under a
+  two-second deadline, and it hangs until the deadline is reached when the
+  guard is removed.
 - the `estimated_cost is None` branch inside the retry loop, which the pricing
   pre-check answers with a 503 before the loop is entered.
 - the stream-cleanup and deadline-with-reservation branches.

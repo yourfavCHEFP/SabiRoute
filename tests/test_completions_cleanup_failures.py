@@ -212,3 +212,33 @@ def test_cancellation_inside_budget_reconciliation_is_absorbed() -> None:
 def test_cancellation_inside_quota_settlement_is_absorbed() -> None:
     store = _BlockingCleanupStore()
     _cancel_during_cleanup(lambda: _state(store))
+
+
+class _SelfCancellingCleanupStore(InMemoryApiKeyStore):
+    """A shielded cleanup step that reports cancellation as its own outcome."""
+
+    def reconcile_budget(self, *a: Any, **k: Any) -> Any:
+        raise asyncio.CancelledError("worker cancelled itself")
+
+
+def test_a_cleanup_that_cancels_itself_does_not_hang_the_request() -> None:
+    store = _SelfCancellingCleanupStore()
+    state, record, payload = _budget_state(store)
+
+    async def scenario() -> Any:
+        try:
+            return await asyncio.wait_for(
+                chat_completions(payload, _request(state, record)), timeout=2
+            )
+        except asyncio.CancelledError:
+            return "cancelled"
+
+    outcome = asyncio.run(scenario())
+
+    # The shield exists so a client cancellation cannot withdraw cleanup. A
+    # worker that ends cancelled is the other case: the shielded task is dead,
+    # so retrying the await re-raises immediately and would spin forever. The
+    # request has to finish — answering or surfacing the cancellation — rather
+    # than hanging, which is the only outcome the timeout can rule out.
+    assert outcome == "cancelled" or outcome.status_code >= 500
+    assert store.finalize_calls <= 1
