@@ -157,7 +157,7 @@ class _StreamingClient:
         return self._stream
 
 
-def _drain(client: Any) -> list[Any]:
+def _drain(client: Any) -> tuple[list[Any], Any]:
     store = InMemoryApiKeyStore()
     state = build_gateway_state(
         config=make_config(), client=client, key_store=store
@@ -176,26 +176,38 @@ def _drain(client: Any) -> list[Any]:
         response = await chat_completions(payload, request)
         return [chunk async for chunk in response.body_iterator]
 
-    return asyncio.run(scenario())
+    return asyncio.run(scenario()), state
 
 
 def test_a_stream_without_a_done_frame_is_recorded_as_interrupted() -> None:
-    chunks = _drain(_StreamingClient(_TruncatedStream()))
+    chunks, state = _drain(_StreamingClient(_TruncatedStream()))
 
     assert chunks
     assert not any(b"[DONE]" in chunk for chunk in chunks)
+    # Truncation is not merely passed through to the client: the outcome is
+    # named in telemetry, together with the reason the stream ended.
+    assert state.errors.counts() == {"stream_interrupted": 1}
+    assert [record.message for record in state.errors.records] == [
+        "Provider stream ended without [DONE]."
+    ]
 
 
 def test_a_stream_that_completes_without_usage_is_treated_as_unknown() -> None:
-    chunks = _drain(_StreamingClient(_NoUsageStream()))
+    chunks, _state = _drain(_StreamingClient(_NoUsageStream()))
 
     assert any(b"[DONE]" in chunk for chunk in chunks)
 
 
 def test_a_cleanup_failure_before_completion_is_named() -> None:
-    chunks = _drain(_StreamingClient(_TruncatedFailingCloseStream()))
+    chunks, state = _drain(_StreamingClient(_TruncatedFailingCloseStream()))
 
     assert chunks
+    # A close that fails is distinguished from a plain truncation by its
+    # message, so the two are separable from telemetry alone.
+    assert state.errors.counts() == {"stream_interrupted": 1}
+    assert [record.message for record in state.errors.records] == [
+        "Provider stream cleanup failed before completion."
+    ]
 
 
 class _ExplodingStartStream:

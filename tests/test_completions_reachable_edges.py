@@ -48,9 +48,14 @@ def _request(state: Any, record: Any) -> Request:
 
 
 class _ExplodingMapping(dict):
-    """A mapping whose ``get`` raises, so the size guard's fallback runs."""
+    """A mapping whose ``get`` refuses, counting each refusal."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.get_calls = 0
 
     def get(self, *_args: Any, **_kwargs: Any) -> Any:
+        self.get_calls += 1
         raise AttributeError("mapping refuses get")
 
 
@@ -58,17 +63,21 @@ def test_a_message_mapping_that_refuses_get_is_treated_as_contentless() -> None:
     store = InMemoryApiKeyStore()
     state = build_gateway_state(config=make_config(), client=StubLiteLLMClient(), key_store=store)
     record, _secret = issue_api_key(store, project_id="proj-1", name="key")
+    hostile = _ExplodingMapping({"role": "user", "content": "hello"})
     payload = ChatCompletionRequest.model_construct(
         model="primary",
-        messages=[_ExplodingMapping({"role": "user", "content": "hello"})],
+        messages=[hostile],
         max_tokens=None,
     )
 
-    # The size guard tolerates the mapping and moves on. A later stage reads
-    # the same message through the mapping and does not, so the guard's
-    # tolerance is observed as the point where that later read fails.
+    # The size guard tolerates the mapping and moves on: it reads ``content``
+    # inside a try that treats a refusing mapping as contentless. A later stage
+    # reads the same message and does not, so the guard's tolerance is observed
+    # as the *first* refusal being swallowed and a later one escaping.
     with pytest.raises(AttributeError, match="mapping refuses get"):
         asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert hostile.get_calls >= 2
 
 
 def test_a_quota_request_the_estimator_cannot_price_is_refused(

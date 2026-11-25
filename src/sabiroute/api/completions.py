@@ -520,6 +520,12 @@ async def chat_completions(
                         result = await asyncio.shield(shielded_task)
                         break
                     except asyncio.CancelledError:
+                        if shielded_task.done() and shielded_task.cancelled():
+                            # The worker itself ended cancelled. ``shield``
+                            # re-raises that on every await, so retrying here
+                            # would spin without ever yielding to a waiter:
+                            # surface it instead of hanging the request.
+                            raise
                         continue
             except BaseException:
                 _untrack(name, done)
