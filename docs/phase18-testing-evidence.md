@@ -7,8 +7,8 @@ Roadmap phase status is unchanged. This document records evidence, not a promoti
 
 | gate | command | result |
 |---|---|---|
-| tests | `uv run pytest -q` | 1108 passed, 9 skipped |
-| coverage | `uv run pytest -q --cov=sabiroute` | 4605 statements, 0 missed, 100% |
+| tests | `uv run pytest -q` | 1116 passed, 9 skipped |
+| coverage | `uv run pytest -q --cov=sabiroute` | 4622 statements, 0 missed, 100% |
 | lint | `uv run ruff check src tests scripts config` | clean |
 | types | `uv run mypy src` | clean, 49 source files |
 | whitespace | `git diff --check` | clean |
@@ -17,19 +17,19 @@ The nine skips are environment-gated on `SABIROUTE_TEST_REDIS_URL` /
 `SABIROUTE_TEST_PG_URL`; none is a contract skip.
 
 An earlier revision of this document recorded "1123 passed". That figure did not
-reproduce: a plain `uv run pytest -q` collects 1117 tests, of which 1108 pass and
+reproduce: a plain `uv run pytest -q` collects 1125 tests, of which 1116 pass and
 9 skip. `scripts/test_models.py` and `scripts/test_providers.py` hold 3 further
-tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1111,
+tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1119,
 not 1123. The recorded number is corrected here rather than explained away.
 
 ## What the 100% does and does not mean
 
 Coverage reports 100%, but the figure is not produced by execution alone.
-52 statements in `api/completions.py` carry `# pragma: no cover`. Of those, 40
-are branches this suite does not reach and 12 are covered statements inside the
+35 statements in `api/completions.py` carry `# pragma: no cover`. Of those, 25
+are branches this suite does not reach and 10 are covered statements inside the
 same blocks that block-level exclusion also removed. Both numbers are measured
 rather than argued: running the suite against a coverage config with
-`exclude_lines` emptied reports 800 statements in the file and names the 40
+`exclude_lines` emptied reports 800 statements in the file and names the 25
 unexecuted lines.
 
 This coverage figure is a measurement, not a claim about evidence quality. An
@@ -58,8 +58,8 @@ report. The excluded regions are:
   as the floor the cost arithmetic below it requires; the reason is recorded at
   the site so a later reader does not mistake it for an unproven path.
 
-Four branches that were previously excluded here are now exercised by real tests
-and no longer carry a pragma: a retry whose spend cannot be priced from the
+Further branches that were previously excluded here are now exercised by real
+tests and no longer carry a pragma: a retry whose spend cannot be priced from the
 provider's usage report, and a retry whose remaining budget floors to zero
 output tokens. Both are reachable only on a route with a second candidate — a
 single-alias request has no second attempt to refuse — so
@@ -77,6 +77,27 @@ cancellation that lands in the response generator instead is a different,
 already-covered handler — it records "during streaming" — which is why the
 sweep in the cancellation matrix could not reach these by cancelling offsets
 alone.
+
+A third group is the cancelled-request path, which finalizes telemetry like the
+normal one and therefore meets the same store refusals. Two tests cancel while
+admission is inside the store and let finalization fail — once as a validation
+rejection, once as an outage — asserting the caller still gets a typed 503 and
+that the store's own message is not echoed back. The rest make the *worker*
+cancel itself, one cleanup step at a time: the quota release, the budget
+release, and each of those on the pre-dispatch snapshot-failure path, including
+the successful release that clears the flag. A worker that ends itself cancelled
+re-raises on every await, so each of these is the same hazard as the shield-loop
+bug one layer down, and each is now proven to end the request rather than stall
+it.
+
+What remains excluded is 25 statements of one shape: cancellation arriving while
+a *different* accounting worker is still in flight. The two barrier loops
+(`finish` and the cancelled finalize) wait on another worker's completion event
+and swallow a cancellation arriving mid-wait; the six re-raises beside shielded
+cleanups fire only if the worker cancels itself at that exact step rather than
+before or after it. Both need an interleaving this suite does not produce, and
+neither is proven unreachable — the same was true of the shield loop until a
+worker was made to cancel itself.
 
 ## What is tested rather than excluded
 
