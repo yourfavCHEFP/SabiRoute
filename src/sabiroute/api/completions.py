@@ -574,14 +574,21 @@ async def chat_completions(
         # Wait for any in-flight accounting worker before inspecting state:
         # cleanup decisions must observe committed outcomes, not races.
         # Repeated cancellation re-waits on the same barrier.
-        while in_flight is not None:  # pragma: no cover
-            done = in_flight_done
+        #
+        # The body below is dead by construction today: _run_accounting
+        # untracks on every exit path (success, exception, cancellation and
+        # self-cancelled shielded worker), so in_flight is already None when
+        # finish()/_cancelled_finish() are entered. It is kept, and excluded
+        # from coverage, as the barrier a future overlapping accounting call
+        # site would need. See docs/phase18-testing-evidence.md.
+        while in_flight is not None:
+            done = in_flight_done  # pragma: no cover
             if done is None or done.is_set():  # pragma: no cover
-                break
+                break  # pragma: no cover
             try:  # pragma: no cover
-                await done.wait()
+                await done.wait()  # pragma: no cover
             except asyncio.CancelledError:  # pragma: no cover
-                continue
+                continue  # pragma: no cover
         if budget_reserved:
             try:
                 if release_budget:
@@ -646,7 +653,7 @@ async def chat_completions(
                         shield_cancellation=True,
                     )
                 quota_reserved = False
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error(
@@ -709,7 +716,7 @@ async def chat_completions(
                 final_event,
                 shield_cancellation=True,
             )
-        except asyncio.CancelledError:  # pragma: no cover
+        except asyncio.CancelledError:
             raise
         except UsageEventValidationError as exc:
             logger.error("Request telemetry rejected at finalization: %s", redact_secrets(exc))
@@ -754,7 +761,7 @@ async def chat_completions(
                     shield_cancellation=True,
                 )
                 budget_reserved = False
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error("Budget reservation release failed: %s", redact_secrets(exc))
@@ -769,9 +776,9 @@ async def chat_completions(
                     shield_cancellation=True,
                 )
                 quota_reserved = False
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
-            except Exception as exc:  # pragma: no cover
+            except Exception as exc:
                 logger.error("Quota reservation release failed: %s", redact_secrets(exc))
                 cleanup_errors.append("quota_cleanup_failed")
 
@@ -787,15 +794,18 @@ async def chat_completions(
         finalizes the usage event. It waits for any in-flight worker like
         finish() does, preserves the 499 client_cancelled envelope, and
         never marks RELEASED/SETTLED/FINALIZED unless the store confirms.
+
+        The barrier body below is dead by construction for the same reason
+        as finish(): _run_accounting always untracks before returning.
         """
-        while in_flight is not None:  # pragma: no cover
-            done = in_flight_done
+        while in_flight is not None:
+            done = in_flight_done  # pragma: no cover
             if done is None or done.is_set():  # pragma: no cover
-                break
+                break  # pragma: no cover
             try:  # pragma: no cover
-                await done.wait()
+                await done.wait()  # pragma: no cover
             except asyncio.CancelledError:  # pragma: no cover
-                continue
+                continue  # pragma: no cover
         final_event = replace(
             event,
             final_deployment=None,
@@ -819,7 +829,7 @@ async def chat_completions(
                 final_event,
                 shield_cancellation=True,
             )
-        except asyncio.CancelledError:  # pragma: no cover
+        except asyncio.CancelledError:
             raise
         except UsageEventValidationError as exc:
             logger.error("Request telemetry rejected at finalization: %s", redact_secrets(exc))
@@ -862,14 +872,14 @@ async def chat_completions(
             # Same contract as budgets on this path: release, matching the
             # adjacent budget handling exactly.
             try:
-                await _run_accounting(  # pragma: no cover
+                await _run_accounting(
                     "quota_cleanup",
                     store.release_quota,
                     quota_user_id,
                     request_id,
                     shield_cancellation=True,
                 )
-                quota_reserved = False  # pragma: no cover
+                quota_reserved = False
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
@@ -1309,7 +1319,7 @@ async def chat_completions(
                         shield_cancellation=True,
                     )
                     quota_reserved = False
-                except asyncio.CancelledError:  # pragma: no cover
+                except asyncio.CancelledError:
                     raise
                 except Exception as exc:
                     logger.error(
