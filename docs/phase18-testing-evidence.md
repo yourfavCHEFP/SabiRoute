@@ -7,8 +7,8 @@ Roadmap phase status is unchanged. This document records evidence, not a promoti
 
 | gate | command | result |
 |---|---|---|
-| tests | `uv run pytest -q` | 1116 passed, 9 skipped |
-| coverage | `uv run pytest -q --cov=sabiroute` | 4622 statements, 0 missed, 100% |
+| tests | `uv run pytest -q` | 1123 passed, 9 skipped |
+| coverage | `uv run pytest -q --cov=sabiroute` | 4641 statements, 0 missed, 100% |
 | lint | `uv run ruff check src tests scripts config` | clean |
 | types | `uv run mypy src` | clean, 49 source files |
 | whitespace | `git diff --check` | clean |
@@ -16,41 +16,35 @@ Roadmap phase status is unchanged. This document records evidence, not a promoti
 The nine skips are environment-gated on `SABIROUTE_TEST_REDIS_URL` /
 `SABIROUTE_TEST_PG_URL`; none is a contract skip.
 
-An earlier revision of this document recorded "1123 passed". That figure did not
-reproduce: a plain `uv run pytest -q` collects 1125 tests, of which 1116 pass and
-9 skip. `scripts/test_models.py` and `scripts/test_providers.py` hold 3 further
-tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1119,
-not 1123. The recorded number is corrected here rather than explained away.
+An earlier revision of this document recorded "1123 passed" while the suite then
+collected 1125 tests and passed 1116. That figure was corrected to 1116 at the
+time. Eight further tests for the in-flight interleavings described below have
+since been added, so the suite now really reports 1123 passed of 1132 collected.
+`scripts/test_models.py` and `scripts/test_providers.py` hold 3 further tests
+that `testpaths = ["tests"]` excludes.
 
 ## What the 100% does and does not mean
 
 Coverage reports 100%, but the figure is not produced by execution alone.
-35 statements in `api/completions.py` carry `# pragma: no cover`. Of those, 25
-are branches this suite does not reach and 10 are covered statements inside the
-same blocks that block-level exclusion also removed. Both numbers are measured
-rather than argued: running the suite against a coverage config with
-`exclude_lines` emptied reports 800 statements in the file and names the 25
-unexecuted lines.
+15 statements in `api/completions.py` carry `# pragma: no cover`. All 15 are
+unexecuted lines, and they are measured rather than argued: running the suite
+against a coverage config with `exclude_lines` emptied reports 800 statements in
+the file and names exactly them — the two barrier bodies below plus the
+`estimated_cost is None` branch.
 
 This coverage figure is a measurement, not a claim about evidence quality. An
 excluded branch that later becomes reachable will not appear in any coverage
-report. The excluded regions are:
+report. Two regions are still excluded, and both are named below.
 
-- cancellation handlers that run behind `shield_cancellation=True`. A sweep
-  cancelling at seven offsets, three times in succession, and ten times in a
-  burst, on both the budget and quota paths, did not reach them
-  (`tests/test_completions_cancellation_matrix.py`). This is a record of what
-  the sweep did not reach; it is not proof the handlers are unreachable.
-
-  One branch of that region is now exercised and no longer only excluded: the
-  shield loop's exit for a worker that ends *itself* cancelled. Awaiting a
-  cancelled shielded task re-raises on every attempt, so the loop retried
-  forever and the request never completed — the earlier sweep missed it because
-  it cancels the *caller*, never the worker. `test_a_cleanup_that_cancels_itself_does_not_hang_the_request`
-  (`tests/test_completions_cleanup_failures.py`) drives that path under a
-  two-second deadline, and it hangs until the deadline is reached when the
-  guard is removed. The same test reaches the re-raise in `finish`'s budget
-  cleanup, which is therefore no longer excluded either.
+- the barrier bodies in `finish` and in the cancelled finalize. Each loop waits
+  on another accounting worker's completion event, so the only way into its body
+  is a cancellation arriving mid-wait while that worker is still in flight — the
+  interleaving these tests never produced. It is now dead by construction rather
+  than merely unreached: `_run_accounting` untracks on every exit path (success,
+  exception, cancellation, and self-cancelled shielded worker), so `in_flight` is
+  already `None` whenever either finish runs. The five statements per loop are
+  kept — and excluded — as the barrier a future overlapping accounting call site
+  would need, with the invariant recorded at both sites.
 - the `estimated_cost is None` branch inside the retry loop. This one is not
   merely unreached — it cannot run. `estimated_cost` is computed once, before
   admission, and never reassigned, and a cost budget over candidates without
@@ -90,14 +84,25 @@ re-raises on every await, so each of these is the same hazard as the shield-loop
 bug one layer down, and each is now proven to end the request rather than stall
 it.
 
-What remains excluded is 25 statements of one shape: cancellation arriving while
-a *different* accounting worker is still in flight. The two barrier loops
-(`finish` and the cancelled finalize) wait on another worker's completion event
-and swallow a cancellation arriving mid-wait; the six re-raises beside shielded
-cleanups fire only if the worker cancels itself at that exact step rather than
-before or after it. Both need an interleaving this suite does not produce, and
-neither is proven unreachable — the same was true of the shield loop until a
-worker was made to cancel itself.
+The six re-raises beside the shielded cleanups were the last group recorded here
+as unproven, and they are now exercised rather than argued. A store method that
+runs on the worker thread cannot cancel the task, but it can raise
+`asyncio.CancelledError`, which leaves the shielded worker ending itself
+cancelled; from there each cleanup step is driven separately: the quota
+settlement and the finalize in `finish`, the finalize on the cancelled path, the
+budget release and the quota release in full compensation, and the quota release
+that follows a cancelled budget reservation. Where the raised error is not a
+cancellation, the release is recorded as `quota_cleanup_failed` and the caller
+still receives its 499 — asserted, because that refusal is the one outcome the
+invariant tolerates. Each of these tests would have hung the request before the
+shield-loop guard, which is why they are assertions about completion and not
+only about line coverage.
+
+What that sweep also settled is why the two barrier bodies are unreachable:
+`_run_accounting` untracks the in-flight worker on every path out, including the
+self-cancelled one, so neither finish ever finds a barrier to wait on. The
+barriers stay as defensive depth for a future overlapping call site, documented
+at both sites and excluded here; nothing else in the file is excluded.
 
 ## What is tested rather than excluded
 
@@ -112,10 +117,12 @@ recorded and does not replace the response the caller was owed.
 ## What this document does not claim
 
 - No phase status change.
-- No claim that the excluded branches are exercised. They are not.
-- No claim that the exclusion list is unreachable code. Reachability was argued
-  for two branches and those two are now tested; the rest rests on the
-  pre-check and on the sweep above, which is evidence about what the tests did,
-  not about what the code permits.
+- No claim that the excluded branches are exercised. They are not: they are now
+  only the two barrier bodies and the `estimated_cost is None` branch, and all
+  fifteen lines are listed above by function and by measurement.
+- No claim that the exclusion list is unreachable code. Both remaining regions
+  are argued dead by construction — an invariant on `_run_accounting`'s exit
+  paths, and a pre-check plus a value that is never reassigned — and each
+  argument is recorded at its site, not only here.
 - Coverage percentage is a proxy. The cancellation tests exist for the
   invariant, not the number.
