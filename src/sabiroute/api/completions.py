@@ -800,20 +800,20 @@ async def chat_completions(
             )
         except asyncio.CancelledError:  # pragma: no cover
             raise
-        except UsageEventValidationError as exc:  # pragma: no cover
+        except UsageEventValidationError as exc:
             logger.error("Request telemetry rejected at finalization: %s", redact_secrets(exc))
             persisted = False
-        except Exception:  # pragma: no cover
+        except Exception:
             logger.error("Durable request telemetry finalization failed.")
             persisted = False
         if not persisted:
-            failed = _error_response(  # pragma: no cover
+            failed = _error_response(
                 503,
                 "Durable request accounting could not be finalized.",
                 "usage_store_unavailable",
             )
-            failed.headers["X-SabiRoute-Request-ID"] = request_id  # pragma: no cover
-            return failed  # pragma: no cover
+            failed.headers["X-SabiRoute-Request-ID"] = request_id
+            return failed
         response.headers["X-SabiRoute-Request-ID"] = request_id
         return response
 
@@ -829,7 +829,7 @@ async def chat_completions(
                     shield_cancellation=True,
                 )
                 budget_reserved = False
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error(
@@ -849,7 +849,7 @@ async def chat_completions(
                     shield_cancellation=True,
                 )
                 quota_reserved = False  # pragma: no cover
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error(
@@ -1151,7 +1151,7 @@ async def chat_completions(
                         shield_cancellation=True,
                     )
                     quota_reserved = False
-                except asyncio.CancelledError:  # pragma: no cover
+                except asyncio.CancelledError:
                     raise
                 except Exception as exc:
                     logger.error(
@@ -1267,7 +1267,7 @@ async def chat_completions(
                     shield_cancellation=True,
                 )
                 budget_reserved = False
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error(

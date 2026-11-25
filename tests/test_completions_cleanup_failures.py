@@ -21,7 +21,12 @@ from sabiroute.freepool.eligibility import FreePoolPolicy
 from sabiroute.gateway import build_gateway_state
 from sabiroute.main import create_app
 from sabiroute.quotas import QuotaPolicy
-from sabiroute.security.keys import SABI_USER_ID_FIELD, ApiKeyIdentity, issue_api_key
+from sabiroute.security.keys import (
+    SABI_USER_ID_FIELD,
+    ApiKeyIdentity,
+    UsageEventValidationError,
+    issue_api_key,
+)
 
 UID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
 
@@ -242,3 +247,248 @@ def test_a_cleanup_that_cancels_itself_does_not_hang_the_request() -> None:
     # than hanging, which is the only outcome the timeout can rule out.
     assert outcome == "cancelled" or outcome.status_code >= 500
     assert store.finalize_calls <= 1
+
+
+class _FinalizeFailingStore(InMemoryApiKeyStore):
+    """A store whose durable finalize refuses with a chosen error.
+
+    The quota reservation is held behind a gate, so cancellation lands while
+    admission is inside the store and the request takes the cancelled-admission
+    path — which finalizes telemetry exactly once, after compensating.
+    """
+
+    def __init__(self, error: Exception) -> None:
+        super().__init__()
+        self.error = error
+        self.entered = threading.Event()
+        self.release_gate = threading.Event()
+
+    def check_and_reserve_quota(self, *a: Any, **k: Any) -> Any:
+        self.entered.set()
+        self.release_gate.wait(timeout=10)
+        return super().check_and_reserve_quota(*a, **k)
+
+    def finalize_usage_event(self, event: Any) -> bool:
+        raise self.error
+
+
+def _cancel_while_admission_is_inside_the_store(store: Any) -> Any:
+    """Cancel the request once the store is entered, then let it continue."""
+    state, record, payload = _state(store)
+
+    async def scenario() -> Any:
+        task = asyncio.create_task(chat_completions(payload, _request(state, record)))
+        for _ in range(400):
+            if store.entered.is_set():
+                break
+            await asyncio.sleep(0.005)
+        task.cancel()
+        for _ in range(30):
+            await asyncio.sleep(0)
+        store.release_gate.set()
+        return (await asyncio.gather(task, return_exceptions=True))[0]
+
+    return asyncio.run(scenario())
+
+
+def test_a_rejected_finalize_on_the_cancelled_path_answers_503(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # The cancelled-request path finalizes telemetry too, so it meets the same
+    # store refusals as the normal one — and must answer rather than escape.
+    caplog.set_level(logging.ERROR)
+    result = _cancel_while_admission_is_inside_the_store(
+        _FinalizeFailingStore(UsageEventValidationError("missing final_status"))
+    )
+
+    assert result.status_code == 503
+    assert "usage_store_unavailable" in result.body.decode()
+    assert "rejected at finalization" in caplog.text
+
+
+def test_a_finalize_outage_on_the_cancelled_path_answers_503(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.ERROR)
+    result = _cancel_while_admission_is_inside_the_store(
+        _FinalizeFailingStore(RuntimeError("telemetry store down"))
+    )
+
+    assert result.status_code == 503
+    # The store's message is not echoed back: only the typed category is.
+    assert "telemetry store down" not in result.body.decode()
+    assert "finalization failed" in caplog.text
+
+
+class _SelfCancellingReleaseStore(_RefusingStore):
+    """A store whose release worker ends *itself* cancelled."""
+
+    def release_quota(self, *a: Any, **k: Any) -> Any:
+        raise asyncio.CancelledError()
+
+
+def test_a_self_cancelling_release_does_not_hang_the_cancelled_request() -> None:
+    # Same shape as the shield-loop bug one layer down: awaiting a release whose
+    # worker cancelled itself re-raises on every attempt, so the compensation
+    # step must let that cancellation through instead of retrying it.
+    result = _cancel_while_admission_is_inside_the_store(
+        _SelfCancellingReleaseStore(block_reserve=True)
+    )
+
+    assert isinstance(result, asyncio.CancelledError)
+
+
+class _BudgetGatedStore(_RefusingStore):
+    """Gates budget reservation; both releases end themselves cancelled."""
+
+    def __init__(self) -> None:
+        super().__init__(block_reserve=False)
+        self.budget_entered = threading.Event()
+        self.budget_gate = threading.Event()
+        # Reuse the shared harness gate on the budget step.
+        self.entered = self.budget_entered
+        self.release_gate = self.budget_gate
+
+    def reserve_budget(self, *a: Any, **k: Any) -> Any:
+        self.budget_entered.set()
+        self.budget_gate.wait(timeout=10)
+        return super().reserve_budget(*a, **k)
+
+    def release_budget(self, *a: Any, **k: Any) -> Any:
+        raise asyncio.CancelledError()
+
+
+def test_a_self_cancelling_budget_release_does_not_hang_the_cancelled_request() -> None:
+    # The budget gate holds the same shape as the quota one, one layer out:
+    # cancellation lands while the reservation is inside the store, and the
+    # compensation that follows must survive a release that cancels itself.
+    from sabiroute.security.keys import ApiKeyBudget
+
+    store = _BudgetGatedStore()
+    state, record, payload = _state(store)
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+
+    async def scenario() -> Any:
+        task = asyncio.create_task(chat_completions(payload, _request(state, record)))
+        for _ in range(400):
+            if store.budget_entered.is_set():
+                break
+            await asyncio.sleep(0.005)
+        task.cancel()
+        for _ in range(30):
+            await asyncio.sleep(0)
+        store.release_gate.set()
+        return (await asyncio.gather(task, return_exceptions=True))[0]
+
+    result = asyncio.run(scenario())
+
+    assert store.budget_entered.is_set()
+    assert isinstance(result, asyncio.CancelledError)
+
+
+class _SnapshotRefusingStore(_RefusingStore):
+    """A store that refuses the feature snapshot and both releases."""
+
+    def __init__(self) -> None:
+        super().__init__(block_reserve=False)
+        self.append_pre_routing_feature_snapshot = (  # type: ignore[assignment]
+            lambda *_a, **_k: False
+        )
+
+    def release_budget(self, *a: Any, **k: Any) -> Any:
+        raise RuntimeError("budget release refused")
+
+
+def test_a_snapshot_failure_compensates_through_refused_releases(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from sabiroute.security.keys import ApiKeyBudget
+
+    caplog.set_level(logging.ERROR)
+    store = _SnapshotRefusingStore()
+    state, record, payload = _state(store)
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert response.status_code == 503
+    messages = [entry.message for entry in caplog.records]
+    assert any("Budget reservation release failed" in message for message in messages)
+    assert any("Quota reservation release failed" in message for message in messages)
+
+
+class _SnapshotReleaseMode(_RefusingStore):
+    """Snapshot fails; releases behave as the mode names."""
+
+    def __init__(self, mode: str) -> None:
+        super().__init__(block_reserve=False)
+        self.mode = mode
+        self.append_pre_routing_feature_snapshot = (  # type: ignore[assignment]
+            lambda *_a, **_k: False
+        )
+
+    def release_budget(self, *a: Any, **k: Any) -> Any:
+        if self.mode == "budget_cancels":
+            raise asyncio.CancelledError()
+        return InMemoryApiKeyStore.release_budget(self, *a, **k)
+
+    def release_quota(self, *a: Any, **k: Any) -> Any:
+        # Base keeps refusing releases; these modes control the outcome so the
+        # success and self-cancellation branches are reachable too.
+        if self.mode == "quota_cancels":
+            raise asyncio.CancelledError()
+        return InMemoryApiKeyStore.release_quota(self, *a, **k)
+
+
+def test_a_successful_snapshot_compensation_releases_both_reservations() -> None:
+    # The refusal cases above leave the release-success assignment unproven;
+    # this one lets both releases land so the flags are what clear.
+    from sabiroute.security.keys import ApiKeyBudget
+
+    store = _SnapshotReleaseMode("releases_succeed")
+    state, record, payload = _state(store)
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+
+    assert response.status_code == 503
+
+
+def test_a_self_cancelling_budget_release_on_the_snapshot_path_is_raised() -> None:
+    from sabiroute.security.keys import ApiKeyBudget
+
+    store = _SnapshotReleaseMode("budget_cancels")
+    state, record, payload = _state(store)
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+
+    async def scenario() -> Any:
+        return (
+            await asyncio.gather(
+                chat_completions(payload, _request(state, record)), return_exceptions=True
+            )
+        )[0]
+
+    result = asyncio.run(scenario())
+
+    # The worker cancelled itself, so the cancellation surfaces rather than
+    # being swallowed into a 503 the store never agreed to.
+    assert isinstance(result, BaseException)
+
+
+def test_a_self_cancelling_quota_release_on_the_snapshot_path_is_raised() -> None:
+    from sabiroute.security.keys import ApiKeyBudget
+
+    store = _SnapshotReleaseMode("quota_cancels")
+    state, record, payload = _state(store)
+    store.set_budget(record.key_id, ApiKeyBudget(daily_tokens=100_000))
+
+    async def scenario() -> Any:
+        return (
+            await asyncio.gather(
+                chat_completions(payload, _request(state, record)), return_exceptions=True
+            )
+        )[0]
+
+    result = asyncio.run(scenario())
+
+    assert isinstance(result, BaseException)
