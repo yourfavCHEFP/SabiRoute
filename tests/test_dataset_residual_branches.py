@@ -203,7 +203,11 @@ def test_the_audit_skips_a_feature_record_that_is_not_a_mapping() -> None:
     )
 
     assert isinstance(report, dict)
-    assert "selection_bias" in report
+    # The event itself is still accounted for...
+    assert report["logical_requests"] == 1
+    assert report["stored_feature_schema_versions"] == {"<missing>": 1}
+    # ...but the non-mapping feature contributes no observation of its own.
+    assert report["observations_by_deployment"] == {}
 
 
 def test_usage_reads_rewrite_plain_postgres_urls(
