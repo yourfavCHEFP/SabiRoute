@@ -63,13 +63,15 @@ class _SlowStore(InMemoryApiKeyStore):
 
     def release_quota(self, *a: Any, **k: Any) -> Any:
         self._delay()
+        result = super().release_quota(*a, **k)
         self.quota_cleanups += 1
-        return super().release_quota(*a, **k)
+        return result
 
     def settle_quota(self, *a: Any, **k: Any) -> Any:
         self._delay()
+        result = super().settle_quota(*a, **k)
         self.quota_cleanups += 1
-        return super().settle_quota(*a, **k)
+        return result
 
     def reserve_budget(self, *a: Any, **k: Any) -> Any:
         self._delay()
@@ -80,13 +82,15 @@ class _SlowStore(InMemoryApiKeyStore):
 
     def release_budget(self, *a: Any, **k: Any) -> Any:
         self._delay()
+        result = super().release_budget(*a, **k)
         self.budget_cleanups += 1
-        return super().release_budget(*a, **k)
+        return result
 
     def reconcile_budget(self, *a: Any, **k: Any) -> Any:
         self._delay()
+        result = super().reconcile_budget(*a, **k)
         self.budget_cleanups += 1
-        return super().reconcile_budget(*a, **k)
+        return result
 
     def get_shared_inference(self) -> Any:
         self._delay()

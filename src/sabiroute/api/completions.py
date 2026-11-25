@@ -1466,7 +1466,7 @@ async def chat_completions(
         if budget_reserved and budget is not None:
             if budget.daily_cost_usd is not None or budget.monthly_cost_usd is not None:
                 spent_cost = _actual_cost(state, cost_usage_parts, False)
-                if spent_cost is None and cost_usage_parts:  # pragma: no cover
+                if spent_cost is None and cost_usage_parts:
                     break
                 if estimated_cost is None:  # pragma: no cover
                     break
@@ -1487,7 +1487,7 @@ async def chat_completions(
                         )
                     )
                     attempt_max_tokens = min(attempt_max_tokens, cost_output_cap)
-            if attempt_max_tokens < 1:  # pragma: no cover
+            if attempt_max_tokens < 1:
                 break
 
         try:

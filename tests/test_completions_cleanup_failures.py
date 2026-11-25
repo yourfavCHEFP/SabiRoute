@@ -8,9 +8,11 @@ escaping, and assert the request still answers with its typed envelope.
 from __future__ import annotations
 
 import asyncio
+import logging
 import threading
 from typing import Any
 
+import pytest
 from conftest import InMemoryApiKeyStore, StubLiteLLMClient, make_config
 from starlette.requests import Request
 
@@ -89,9 +91,12 @@ def _state(store: InMemoryApiKeyStore) -> tuple[Any, Any, ChatCompletionRequest]
     return state, record, payload
 
 
-def test_a_refused_quota_release_on_the_cancellation_path_is_recorded() -> None:
+def test_a_refused_quota_release_on_the_cancellation_path_is_recorded(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     store = _RefusingStore(block_reserve=True)
     state, record, payload = _state(store)
+    caplog.set_level(logging.ERROR)
 
     async def scenario() -> Any:
         task = asyncio.create_task(chat_completions(payload, _request(state, record)))
@@ -105,7 +110,20 @@ def test_a_refused_quota_release_on_the_cancellation_path_is_recorded() -> None:
         store.release_gate.set()
         return (await asyncio.gather(task, return_exceptions=True))[0]
 
-    asyncio.run(scenario())
+    result = asyncio.run(scenario())
+
+    # The reservation really was reached, so the release below is the one the
+    # refusal interrupts rather than a guard that short-circuited earlier.
+    assert store.entered.is_set()
+    # Cancellation before the attempt answers with the typed envelope rather
+    # than propagating the cancellation to the caller.
+    assert result.status_code == 499
+    # The refused release is recorded instead of vanishing silently, and it
+    # does not replace the response the caller was owed.
+    assert any(
+        "Quota reservation release failed after cancellation" in entry.message
+        for entry in caplog.records
+    )
 
 
 def test_a_refused_quota_release_on_the_snapshot_failure_path_is_recorded() -> None:

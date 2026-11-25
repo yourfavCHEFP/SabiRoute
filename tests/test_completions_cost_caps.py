@@ -115,10 +115,54 @@ def _run(config: Any, client: Any, budget: ApiKeyBudget) -> tuple[Any, Any]:
     return response, client
 
 
+def _run_fleet(
+    config: Any,
+    client: Any,
+    budget: ApiKeyBudget,
+    *,
+    max_tokens: int = 16,
+) -> tuple[Any, Any]:
+    """Run a request against a route that genuinely has a second candidate.
+
+    A request naming a single alias resolves to ``[alias]``, so its retry loop
+    can never reach the per-attempt cost block: a second attempt would have no
+    deployment left to choose. Registering a two-deployment route is what gives
+    the retry guards under test something to refuse.
+    """
+    from sabiroute.routing.policies import RoutingPolicy
+
+    store = InMemoryApiKeyStore()
+    state = build_gateway_state(config=config, client=client, key_store=store)
+    state.policies.register(
+        RoutingPolicy(
+            name="fleet",
+            deployments=["primary", "secondary"],
+            strategy="priority",
+            max_attempts=2,
+        )
+    )
+    record, _secret = issue_api_key(store, project_id="proj-1", name="key")
+    store.set_budget(record.key_id, budget)
+    payload = ChatCompletionRequest.model_validate(
+        {
+            "model": "fleet",
+            "messages": [{"role": "user", "content": "hello"}],
+            "max_tokens": max_tokens,
+        }
+    )
+    response = asyncio.run(chat_completions(payload, _request(state, record)))
+    return response, client
+
+
 def test_a_retry_with_unknown_spend_stops() -> None:
+    # The failed attempt reports only a total, so the loop holds usage it
+    # cannot convert into money. ``provider_usage_unknown`` stays false — the
+    # total is known — so the token gate lets the retry through and the cost
+    # block is the thing that stops it. A second candidate is still available
+    # and healthy, so only that guard can account for a single call.
     client = _Client(usage={"total_tokens": 5})
 
-    response, client = _run(
+    response, client = _run_fleet(
         _priced_config(),
         client,
         ApiKeyBudget(daily_cost_usd=Decimal("100")),
@@ -179,15 +223,21 @@ def test_an_input_cost_that_exhausts_the_budget_stops() -> None:
 
 
 def test_a_cap_without_room_for_one_output_token_stops() -> None:
-    # The first attempt fails after reporting 15 output tokens. Its cost is
-    # just under the estimate, leaving one dollar of headroom at a two-dollar
-    # per-token price: the computed cap floors to zero.
-    client = _Client(usage={"prompt_tokens": 1, "completion_tokens": 15})
+    # The first attempt fails after reporting 1 prompt and 62 completion
+    # tokens against a 64-token cap. Spend is (1*1.5 + 62*1) per million and
+    # the estimate reserved (64 - 62) more output tokens than were used, so the
+    # remaining money still covers the same prompt but floors to zero output
+    # tokens at this candidate's one-dollar price. The token gate passes, so
+    # only the cap check can account for a single call.
+    client = _Client(
+        usage={"prompt_tokens": 1, "completion_tokens": 62, "total_tokens": 63}
+    )
 
-    response, client = _run(
-        _priced_config(input_price="1", output_price="1000000"),
+    response, client = _run_fleet(
+        _priced_config(input_price="1.5", output_price="1"),
         client,
         ApiKeyBudget(daily_cost_usd=Decimal("100")),
+        max_tokens=64,
     )
 
     assert response.status_code == 502
@@ -200,7 +250,7 @@ def test_a_retry_with_unknown_spend_stops_on_a_combined_budget() -> None:
     # The cost block then finds spend it cannot price and stops the retry.
     client = _Client(usage={"total_tokens": 1})
 
-    response, client = _run(
+    response, client = _run_fleet(
         _priced_config(input_price="1", output_price="1"),
         client,
         ApiKeyBudget(daily_tokens=1000, daily_cost_usd=Decimal("100")),
