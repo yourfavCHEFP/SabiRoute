@@ -603,7 +603,7 @@ async def chat_completions(
                         actual_cost,
                         shield_cancellation=True,
                     )
-            except asyncio.CancelledError:  # pragma: no cover
+            except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.error(
@@ -1474,6 +1474,11 @@ async def chat_completions(
                 spent_cost = _actual_cost(state, cost_usage_parts, False)
                 if spent_cost is None and cost_usage_parts:
                     break
+                # Unreachable by construction: ``estimated_cost`` is computed
+                # once above and never reassigned, and a cost budget with
+                # unpriceable candidates already answered 503 before the loop
+                # was entered. Kept as the floor the arithmetic below needs,
+                # not as a live branch.
                 if estimated_cost is None:  # pragma: no cover
                     break
                 remaining_cost = estimated_cost - (spent_cost or Decimal(0))
@@ -1688,11 +1693,11 @@ async def chat_completions(
                     # The request is already being finalized as cancelled;
                     # cleanup cancellation must not bypass its telemetry.
                     pass
-                except Exception:  # pragma: no cover
+                except Exception:
                     pass
             elapsed_ms = (time.perf_counter() - started) * 1000
             if _deadline_expired(request):
-                if budget_reserved:  # pragma: no cover
+                if budget_reserved:
                     provider_usage_unknown = True
                 state.errors.record(
                     "deadline_exceeded",

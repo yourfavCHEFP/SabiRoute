@@ -7,8 +7,8 @@ Roadmap phase status is unchanged. This document records evidence, not a promoti
 
 | gate | command | result |
 |---|---|---|
-| tests | `uv run pytest -q` | 1107 passed, 9 skipped |
-| coverage | `uv run pytest -q --cov=sabiroute` | 4599 statements, 0 missed, 100% |
+| tests | `uv run pytest -q` | 1108 passed, 9 skipped |
+| coverage | `uv run pytest -q --cov=sabiroute` | 4605 statements, 0 missed, 100% |
 | lint | `uv run ruff check src tests scripts config` | clean |
 | types | `uv run mypy src` | clean, 49 source files |
 | whitespace | `git diff --check` | clean |
@@ -17,17 +17,20 @@ The nine skips are environment-gated on `SABIROUTE_TEST_REDIS_URL` /
 `SABIROUTE_TEST_PG_URL`; none is a contract skip.
 
 An earlier revision of this document recorded "1123 passed". That figure did not
-reproduce: a plain `uv run pytest -q` collects 1116 tests, of which 1107 pass and
+reproduce: a plain `uv run pytest -q` collects 1117 tests, of which 1108 pass and
 9 skip. `scripts/test_models.py` and `scripts/test_providers.py` hold 3 further
-tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1110,
+tests that `testpaths = ["tests"]` excludes, so even counting them reaches 1111,
 not 1123. The recorded number is corrected here rather than explained away.
 
 ## What the 100% does and does not mean
 
 Coverage reports 100%, but the figure is not produced by execution alone.
-58 statements in `api/completions.py` carry `# pragma: no cover`. Of those, 42
-are branches this suite does not reach and 16 are covered statements inside the
-same blocks that block-level exclusion also removed.
+52 statements in `api/completions.py` carry `# pragma: no cover`. Of those, 40
+are branches this suite does not reach and 12 are covered statements inside the
+same blocks that block-level exclusion also removed. Both numbers are measured
+rather than argued: running the suite against a coverage config with
+`exclude_lines` emptied reports 800 statements in the file and names the 40
+unexecuted lines.
 
 This coverage figure is a measurement, not a claim about evidence quality. An
 excluded branch that later becomes reachable will not appear in any coverage
@@ -46,18 +49,34 @@ report. The excluded regions are:
   it cancels the *caller*, never the worker. `test_a_cleanup_that_cancels_itself_does_not_hang_the_request`
   (`tests/test_completions_cleanup_failures.py`) drives that path under a
   two-second deadline, and it hangs until the deadline is reached when the
-  guard is removed.
-- the `estimated_cost is None` branch inside the retry loop, which the pricing
-  pre-check answers with a 503 before the loop is entered.
-- the stream-cleanup and deadline-with-reservation branches.
+  guard is removed. The same test reaches the re-raise in `finish`'s budget
+  cleanup, which is therefore no longer excluded either.
+- the `estimated_cost is None` branch inside the retry loop. This one is not
+  merely unreached — it cannot run. `estimated_cost` is computed once, before
+  admission, and never reassigned, and a cost budget over candidates without
+  pricing already answers 503 there, so no input reaches the branch. It is kept
+  as the floor the cost arithmetic below it requires; the reason is recorded at
+  the site so a later reader does not mistake it for an unproven path.
 
-Two branches that were previously excluded here are now exercised by real tests
+Four branches that were previously excluded here are now exercised by real tests
 and no longer carry a pragma: a retry whose spend cannot be priced from the
 provider's usage report, and a retry whose remaining budget floors to zero
 output tokens. Both are reachable only on a route with a second candidate — a
 single-alias request has no second attempt to refuse — so
 `tests/test_completions_cost_caps.py` drives them through a registered
 two-deployment route and asserts that exactly one upstream call happened.
+
+The other two are the cancelled-attempt handlers reached only when cancellation
+lands *inside* an attempt, holding an open stream: the close that fails while
+the request is being finalized (it must not replace the recorded outcome) and
+the reserved budget that becomes unknown usage once its deadline passed.
+`test_a_cancelled_attempt_past_its_deadline_closes_the_stream_and_holds_the_budget`
+(`tests/test_completions_freepool_and_stream.py`) cancels after the published
+deadline elapses and asserts the deadline is still what telemetry records. A
+cancellation that lands in the response generator instead is a different,
+already-covered handler — it records "during streaming" — which is why the
+sweep in the cancellation matrix could not reach these by cancelling offsets
+alone.
 
 ## What is tested rather than excluded
 
