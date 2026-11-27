@@ -117,7 +117,9 @@ def main() -> None:
         drivername="postgresql+psycopg",
         host=args.postgres_host,
     )
-    database_url_for_process = str(database)
+    # ``str(URL)`` renders the password as ``***``, so a process env built from it can never
+    # authenticate. The application under test must receive the real credential.
+    database_url_for_process = database.render_as_string(hide_password=False)
     password = None if args.redis_no_auth else os.environ.get("REDIS_PASSWORD") or None
     escaped_password = quote(password, safe="") if password else None
     auth = f":{escaped_password}@" if escaped_password else ""

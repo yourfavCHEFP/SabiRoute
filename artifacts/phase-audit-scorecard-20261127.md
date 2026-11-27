@@ -34,15 +34,15 @@ live evidence.
 | 07 | Complete | `monitoring/{metrics,latency,errors,usage}.py` wired into gateway state; `/admin/{metrics,latency,errors,usage}`; success path live-verified 2026-11-23 (`artifacts/sprint-4/PHASE07-LIVE-TELEMETRY-2026-11-23.md`); **failure path live-verified 2026-11-27** (`artifacts/phase07-metrics-under-failure-20261127.md`) | counters are in-process **by design** and reset on restart — already documented at `docs/observability.md:80-83`, which also states durable per-request accounting is a separate system; `signals_store.py` persists health/latency signals, not these counters | maintain; no code change warranted |
 | 08 | Complete | `security/store.py` `PostgresApiKeyStore`; `docs/phase13-data-foundation.md` documents the live run | **PostgreSQL integration tests skipped locally** (`SABIROUTE_TEST_PG_URL` unset); never validated on managed PG | set `SABIROUTE_TEST_PG_URL` and run the gated PG tests |
 | 09 | Complete | `security/{auth,keys}.py`; client/admin boundary; `tests/test_api_key_validation.py`, `test_auth_dependencies.py`, `test_admin.py` | key issuance/revocation rests on the same documentary run as 08 | re-issue and revoke a key against a live stack |
-| 10 | **Implemented** | `security/{budgets,rate_limit}.py`; `tests/test_phase10.py`, `test_rate_limit*.py`, `scripts/verify_phase10.py` | **all 4 Redis rate-limit tests skipped locally**; rejection paths never exercised live; token estimator is text-only | run with `SABIROUTE_TEST_REDIS_URL` set, then force a real 429 |
+| 10 | Complete | `security/{budgets,rate_limit}.py`; `tests/test_phase10.py`, `test_rate_limit*.py`, `scripts/verify_phase10.py`; **live rejection paths PASS 2026-11-27** (`artifacts/phase10-live-budgets-20261127.md`) — 429 rate limit, daily, monthly, `budget_exceeded`, against real Redis + real PostgreSQL | provider call is stubbed in that harness (`LocalCompletionStub`), so this is not real-provider evidence; token estimator remains text-only | fix the text-only estimator, or record it as an accepted limit |
 | 11 | **Implemented** | `capabilities.py`; unknown never counts as support; `tests/test_capabilities*.py` | capability evidence exists for only 3/14 deployments — blocked on Phase 02 | collect capability evidence for the next deployment |
 | 12 | **Implemented** | `routing/scoring.py` (`deterministic-v1`); `scripts/benchmark_routing.py` | benchmark is **synthetic only**; no warm live-routing telemetry | run the harness with real provider outcomes |
 | 13 | In progress | 13.1 `intelligence/dataset.py` = **1560 lines, implemented**; `training_authorized: false` enforced in code (3 sites); `docs/phase13-data-foundation.md` | **13.2 aggregate closure pending**; 13.3 training **blocked**; `intelligence/{classifier,scorer,selector}.py` and `routing/intelligent.py` are **0-line stubs**; live-path evidence is success-only | stay blocked — resolve 13.2 aggregate integrity and chronological split first; do not train |
 | 14 | **Implemented** | `scripts/benchmark_routing.py` — reproducible synthetic `priority` vs `measured` comparison, imports real `Router`/`HealthRegistry`/`ScoringSettings` | synthetic outcomes only; no real-provider benchmark | promote to a provider-backed benchmark run |
-| 15 | Planned | `api/admin.py` is an admin **API**, not a dashboard; `web/` is the SabiChat client, not admin UI — no dashboard exists | whole dashboard | build it after the operator loop it serves is stable |
+| 15 | Planned | `api/dashboard.py` (56 lines) provides **static-mount plumbing only** — `dashboard_dir`, `mount_dashboard` — covered by `tests/test_phase15_dashboard_{static,serving}.py` (passing, verified 2026-11-27); `api/admin.py` is an admin **API**, `web/` is the SabiChat client — **no dashboard UI exists** | the dashboard UI itself; only its serving mechanism is built | build the UI now that 07's admin endpoints are live-verified |
 | 16 | Planned | no Tailscale or remote-access code in `src/`, `config/`, or `.github/` (grep clean) | whole phase | defer |
 | 17 | In progress | `security/redaction.py` (64 lines), `api/body_limit.py` (121 lines), `api/deadline.py`, `security/auth.py` operate throughout | `security/permissions.py` is a **0-line stub**; no formal hardening review | finish `permissions.py` and run a security pass |
-| 18 | **Implemented** | `docs/phase18-testing-evidence.md` records 1123 passed / 100% coverage / ruff+mypy clean — **re-verified this audit: 1123 passed, 9 skipped** | 9 environment-gated skips; no regression baseline pinned in CI | set Redis+PG in CI so the skips execute |
+| 18 | Complete | `docs/phase18-testing-evidence.md` (figures now stale); **measured 2026-11-27** (`artifacts/phase18-regression-run-20261127.md`): plain **1474 passed / 15 skipped**, with PG+Redis gates open **1488 passed / 1 skipped**, both rc=0 | the last skip is a **contract await** (`test_r6_registration_digest_conformance.py:570`), not an environment gate; regression baseline still not pinned in CI | pin the 1488/1 baseline in CI — that is Phase 19 work |
 | 19 | Implemented (definition + local execution) | `.github/workflows/ci.yml`: locked `uv sync --frozen`, pytest w/ Redis service, ruff, mypy, `node --check`, container build; `tests/test_deployment.py` | **no hosted Actions run verified**; `gh` not authenticated locally so runs could not be listed | push and confirm one green hosted run |
 | 20 | **Implemented** | `Dockerfile` (63), `docker-compose.yml` (278), `src/sabiroute/migrate.py` (66), `docs/deployment.md` (173); one-shot migration gated before API start | no staging deployment; no managed-PostgreSQL validation; Phase 20 review still gates public exposure | run the Compose stack end-to-end, then schedule the Phase 20 review |
 
@@ -50,18 +50,27 @@ live evidence.
 
 ## Summary
 
-1. **Complete: 10 phases** — 00, 01, 03, 04, 05, 06, 07, 08, 09, and no others. Of these, 01 and
-   04 rest on a documented live path that is **success-only and not currently running**; 06 was
-   re-verified live on 2026-11-27, including the failure and recovery transitions; 05 was
-   re-verified live on 2026-11-27 against real providers, under a real upstream failure; 07 was
-   live-verified on both the success path (2026-11-23) and the failure path (2026-11-27).
-2. **Implemented but not live: 5 phases** — 10, 11, 12, 14, 18 (plus 20 as a
+1. **Complete: 12 phases** — 00, 01, 03, 04, 05, 06, 07, 08, 09, 10, 18, and no others. Of
+   these, 01 and 04 rest on a documented live path that is **success-only and not currently
+   running**; 06 was re-verified live on 2026-11-27, including the failure and recovery
+   transitions; 05 was re-verified live on 2026-11-27 against real providers, under a real
+   upstream failure; 07 was live-verified on both the success path (2026-11-23) and the failure
+   path (2026-11-27); 10 was live-verified on 2026-11-27 against real Redis and PostgreSQL with
+   the provider call stubbed; 18 was re-measured 2026-11-27 at **1488 passed / 1 skipped** with
+   integration gates open.
+2. **Implemented but not live: 3 phases** — 11, 12, 14 (plus 20 as a
    deployment foundation). All have code and tests; none has exercised its failure path
-   against real providers. Phases 05, 06 and 07 left this group on 2026-11-27.
+   against real providers. Phases 05, 06, 07, 10 and 18 left this group on 2026-11-27.
 3. **Highest-leverage next phase by the constitution's engineering order: Phase 02**
-   (provider expansion). It is the earliest non-Complete phase, and it is the direct
-   upstream blocker for 11 (capability evidence), 12 (real telemetry) and 13 (dataset
-   coverage). Finishing 02 converts three "Implemented" phases into promotable ones at once.
+   (provider expansion). It remains the direct upstream blocker for 11 (capability evidence),
+   12 (real telemetry) and 13 (dataset coverage); finishing it would convert three
+   "Implemented" phases into promotable ones at once.
+
+   **Excluded by owner instruction on 2026-11-27.** Phase 02 is not to be worked. The earliest
+   eligible phase is therefore **11**, whose gap is capability evidence for 11 of 14
+   deployments — the same provider-coverage problem Phase 02 names, approached from the
+   catalogue side rather than the credential side. 12 and 14 hold synthetic-only evidence;
+   18 is implemented and needs a live regression run.
 
 ---
 
@@ -74,7 +83,7 @@ overstates — the README errs conservative, which is the right direction for th
 |---:|---|---|---|
 | 14 | `Planned` | `scripts/benchmark_routing.py` — working synthetic harness importing the real router | README understates; should read *Implemented (synthetic)* |
 | 17 | `Planned` | `security/redaction.py`, `api/body_limit.py`, `api/deadline.py` all active on the request path | README understates; should read *In progress* |
-| 18 | `Planned` | `docs/phase18-testing-evidence.md` + 1123 passing tests + 100% coverage claim, re-verified today | README materially understates; should read *Implemented* |
+| 18 | `Planned` | `docs/phase18-testing-evidence.md` + **1488 passing / 1 skipped** with integration gates open (2026-11-27), plus `security/redaction.py`, `api/body_limit.py`, `api/deadline.py` active on the request path | README materially understates; should read *Complete* |
 | 20 | `Planned` | `Dockerfile`, 278-line `docker-compose.yml`, `migrate.py`, `docs/deployment.md`, `tests/test_deployment.py` | README understates; should read *Implemented (deployment foundation)* — the limitations section already says this, contradicting the table |
 
 Additional correction: an incoming handoff asserted "full suite 1474 pass". The measured
