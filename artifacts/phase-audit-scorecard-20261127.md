@@ -34,7 +34,7 @@ live evidence.
 | 07 | Complete | `monitoring/{metrics,latency,errors,usage}.py` wired into gateway state; `/admin/{metrics,latency,errors,usage}`; success path live-verified 2026-11-23 (`artifacts/sprint-4/PHASE07-LIVE-TELEMETRY-2026-11-23.md`); **failure path live-verified 2026-11-27** (`artifacts/phase07-metrics-under-failure-20261127.md`) | counters are in-process **by design** and reset on restart — already documented at `docs/observability.md:80-83`, which also states durable per-request accounting is a separate system; `signals_store.py` persists health/latency signals, not these counters | maintain; no code change warranted |
 | 08 | Complete | `security/store.py` `PostgresApiKeyStore`; `docs/phase13-data-foundation.md` documents the live run | **PostgreSQL integration tests skipped locally** (`SABIROUTE_TEST_PG_URL` unset); never validated on managed PG | set `SABIROUTE_TEST_PG_URL` and run the gated PG tests |
 | 09 | Complete | `security/{auth,keys}.py`; client/admin boundary; `tests/test_api_key_validation.py`, `test_auth_dependencies.py`, `test_admin.py` | key issuance/revocation rests on the same documentary run as 08 | re-issue and revoke a key against a live stack |
-| 10 | **Implemented** | `security/{budgets,rate_limit}.py`; `tests/test_phase10.py`, `test_rate_limit*.py`, `scripts/verify_phase10.py` | **all 4 Redis rate-limit tests skipped locally**; rejection paths never exercised live; token estimator is text-only | run with `SABIROUTE_TEST_REDIS_URL` set, then force a real 429 |
+| 10 | Complete | `security/{budgets,rate_limit}.py`; `tests/test_phase10.py`, `test_rate_limit*.py`, `scripts/verify_phase10.py`; **live rejection paths PASS 2026-11-27** (`artifacts/phase10-live-budgets-20261127.md`) — 429 rate limit, daily, monthly, `budget_exceeded`, against real Redis + real PostgreSQL | provider call is stubbed in that harness (`LocalCompletionStub`), so this is not real-provider evidence; token estimator remains text-only | fix the text-only estimator, or record it as an accepted limit |
 | 11 | **Implemented** | `capabilities.py`; unknown never counts as support; `tests/test_capabilities*.py` | capability evidence exists for only 3/14 deployments — blocked on Phase 02 | collect capability evidence for the next deployment |
 | 12 | **Implemented** | `routing/scoring.py` (`deterministic-v1`); `scripts/benchmark_routing.py` | benchmark is **synthetic only**; no warm live-routing telemetry | run the harness with real provider outcomes |
 | 13 | In progress | 13.1 `intelligence/dataset.py` = **1560 lines, implemented**; `training_authorized: false` enforced in code (3 sites); `docs/phase13-data-foundation.md` | **13.2 aggregate closure pending**; 13.3 training **blocked**; `intelligence/{classifier,scorer,selector}.py` and `routing/intelligent.py` are **0-line stubs**; live-path evidence is success-only | stay blocked — resolve 13.2 aggregate integrity and chronological split first; do not train |
@@ -50,18 +50,25 @@ live evidence.
 
 ## Summary
 
-1. **Complete: 10 phases** — 00, 01, 03, 04, 05, 06, 07, 08, 09, and no others. Of these, 01 and
-   04 rest on a documented live path that is **success-only and not currently running**; 06 was
-   re-verified live on 2026-11-27, including the failure and recovery transitions; 05 was
+1. **Complete: 11 phases** — 00, 01, 03, 04, 05, 06, 07, 08, 09, 10, and no others. Of these, 01
+   and 04 rest on a documented live path that is **success-only and not currently running**; 06
+   was re-verified live on 2026-11-27, including the failure and recovery transitions; 05 was
    re-verified live on 2026-11-27 against real providers, under a real upstream failure; 07 was
-   live-verified on both the success path (2026-11-23) and the failure path (2026-11-27).
-2. **Implemented but not live: 5 phases** — 10, 11, 12, 14, 18 (plus 20 as a
+   live-verified on both the success path (2026-11-23) and the failure path (2026-11-27); 10 was
+   live-verified on 2026-11-27 against real Redis and PostgreSQL, with the provider call stubbed.
+2. **Implemented but not live: 4 phases** — 11, 12, 14, 18 (plus 20 as a
    deployment foundation). All have code and tests; none has exercised its failure path
-   against real providers. Phases 05, 06 and 07 left this group on 2026-11-27.
+   against real providers. Phases 05, 06, 07 and 10 left this group on 2026-11-27.
 3. **Highest-leverage next phase by the constitution's engineering order: Phase 02**
-   (provider expansion). It is the earliest non-Complete phase, and it is the direct
-   upstream blocker for 11 (capability evidence), 12 (real telemetry) and 13 (dataset
-   coverage). Finishing 02 converts three "Implemented" phases into promotable ones at once.
+   (provider expansion). It remains the direct upstream blocker for 11 (capability evidence),
+   12 (real telemetry) and 13 (dataset coverage); finishing it would convert three
+   "Implemented" phases into promotable ones at once.
+
+   **Excluded by owner instruction on 2026-11-27.** Phase 02 is not to be worked. The earliest
+   eligible phase is therefore **11**, whose gap is capability evidence for 11 of 14
+   deployments — the same provider-coverage problem Phase 02 names, approached from the
+   catalogue side rather than the credential side. 12 and 14 hold synthetic-only evidence;
+   18 is implemented and needs a live regression run.
 
 ---
 
