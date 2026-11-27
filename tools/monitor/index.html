@@ -149,8 +149,9 @@ function render(s){
   const subj = {};
   (g.commits || []).forEach(c => subj[c.sha] = c.subject);
 
+  // Render the count in one write. Overwriting #bigCount's innerHTML deletes the
+  // nested #bigTotal node, so it must not be looked up afterwards.
   $('bigCount').innerHTML = done + '<span style="color:var(--faint);font-size:15px"> / ' + total + '</span>';
-  $('bigTotal').textContent = total;
   $('bar').style.width = Math.min(100, (done/total)*100) + '%';
   $('stageCount').textContent = done + ' / ' + total;
   $('stageState').textContent = stopped ? 'stopped' : (done >= total ? 'complete' : 'running');
