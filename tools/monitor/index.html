@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SabiRoute · Replay Monitor</title>
+<style>
+  :root{
+    --bg:#08090a; --panel:#101113; --panel2:#0d0e10; --line:#1c1e21;
+    --ink:#f3f4f6; --dim:#7c828c; --faint:#4b5158;
+    --ok:#6ee7b7; --warn:#fbbf24; --err:#f87171; --acc:#5eead4;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #bg{position:fixed; inset:0; background:url('/bg.jpg') center/cover no-repeat; opacity:.22}
+  #bg::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(120% 90% at 50% 0%,rgba(8,9,10,.55),rgba(8,9,10,.97) 70%);
+  }
+  .wrap{position:relative; z-index:1; max-width:1320px; margin:0 auto; padding:34px 34px 26px; min-height:100%}
+  header{display:flex; align-items:flex-start; gap:20px; padding-bottom:22px; border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:11px; letter-spacing:.22em; color:var(--dim); text-transform:uppercase; margin-bottom:10px}
+  h1{margin:0; font-size:34px; font-weight:600; letter-spacing:-.02em; line-height:1.1}
+  .right{margin-left:auto; text-align:right; font-size:12px; color:var(--dim); white-space:nowrap}
+  .livedot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--err); margin-right:7px; vertical-align:middle; transition:background .3s}
+  .livedot.on{background:var(--ok); box-shadow:0 0 10px rgba(110,231,183,.7)}
+  .grid{display:grid; grid-template-columns:1fr 360px; gap:22px; padding-top:22px; align-items:start}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+  .panel .hd{padding:16px 20px 14px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:12px}
+  .panel .hd h2{margin:0; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); font-weight:600}
+  .panel .hd .tail{margin-left:auto; font-size:12px; color:var(--dim); font-variant-numeric:tabular-nums}
+  .bar{height:4px; background:#16181b}
+  .bar i{display:block; height:100%; background:linear-gradient(90deg,#34d399,#22d3ee); transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .rows{padding:6px 0}
+  .row{display:grid; grid-template-columns:26px 54px 1fr auto; gap:14px; align-items:center; padding:9px 20px}
+  .row:hover{background:rgba(255,255,255,.018)}
+  .ic{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .ic.ok{background:rgba(110,231,183,.13); color:var(--ok); box-shadow:inset 0 0 0 1px rgba(110,231,183,.35)}
+  .ic.df{background:rgba(251,191,36,.13); color:var(--warn); box-shadow:inset 0 0 0 1px rgba(251,191,36,.35)}
+  .ic.pd{background:rgba(255,255,255,.04); color:var(--faint); box-shadow:inset 0 0 0 1px var(--line)}
+  .ic.er{background:rgba(248,113,113,.13); color:var(--err); box-shadow:inset 0 0 0 1px rgba(248,113,113,.35)}
+  .n{font:11.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--faint); font-variant-numeric:tabular-nums}
+  .t{min-width:0}
+  .t .s{font-size:13.5px; color:#dfe3e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .t .d{font-size:11.5px; color:var(--dim); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .badge{font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap}
+  .badge.ok{color:var(--ok); background:rgba(110,231,183,.10); box-shadow:inset 0 0 0 1px rgba(110,231,183,.28)}
+  .badge.df{color:var(--warn); background:rgba(251,191,36,.10); box-shadow:inset 0 0 0 1px rgba(251,191,36,.28)}
+  .badge.pd{color:var(--faint); box-shadow:inset 0 0 0 1px var(--line)}
+  .badge.er{color:var(--err); background:rgba(248,113,113,.10); box-shadow:inset 0 0 0 1px rgba(248,113,113,.28)}
+  .side{display:flex; flex-direction:column; gap:16px}
+  .card{background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:16px 18px}
+  .card h3{margin:0 0 12px; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); font-weight:600}
+  .kv{display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:13px}
+  .kv+.kv{border-top:1px solid rgba(255,255,255,.035)}
+  .kv .k{color:var(--dim)}
+  .kv .v{font-variant-numeric:tabular-nums; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px}
+  .big{font-size:30px; font-weight:600; letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums}
+  .seats{display:flex; flex-direction:column; gap:2px}
+  .seat{display:flex; align-items:center; gap:9px; padding:5px 0; font-size:12.5px}
+  .seat .nm{color:#cfd4da; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .seat .st{margin-left:auto; font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--faint)}
+  .seat .st.w{color:var(--acc)}
+  .stopline{margin-top:12px; padding:10px 12px; border-radius:9px; background:rgba(248,113,113,.08); box-shadow:inset 0 0 0 1px rgba(248,113,113,.25); font-size:12px; color:#fca5a5; word-break:break-word}
+  footer{display:flex; gap:22px; flex-wrap:wrap; color:var(--faint); font-size:11px; padding-top:26px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">SabiRoute &nbsp;·&nbsp; Replay to main</div>
+      <h1 id="title">Replay onto origin/main</h1>
+    </div>
+    <div class="right">
+      <div><span id="dot" class="livedot"></span><span id="conn">connecting</span> &nbsp;·&nbsp; <span id="clock" class="mono">—</span></div>
+      <div style="margin-top:5px" class="mono" id="headSha">—</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="hd">
+        <h2>Pipeline</h2>
+        <div class="tail"><span id="stageCount">0 / 43</span> &nbsp;·&nbsp; <span id="stageState">starting</span></div>
+      </div>
+      <div class="bar"><i id="bar" style="width:0%"></i></div>
+      <div class="rows" id="rows"></div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h3>Replay</h3>
+        <div class="big" id="bigCount">0<span style="color:var(--faint);font-size:15px"> / <span id="bigTotal">43</span></span></div>
+        <div style="margin-top:14px">
+          <div class="kv"><span class="k">Pushed to remote</span><span class="v" id="kPushed">—</span></div>
+          <div class="kv"><span class="k">Local, unpushed</span><span class="v" id="kUnpushed">—</span></div>
+          <div class="kv"><span class="k">Remote tip</span><span class="v" id="kRemote">—</span></div>
+          <div class="kv"><span class="k">main tip</span><span class="v" id="kMain">—</span></div>
+          <div class="kv"><span class="k">On main</span><span class="v" id="kOnMain">—</span></div>
+        </div>
+        <div id="stopBox"></div>
+      </div>
+
+      <div class="card">
+        <h3>Team · factory</h3>
+        <div class="seats" id="seats"></div>
+      </div>
+
+      <div class="card">
+        <h3>Ownership</h3>
+        <div class="kv"><span class="k">Replay row</span><span class="v" id="qState">—</span></div>
+        <div class="kv"><span class="k">Runner</span><span class="v">chef-p (local)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>auto-refresh 2s</span>
+    <span>generated <span id="gen" class="mono">—</span></span>
+    <span>all values read from disk</span>
+    <span id="headSubj" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52ch"></span>
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function setConn(on){
+  $('dot').className = 'livedot' + (on ? ' on' : '');
+  $('conn').textContent = on ? 'live' : 'reconnecting';
+}
+
+function render(s){
+  const g = s.git || {}, log = s.log || {}, q = s.queue || {};
+  const total = s.total || 43;
+  const entries = log.entries || [];
+  const done = entries.length;
+  const stopped = log.stopped;
+
+  const subj = {};
+  (g.commits || []).forEach(c => subj[c.sha] = c.subject);
+
+  $('bigCount').innerHTML = done + '<span style="color:var(--faint);font-size:15px"> / ' + total + '</span>';
+  $('bigTotal').textContent = total;
+  $('bar').style.width = Math.min(100, (done/total)*100) + '%';
+  $('stageCount').textContent = done + ' / ' + total;
+  $('stageState').textContent = stopped ? 'stopped' : (done >= total ? 'complete' : 'running');
+
+  $('kPushed').textContent = g.remote_tip || '—';
+  $('kUnpushed').textContent = g.unpushed == null ? '—' : g.unpushed;
+  $('kRemote').textContent = g.remote_tip || '—';
+  $('kMain').textContent = g.main_tip || '—';
+  $('kOnMain').textContent = g.on_main ? 'yes' : 'not yet';
+  $('kOnMain').style.color = g.on_main ? 'var(--ok)' : 'var(--faint)';
+
+  $('stopBox').innerHTML = stopped
+    ? '<div class="stopline"><b>STOP</b> ' + esc(stopped.what) + '</div>' : '';
+
+  // pipeline rows: replayed first, then pending
+  const byN = {};
+  entries.forEach(e => byN[e.n] = e);
+  const rows = [];
+  for (let n = 1; n <= total; n++){
+    const e = byN[n];
+    if (e){
+      const deferred = /deferred/.test(e.detail);
+      const cls = stopped && String(stopped.what).indexOf(e.sha) === 0 ? 'er' : (deferred ? 'df' : 'ok');
+      const mark = cls === 'er' ? '!' : (deferred ? '=' : '✓');
+      const label = cls === 'er' ? 'failed' : (deferred ? 'deferred' : 'done');
+      rows.push(
+        '<div class="row"><div class="ic ' + cls + '">' + mark + '</div>' +
+        '<div class="n">' + n + '/' + total + '</div>' +
+        '<div class="t"><div class="s">' + esc(subj[e.sha] || e.sha) + '</div>' +
+        '<div class="d">' + esc(e.detail) + ' · ' + esc(e.sha) + '</div></div>' +
+        '<div class="badge ' + cls + '">' + label + '</div></div>'
+      );
+    } else {
+      rows.push(
+        '<div class="row"><div class="ic pd">·</div>' +
+        '<div class="n">' + n + '/' + total + '</div>' +
+        '<div class="t"><div class="s" style="color:var(--faint)">pending</div></div>' +
+        '<div class="badge pd">waiting</div></div>'
+      );
+    }
+  }
+  $('rows').innerHTML = rows.join('');
+
+  // seats
+  const seats = (s.seats || []).map(x => {
+    const w = /working|busy/i.test(x.activity);
+    return '<div class="seat"><span class="nm">' + esc(x.session) + '</span>' +
+           '<span class="st' + (w ? ' w' : '') + '">' + esc(x.activity) + '</span></div>';
+  });
+  $('seats').innerHTML = seats.length ? seats.join('') : '<span style="color:var(--faint)">no seats reported</span>';
+
+  $('qState').textContent = q.state || '—';
+  $('headSha').textContent = g.head || '—';
+  $('headSubj').textContent = g.subject || '';
+  const t = new Date();
+  $('clock').textContent = t.toLocaleTimeString();
+  $('gen').textContent = t.toLocaleString();
+}
+
+function connect(){
+  const es = new EventSource('/events');
+  es.onopen = () => setConn(true);
+  es.onmessage = ev => { try { render(JSON.parse(ev.data)); } catch(e){} };
+  es.onerror = () => { setConn(false); es.close(); setTimeout(connect, 2000); };
+}
+connect();
+</script>
+</body>
+</html>
