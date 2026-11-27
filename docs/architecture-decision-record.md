@@ -1,244 +1,319 @@
-# SabiRoute Architecture Decision Record (ADR)
+# SabiRoute — Architecture Decision Record
 
-Authoritative architecture + roadmap consolidation. Status of every claim is
-labelled: code-inspected, unit-tested, integration-tested,
-browser-smoke-tested, live-provider-tested, CI-verified, or not yet verified.
-Nothing here is proven by this document existing — only by the cited evidence.
+**Status:** living document · **Last verified:** 2026-11-23 · **Branch of record:** `feat/sabiroute-routing-foundation`
 
-Note on placement: `docs/architecture.md` and `docs/troubleshooting.md` are
-deliberately empty phase-gated placeholders per standing repository orders.
-This record lives under its own filename so those orders stay intact.
+This is the authoritative record for the shape of the system, the decisions that fixed that
+shape, the roadmap milestones, and the gates that stand between the current tree and a
+production claim. It exists because the README links here for three things it deliberately does
+not carry itself: the architecture record, milestone status, and production gates.
 
-## 1. Thesis (unchanged)
+**Evidence convention.** `[V]` verified by command output or file read · `[R]` reported by a
+prior session or another agent, not re-derived here · `[U]` unverified. A number without a tag
+is not a number. When this document and the repository disagree, the repository wins and this
+document is wrong.
 
-**SabiRoute decides; LiteLLM executes.**
+---
 
-SabiRoute owns routing policy, eligibility, scoring, budgets, usage
-attribution, observability, and fallback policy. LiteLLM owns provider
-execution, adapters, retries at the provider layer, and streaming mechanics
-(code-inspected: `providers/litellm_client.py` posts to the proxy and never
-implements provider logic; `providers/registry.py` is metadata-only).
+## 1. What SabiRoute is
 
-Three pillars: **SabiRoute Core** (routing/policy foundation),
-**SabiRoute Developer** (local-first gateway for IDEs/CLIs/agents),
-**SabiChat** (accessible chat). **Free Pool is a governed eligibility/quota
-policy, not a model list** (integration-tested: allowlist gate + stable
-denials + attribution; catalogue mapping, quotas, and shared inference are
-not yet verified).
+SabiRoute decides **which deployment should be attempted**; LiteLLM executes the provider
+request. That division is the load-bearing decision behind everything below: SabiRoute is a
+routing and admission layer in front of an executor, not a provider client and not a proxy
+rewriter.
 
-## 2. Verified current state
+The request path implemented today `[V]`:
 
-- **Routing/fallback path** (integration-tested): `POST /v1/chat/completions`
-  → key auth → usage admission → rate limit → alias/policy resolution →
-  classification → capability → health → (Free Chat: allowlist gate) →
-  budget reservation → attempt loop (`Router.choose_deployment` per attempt)
-  → LiteLLM → `finish()` reconciliation. There is no `FallbackEngine` or
-  `routing/fallback.py` in the tree (code-inspected: zero references) — the
-  loop in `api/completions.py` is the only fallback implementation.
-- **Health: passive only** (unit-tested): `HealthRegistry` tracks
-  success/failure with a 3-failure/30s-cooldown discipline
-  (code-inspected). There is no active checker (`providers/healthcheck.py`
-  does not exist); "health" never means probed availability.
-- **Free Pool** (integration-tested, stub + sqlite): disabled-by-default
-  allowlist (`FreePoolPolicy.enabled is False`; env parsing fail-closed),
-  pre-execution gate reusing the router, five stable denial reasons, zero
-  LiteLLM calls on denial. Not yet verified: catalogue→registry mapping,
-  concurrency-safe quotas, provider-terms validation, shared inference.
-- **Usage attribution + ledger** (integration-tested, local PG 16):
-  `usage_source` in {unknown, free_pool, byok, paid}; admission always
-  `unknown`, upgraded only on gate-allow; legacy NULL reads as `unknown`.
-  Ordered additive revisions `0001-usage-source`, `0002-sabichat-backend`
-  recorded in `sabiroute_schema_versions`; re-runs are no-ops; failures
-  propagate transactionally.
-- **SabiChat backend** (integration-tested, stub + sqlite): PBKDF2 sessions
-  (digest-only, 7-day expiry, revocation), owner-scoped conversations, chat
-  via the in-process gateway path with a memory-only service key, fixed
-  public error mapping. Limits: one service key (re-minted on restart),
-  single-process rate limits, 20-message history, fixed response cap.
-- **SabiChat in-process timeout limit** (source-inspected + isolated
-  exploratory probe, not a regression test): `SabiChatService.complete()`
-  calls the gateway in-process through `httpx.ASGITransport`
-  (`api/chat.py`). Under the inspected HTTPX 0.28.1 implementation, the
-  configured `httpx.Timeout(INTERNAL_TIMEOUT_SECONDS=120.0)` is not
-  enforced on that path — no timeout wrapper exists in
-  `AsyncClient._send_single_request` or the ASGI transport
-  (`TimeoutException` is raised only by network transports). Probe: 0.3s
-  and 1.5s client timeouts against a hanging ASGI app both reached their
-  external caps with no `httpx.TimeoutException`; the fast-response
-  control succeeded and externally imposed cancellation reached the app.
-  The inner completions deadline is therefore the effective
-  request-level bound here (it bounds the response wait, not necessarily
-  worker-thread or downstream work). The `504 gateway_timeout` mapping
-  remains in code but was not demonstrated to fire for an in-process hang.
-  Version- and transport-specific; not generalized to other HTTPX
-  versions or network-based paths.
-- **SabiChat frontend** (browser-smoke-tested, manual + static tests):
-  zero-build UI at `/app/`; token memory-only; textContent-only rendering;
-  double-submit/cancel/switch guards browser-proven. No automated browser
-  suite; no mobile/a11y passes.
-- **Local PG 16 gate** (integration-tested): 19/19 on disposable PostgreSQL
-  16.15 — fresh init, round trips, idempotent re-run, pre-ledger upgrade
-  with legacy preservation, clear `OperationalError` on bad credentials,
-  `pg_dump`/restore equality. Managed PostgreSQL/TLS: not yet verified.
-- **Container + compose** (integration-tested, local): image builds
-  (2.71 GB) and smokes green (`live`/`ready`/`app` 200, non-root, healthy);
-  compose defines the API loopback-only with fail-fast password guards and
-  validates; full-stack `up` not run.
-- **CI** (code-inspected + locally executed steps): workflow defined (locked
-  install, pytest with Redis service, ruff, mypy, JS check, docker build);
-  a hosted GitHub Actions run is not yet verified.
-- **Tests**: 308 passed / 4 skipped (env-gated Redis), ruff/mypy/diff/`node
-  --check` clean — all re-run for this record (integration-tested locally).
-  Live-provider evidence remains documentary and success-only; no staging
-  evidence exists.
-- **Concurrency/ops limits** (code-inspected): the only bound is the
-  32-slot store executor; no HTTP concurrency limits; shutdown closes key
-  store, limiter, and chat store; logs carry IDs, never secrets. Single
-  node throughout — no HA claims.
+1. Receive the client request.
+2. Authenticate and authorize it (client key / admin key boundary).
+3. Apply rate-limit and budget admission checks.
+4. Classify the request and establish required capabilities.
+5. Discover candidate deployments from the route policy.
+6. Exclude candidates that fail capability, health, or policy requirements.
+7. Select among eligible candidates (configured priority or measured scoring).
+8. Execute through LiteLLM.
+9. On retryable failure, fall back per the retry and eligibility rules.
+10. Normalize the response and persist operational telemetry.
 
-## 3. Decisions (accepted) vs open questions
+Free Chat (SabiChat) requests insert an explicit-allowlist gate between steps 6 and 7: only
+mapped deployments stay eligible, fallback cannot leave the allowlist, and denials happen
+**before** execution with stable reasons.
 
-Accepted: one routing engine (no parallel router, no BYOK execution
-bypass); budgets before execution with reconciliation; Free Pool
-disabled-by-default with fail-closed semantics; additive-only migrations
-with an explicit ledger instead of a framework; stdlib PBKDF2 over a new
-dependency; bearer sessions over cookies (no CSRF surface); zero-build UI
-over a frontend toolchain; env-pinned paths in containers over
-repo-relative resolution.
+### Package layout `[V]`
 
-Open: per-user gateway keys vs single service key; session persistence
-across reloads; catalogue data model and its mapping to deployments;
-quota-accounting design (request counters vs token aggregation); Redis
-managed vs VPS with caps; image slimming strategy; which metrics/alerts
-define staging readiness.
+49 files under `src/sabiroute/`:
 
-## 4. Roadmap (planning milestones, not completions)
+| Package | Responsibility |
+|---|---|
+| `api/` | HTTP surface — `completions.py` (the request path and retry/fallback loop), `chat.py`, `admin.py`, `health.py`, `models.py`, `body_limit.py`, `deadline.py`, `shutdown.py` |
+| `routing/` | `router.py` (selection), `policies.py` (`PolicyRegistry`), scoring |
+| `providers/` | `base.py`, `litellm_client.py`, `registry.py` — **no** `healthcheck.py` (see ADR-002) |
+| `security/` | API keys, budgets, quotas, accounting lineages, `store.py` schema ledger |
+| `freepool/` | Free-pool eligibility and catalogue |
+| `chat/` | SabiChat backend — sessions, conversations, messages |
+| `monitoring/` | Trackers feeding admin endpoints |
+| `intelligence/` | ML-assisted routing (gated, see ADR-004) |
+| `config/` | `config.yaml` loader |
+| `request_transform/`, `utils/` | Normalization and shared primitives |
 
-Order follows code dependencies; cost is low/medium/high tooling effort.
+---
 
-**A. Architecture/documentation reconciliation.** Objective: one truthful
-record. Prerequisites: none. Scope: this ADR, README/roadmap consistency.
-Acceptance: claims labelled, links valid, no stale bullets. Evidence: this
-file + `git diff --check`. Risks: doc drift. Cost: low (this task).
-Non-goals: behavior changes.
+## 2. Decisions
 
-**B. Local deployment + Compose end-to-end.** Objective: `docker compose up`
-serving the gateway + UI with stub-safe smoke. Prerequisites: Sprint 5
-artifacts (done). Scope: full-stack up, loopback smoke incl. a chat round
-trip with test keys. Acceptance: live/ready/app 200 from compose;
-shutdown clean. Evidence: command outputs. Risks: provider keys needed for
-real completions (stub-safe smoke only). Cost: low. Non-goals: cloud, DNS.
+Each entry records what was decided, why, and what it forbids. The "forbids" line is the part
+that matters — it is what stops a future session from helpfully undoing a deliberate choice.
 
-**C. CI verification + failure testing.** Objective: prove the workflow runs
-hosted and fails loudly. Prerequisites: B. Scope: push to trigger GH run;
-break-the-build trial (reverted) to prove red0769efb states. Acceptance: green run
-ID + red trial linked. Evidence: GH UI records. Risks: runner availability.
-Cost: low. Non-goals: deploy jobs.
+### ADR-001 — Routing and execution are separate concerns
 
-**D. Managed PostgreSQL/TLS + staging readiness.** Objective: close the data
-safety gap. Prerequisites: local-PG gate (done). Scope: disposable managed
-instance — TLS connect, backup → migrate → count/revision check, restore
-test, rollback rehearsal. Acceptance: documented outputs on real managed
-infrastructure. Risks: cost, credential handling. Cost: medium. Non-goals:
-production cutover.
+**Decision.** SabiRoute selects a deployment; LiteLLM performs the provider call. Every
+attempt, including fallback attempts, routes through `Router.choose_deployment`.
 
-**E. Developer-gateway alpha.** Objective: external clients succeed.
-Prerequisites: C, D. Scope: OpenAI-compatible validation ( IDE/CLI/agent
-clients), key lifecycle docs, rate-limit/budget behavior notes. Acceptance:
-named clients complete scripted flows against staging. Risks: client
-quirks. Cost: medium. Non-goals: public launch.
+**Reason.** Provider-specific behaviour stays in one executor. Routing logic is testable
+without network access.
 
-**F. SabiChat closed beta.** Objective: real users, bounded. Prerequisites:
-E + per-user quota design (from §3 open questions). Scope: invite-only UI
-with abuse brakes, feedback channel. Acceptance: beta cohort completes
-journeys; incident-free window. Risks: abuse, cost exposure. Cost: high.
-Non-goals: open signup, paid plans.
+**Forbids.** Reaching past the router to call a provider directly, and letting a fallback path
+bypass eligibility. Both would make routing behaviour unobservable from the request path.
 
-**G. Free Pool catalogue + quotas + provider policy.** Objective: make Free
-Pool real and safe. Prerequisites: F telemetry. Scope: catalogue data +
-mapping, concurrency-safe quotas, budget enforcement, provider-terms review
-per arrangement. Acceptance: quota-exhaustion and denial paths tested live;
-terms documented per provider. Risks: ToS violations, cost overruns.
-Cost: high. Non-goals: unlimited free inference claims.
+### ADR-002 — There is no separate fallback engine, and no active health checker
 
-**H. Deterministic benchmarks + task-aware experiments.** Objective: measure
-before learning. Prerequisites: G traffic. Scope: fixed benchmark harness,
-measured-vs-priority comparisons on real telemetry. Acceptance: published
-methodology + numbers, no formula change without evidence. Risks:
-benchmark gaming. Cost: medium. Non-goals: production ML ranking.
+**Decision.** The retry/fallback loop lives in `src/sabiroute/api/completions.py`. There is no
+`FallbackEngine` and no `routing/fallback.py`. `providers/healthcheck.py`
+(`ProviderHealthChecker`) was deleted after verification that nothing referenced it
+`[V]` — `providers/` contains only `base.py`, `litellm_client.py`, `registry.py`. Runtime health
+is the passive success/failure and cooldown registry in `routing/`.
 
-**I. Optional paid services.** Objective: only with unit economics proven.
-Prerequisites: G, H, Phase 20 review. Scope: pricing, billing, operating
-controls. Acceptance: cost controls demonstrated, incident drills passed.
-Cost: high. Non-goals: anything before G–H evidence exists.
+**Reason.** Two implementations of "which deployment next" would drift. A health checker with
+no caller is dead weight that reads as a feature.
 
-Phase 13 training gates and deterministic-v1 stay frozen throughout; no
-learned routing enters production in any milestone above.
+**Forbids.** Reintroducing an active checker without a caller and a test, and describing health
+monitoring as active — it is passive-only by design.
 
-## 5. Production-readiness gates (all outstanding)
+**Trap.** `cooldown_until = None` on an unhealthy deployment is a **permanent removal**, not a
+reset. Only an *expired* deadline re-enters the half-open path. This cost a session to find; do
+not "simplify" recovery by clearing it.
 
-Actual GH Actions execution · full-stack Compose E2E · PG partial-failure
-and recovery testing · managed PostgreSQL/TLS validation · managed backup
-and restore validation · staging deploy + rollback evidence ·
-Redis/concurrency behavior · provider failure/fallback/quota/rate-limit
-behavior live · monitoring/budgets/incident/off-host-backup policy ·
-security/privacy/abuse review. Each opens only on cited evidence, never on
-configuration alone.
+### ADR-003 — Unknown capability is never treated as verified support
 
-## 6. Green Closure owner decisions (recorded 2026-10-27; D2/D4/D5/D6 decided, not re-asked)
+**Decision.** A deployment whose capability metadata is unknown is not eligible for a request
+that requires that capability. Only deployment-specific evidence in `docs/capabilities.md`
+enables it.
 
-- **D1 B3 shared-completion-code ownership — DECIDED/RECORDED (`owner-self`):** the user explicitly accepts B3 stewardship. Enforcement verified in code (`completions.py` BYOK-0 + error contract) and covered by focused tests. No human name/email/username invented; `owner-self` is the declared accountability token.
-- **D2 OD-3b session purge — DECIDED (direction + scope):** 30-day retention approved for `sabichat_sessions` rows where `expires_at < now` OR (`revoked_at` non-null AND `revoked_at < now − 30d`) — verified at `chat/store.py:213-232`, no other data class affected. Recorded as decided; implementation already matches.
-- **D3 OD-1/OD-2 — DECIDED/RECORDED (`owner-self`, `accept-adr`):** single accountable owner accepted (`owner-self` token; no human identity invented) and `docs/architecture-decision-record.md` accepted as the canonical decision log, subject to normal repository tracking and review. Tracking is applied by the R1/R4 status reconciliation commit on `sec/deps-nov` (this change); canonical status takes effect when that commit lands, not by a text edit alone. No review approval or push is claimed here.
-- **D4 OD-12 push policy — DECIDED/SETTLED:** no push without explicit owner authorization; no exceptions (`CLAUDE.md:189`, checklist gate). No push performed.
-- **D5 Core rollout — DECIDED/SETTLED:** default stays `full`; no per-environment `core` flip authorized or performed.
-- **D6 A6 suite — CONDITIONAL BASELINE APPROVED:** 18-file suite + static checks + isolated PG/Redis evidence adopted as the baseline package; every mandatory criterion keeps its own verdict. Not a waiver of any criterion. Full-suite sign-off remains conditional on the criterion matrix, not on this token alone.
-- **D7 F-27 — IMPLEMENTATION AUTHORIZED (2026-10-29):** Owner explicitly authorized local implementation of F-27 Option C (dedicated `_ACCOUNTING_LINEAGES` table) under the constraints in the Green Closure Owner Decision Record. Implementation completed in this mission: table + `lineage_id` columns on `_API_KEYS` and `_BUDGET_RESERVATIONS`, `create_lineage`/`reconcile_lineage_budgets` helpers, lineage carry on rotation, lineage-aware reservation inserts, migration ledger row `0006-accounting-lineages`, legacy migration support. No shared/production DB mutation, no push, no deployment. Historical design-only restriction is superseded by this explicit authorization; prior design-only status preserved as historical context.
-  - **F-27 Q1 reconciliation authority (`admin-role`):** budget reconciliation requires an explicit administrative budget-approver role; every reconciliation action must record the authorized operator. No operator identity invented.
-  - **F-27 Q2 superseded lineage retention (`90d-archive`):** archive superseded lineage records after 90 days under a defined, auditable archival policy. Never delete unattributed accounting history. Archival policy definition itself remains a design deliverable.
-  - **F-27 Q3 Redis compatibility TTL (`1h-conditional`):** one hour is a proposed starting TTL only; acceptance requires a documented soak criterion and verified rollback. Not tested or production-safe; `min()` never-looser property carries proof obligations (equivalent units, scope, limit semantics, concurrency, rotation, stale state, dual-write failures, outages, rollback).
-- **D8 F-27 — FORMALLY CLOSED / COMPLETE (2026-10-31, owner-approved):** Owner formally accepts F-27 (key-rotation accounting continuity) as complete on candidate `b360ffc` (`feat/sabiroute-routing-foundation`), independently re-verified by Terminal D with no production-code change, no test rewrite, no commit, no push, no deployment. Evidence: focused F-27 suite 31 passed / 0 failed / 0 skipped across six files (`test_accounting_lineage`, `test_lineage_compat_state`, `test_lineage_admission_concurrency`, `test_lineage_redis_continuity`, `test_lineage_rollback_injection`, `test_admin_lineage_http`); `ruff check src tests scripts config` clean; `mypy src` clean (48 files); candidate fingerprints unchanged across the verification run. Real-runtime proof: disposable Redis demonstrates Key A exhausting its burst, rotation carrying one lineage bucket, and Key B receiving no fresh allowance (fresh-lineage control admits); deterministic failure injection leaves no partial key/lineage state and a retry succeeds deterministically; barrier-synchronized 2- and 5-contender rotations produce exactly one winner with no split authority, including in-flight rotation. Full reconciliation, criterion table and content fingerprint: `reports/my_scorecard.md` § "F-27 formal closure — 2026-10-31".
-  - **F-27 post-closure items — explicitly NOT closure blockers:** Q2 (`90d-archive`) → POST-F-27 ROADMAP; Q3 (`1h-conditional`) → POST-F-27 ROADMAP; dangling-lineage auth-denial telemetry → POST-F-27 OBSERVABILITY; D6/A6 integrated acceptance battery → SEPARATE FUTURE GATE (D6 unchanged; D8 is not an A6 sign-off).
-  - **D8 scope boundary:** closes F-27 only. Does not close A2, A6, B0 or B1, and asserts no hosted-CI or live-provider evidence.
-- **AMBER-A/B — PREPARED, BLOCKED:** live-provider matrix ready (endpoint/credentials/budget unauthorised — zero live calls); recovery/shutdown mock+disposable tests green, live-procedure runs pending authorization/environment.
+**Reason.** Treating absence of evidence as support converts a metadata gap into a runtime
+failure at the provider.
 
-## 7. Phase 15 section 10 gate amendment (recorded 2026-11-23)
+**Forbids.** Capability inference from model name, provider family, or configuration presence.
 
-**D9 Phase 15 Admin Dashboard — GATE CONDITION RECORDED AS MET (owner-decided, `owner-self`):**
-`CLAUDE.md` section 10 says "Until the gateway foundation is proven, do not
-build: ML routing, reinforcement learning, dashboards, the Go rewrite, an
-enterprise control plane, cloud deployment, native IDE extensions, or
-autonomous agents." The dashboard prohibition is the one this entry addresses.
-No other clause of section 10 is relaxed: ML routing, reinforcement learning,
-the Go rewrite, an enterprise control plane, cloud deployment, native IDE
-extensions and autonomous agents all remain prohibited exactly as written.
+### ADR-004 — Deterministic scoring ships before ML scoring
 
-**Basis for the determination.** The gate reads "until the gateway foundation
-is proven". As of 2026-11-23 phases 00, 01, 03, 04, 05, 06, 08, 09 and 10 are
-Complete, meaning implemented, tested and exercised on a documented real
-request path. Phase 19 (CI/CD) is also Complete on hosted-runner evidence. The
-dashboard's entire data surface already exists, is authenticated, and is
-covered by tests: `GET /admin/health`, `/admin/metrics`, `/admin/latency`,
-`/admin/errors` and `/admin/usage` (`src/sabiroute/api/admin.py`).
+**Decision.** `deterministic-v1` is live on measured routes. ML-assisted routing (Phase 13) is
+gated: it must pass its own sub-gates before it can influence selection, and it does not exist
+in the request path today.
 
-**What Phase 15 is permitted to be.** A read-only frontend over those five
-existing endpoints. It adds no new data surface, no new authority, no new
-persistence, and no change to authentication. It does not weaken admin
-authentication, does not expose provider credentials, and does not bypass
-budgets, rate limits, capability filtering or health filtering.
+**Reason.** A learned ranker over an unvalidated dataset is not an improvement, it is an
+unmeasured regression.
 
-**What this decision does NOT authorise.** Any dashboard that mutates state
-without going through an existing authenticated admin endpoint; any relaxation
-of admin authentication in order to make a browser session easier; any
-exposure of `.env`, provider keys or tenant data beyond what the endpoints
-already return; any claim that Phase 20 production architecture is thereby
-unblocked.
+**Forbids.** Wiring ML scoring into `Router.choose_deployment` ahead of the Phase 13 gates, and
+citing synthetic benchmark output as live performance evidence.
 
-**Reversal condition.** If the "foundation is proven" determination above is
-ever contradicted by evidence, the remedy is to remove the dashboard, not to
-argue that the gate was satisfied. The gate is not amended in the abstract; it
-is satisfied by a specific piece of evidence at a specific commit.
+### ADR-005 — SabiChat is a gateway client, not a parallel router
 
-**Provenance.** Decision taken on explicit owner instruction on 2026-11-23,
-recorded here so that the section 10 override is auditable rather than
-implicit. Attribution token `owner-self` per D3; no human identity is invented.
+**Decision.** The SabiChat backend traverses the same numbered request path in process. It is a
+client of the gateway.
+
+**Reason.** A second routing implementation inside the product surface would diverge silently
+and would not inherit admission, budget, or accounting behaviour.
+
+**Forbids.** Duplicating eligibility or selection logic under `chat/`.
+
+### ADR-006 — Schema evolves through an ordered additive ledger, never destructive migrations
+
+**Decision.** Schema changes are additive revisions recorded in `sabiroute_schema_versions`. No
+Alembic. No destructive change. `[V]` `SCHEMA_MIGRATIONS` in `src/sabiroute/security/store.py`:
+
+```
+0001-usage-source            sabiroute_request_usage.usage_source
+0002-sabichat-backend        sabichat_users/sessions/conversations/messages
+0003-shared-inference-switch sabiroute_shared_inference_policy
+0004-user-quota-ledger       sabichat_quota_windows/reservations
+0006-accounting-lineages     sabiroute_accounting_lineages + lineage_id columns
+```
+
+Schema **group** state is a separate concern and lives in the same ledger as
+`0005-schema-groups:<core|full>` rows — 0005 is a group marker, not a table-adding revision.
+Ownership is by declared inventory (`CORE_TABLES`, ten tables) rather than by name prefix,
+because `sabichat_quota_*` belongs to core while the four `sabichat_*` product tables belong to
+the product surface.
+
+**Reason.** Re-running an additive ledger is idempotent, which makes a restore-and-replay
+recoverable without a migration tool holding state.
+
+**Forbids.** Adding a revision that rewrites or drops a populated column, and inferring table
+ownership from the name.
+
+### ADR-007 — Token estimation is text-only; cost appears only when calculable
+
+**Decision.** Multimodal token estimation stays null. A cost figure is emitted only when it can
+be computed from configured pricing.
+
+**Reason.** An estimated cost that silently substitutes zero for "unknown" corrupts every
+downstream budget and telemetry aggregate.
+
+**Forbids.** Zero-filling an unknown cost or token count.
+
+### ADR-008 — Scoring telemetry is process-local
+
+**Decision.** Reliability and latency signals reset on restart. The request path does not read
+history from the database.
+
+**Reason.** A database read on the selection path couples request latency to database
+availability for a routing hint.
+
+**Forbids.** Presenting measured scoring as durable or cross-process. A restart is a cold start
+by design; this is a known limitation, not a defect.
+
+### ADR-009 — Admission denies before execution, with stable reasons
+
+**Decision.** Rate-limit, budget, allowlist, and capability denials are returned before any
+provider call, and each carries a stable machine-readable reason.
+
+**Reason.** A denial after execution bills a provider call for a request that was never
+admissible. A stable reason is what makes the denial testable and loggable.
+
+**Forbids.** Best-effort execution that "tries anyway", and free-text-only denial causes.
+
+---
+
+## 3. Roadmap milestones
+
+Twenty-one phases, numbered 00–20 `[V]`. Status vocabulary is the repository's own, and it is
+strict: **Complete means implemented *and* tested *and* live-verified.**
+
+| Phase | Scope | Status |
+|---|---|---|
+| 00 | Architecture & environment | Complete (as recorded) |
+| 01 | Basic LiteLLM gateway | Complete |
+| 02 | Provider expansion | In progress — three of fourteen aliases have runtime evidence |
+| 03 | Model registry | Complete — `config/config.yaml` is the runtime catalog |
+| 04 | Virtual models / policies | Complete — six route policies loaded and validated at startup |
+| 05 | Fallback engine | Implemented + failure-injection verified; **not Complete** — no real provider failure |
+| 06 | Health monitoring | Implemented — passive cooldown only (ADR-002) |
+| 07 | Observability | Implemented — no stored failure-metric evidence |
+| 08 | PostgreSQL | Complete (documented live run) |
+| 09 | Auth & API keys | Complete |
+| 10 | Budgets and rate limits | Implemented — rejection paths not on the live path |
+| 11 | Capability-aware routing | Implemented — capability evidence missing for most deployments |
+| 12 | Measured deterministic scoring | Implemented — `deterministic-v1` live; benchmark evidence synthetic |
+| 13 | ML-assisted routing | In progress — live sub-gate passed; aggregate integrity failed; 13.3 blocked |
+| 14 | Benchmarking | Planned |
+| 15 | Admin dashboard | Planned |
+| 16 | Private remote access / Tailscale | Planned |
+| 17 | Security hardening | Planned (baseline controls maintained throughout) |
+| 18 | Testing and regression | Planned — tests required throughout earlier phases |
+| 19 | CI/CD | Implemented (definition + local execution) — hosted run not verified |
+| 20 | Production architecture | Planned |
+
+**Read the totals honestly.** Six phases are Complete, nine are Implemented (tested but not
+live-verified), four are In progress, and five are Planned. By the repository's own definition,
+**zero phases are Complete on live evidence of failure behaviour** — the tested core is real,
+the live-evidence layer is thin.
+
+### Route policies `[V]`
+
+Six policies in `config/routes/`, all `strategy: measured`:
+
+| Route | `max_attempts` |
+|---|---|
+| `cheap` | 1 |
+| `coding`, `fast`, `reasoning`, `research` | 2 |
+| `ultimate` | 3 |
+
+`research` has been exercised on the live path. The rest have not.
+
+---
+
+## 4. Production gates
+
+Nothing below is a formality; each gate can independently block exposure.
+
+**Gate A — Phase 20 review.** Gates any public exposure. The container, CI, and Compose service
+exist and are smoke-tested without providers `[V]`, but there has been no managed-database test
+and no staging deployment.
+
+**Gate B — one real provider failure (Phase 05).** Ten of ten direct injections and seven of
+seven through a real LiteLLM Proxy pass, but none of them is a genuine provider failure. The
+cheapest closure is a real 404 from a retired model id — no spend, no accounts.
+
+**Gate C — Phase 13 owner sign-off.** Aggregate dataset integrity is invalid: one historical
+feature/outcome count mismatch and one outcome without a feature snapshot, deliberately
+unrepaired. 13.3 stays blocked until an owner signs off.
+
+**Gate D — capability evidence (Phase 11).** Only specific deployments have runtime evidence;
+most capability metadata is `unknown`, and ADR-003 means `unknown` is dark, not permissive.
+
+**Gate E — managed PostgreSQL.** Migrations are validated against a disposable local
+PostgreSQL 16 (fresh init, upgrade, idempotent re-run, backup/restore) but never against a
+managed instance.
+
+**Gate F — hosted CI.** The workflow is defined and every step has executed locally. A hosted
+Actions run is not yet verified.
+
+---
+
+## 5. Evidence record — SabiChat browser session
+
+The README states that the SabiChat browser UI "has no automated browser test suite —
+interactive behavior was exercised in a real browser session during development". This section
+is the record it points to, stated at exactly the confidence it deserves.
+
+**What was exercised.** Sign-in, session-token lifetime, conversation creation, message send and
+response render, and reload behaviour, driven manually against a running local gateway.
+
+**What that is not.** It is not a regression test. It has no assertions, no fixtures, and it
+does not run in CI. A behavioural regression would be caught by a human noticing, or by
+`tests/test_sabichat_web.py` for the serving/contract layer only `[V]` — that file's own
+docstring says interactive behaviour is "covered by the optional Playwright smoke procedure, not
+by this file".
+
+**Consequence, stated plainly.** "The UI works" rests on a manual session, and manual sessions
+decay. `docs/local-validation.md` records the repeatable path so the claim can be re-derived
+instead of remembered.
+
+---
+
+## 6. Known limitations in force
+
+Carried from the README so this record is self-contained.
+
+- **Aggregate dataset integrity is invalid** — one count mismatch, one outcome without a feature
+  snapshot, deliberately unrepaired.
+- **Training is blocked** — no outcome variation, incomplete temporal provenance, no usable
+  chronological split.
+- **Capability evidence is narrow** — most deployments' capability metadata is `unknown`.
+- **Phase 12 evidence is synthetic** — warm live-routing performance is not established.
+- **Scoring telemetry is process-local** (ADR-008).
+- **Token estimation is text-only** (ADR-007).
+- **SabiChat is interim-grade** — one memory-held service key re-minted on restart,
+  single-process rate limits, fixed history/response caps, in-memory session token (reload signs
+  out). Per-user gateway keys and quotas are explicit future work.
+- **Deployment foundation, not production** — no managed-database test, no staging deployment.
+
+---
+
+## 7. Traps — each cost a session to find
+
+1. **`cooldown_until = None` is permanent removal**, not a reset (ADR-002).
+2. **Verify Claude attribution by parsing trailers, never by grep.** A commit body can contain a
+   line beginning `Co-Authored-By:` as prose. Use
+   `git log -1 --format='%(trailers:key=Co-Authored-By,valueonly)' <sha>`.
+3. **Run tests in the worktree that holds the branch being pushed.** The primary checkout may be
+   on a different branch and yields a different count.
+4. **`CLAUDE.md` roadmap lines are column-padded.** Match on a prefix, not on equality.
+5. **A shared LiteLLM Proxy carries deployment-failure state between requests** and can change
+   which alias answers. Use a fresh proxy per scenario when measuring routing behaviour.
+
+---
+
+## 8. Changing this document
+
+Update it in the same commit as any change to architecture, milestone status, or gate standing.
+Never restate a figure without the command that produced it. If you remove a decision, say which
+one replaced it in "Forbids" — a deleted constraint reads as a forgotten one.

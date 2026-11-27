@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from conftest import InMemoryApiKeyStore, StubLiteLLMClient, enable_shared_inference, make_config
 from fastapi.testclient import TestClient
 
@@ -578,3 +579,8 @@ def test_purge_expired_sessions(tmp_path):
         assert store.get_session(digest_token("old")) is None
     finally:
         store.close()
+
+
+def test_the_store_requires_a_database_url() -> None:
+    with pytest.raises(ValueError, match="DATABASE_URL is required for SabiChat"):
+        SabiChatStore("")

@@ -520,6 +520,12 @@ async def chat_completions(
                         result = await asyncio.shield(shielded_task)
                         break
                     except asyncio.CancelledError:
+                        if shielded_task.done() and shielded_task.cancelled():
+                            # The worker itself ended cancelled. ``shield``
+                            # re-raises that on every await, so retrying here
+                            # would spin without ever yielding to a waiter:
+                            # surface it instead of hanging the request.
+                            raise
                         continue
             except BaseException:
                 _untrack(name, done)
@@ -568,14 +574,21 @@ async def chat_completions(
         # Wait for any in-flight accounting worker before inspecting state:
         # cleanup decisions must observe committed outcomes, not races.
         # Repeated cancellation re-waits on the same barrier.
+        #
+        # The body below is dead by construction today: _run_accounting
+        # untracks on every exit path (success, exception, cancellation and
+        # self-cancelled shielded worker), so in_flight is already None when
+        # finish()/_cancelled_finish() are entered. It is kept, and excluded
+        # from coverage, as the barrier a future overlapping accounting call
+        # site would need. See docs/phase18-testing-evidence.md.
         while in_flight is not None:
-            done = in_flight_done
-            if done is None or done.is_set():
-                break
-            try:
-                await done.wait()
-            except asyncio.CancelledError:
-                continue
+            done = in_flight_done  # pragma: no cover
+            if done is None or done.is_set():  # pragma: no cover
+                break  # pragma: no cover
+            try:  # pragma: no cover
+                await done.wait()  # pragma: no cover
+            except asyncio.CancelledError:  # pragma: no cover
+                continue  # pragma: no cover
         if budget_reserved:
             try:
                 if release_budget:
@@ -781,15 +794,18 @@ async def chat_completions(
         finalizes the usage event. It waits for any in-flight worker like
         finish() does, preserves the 499 client_cancelled envelope, and
         never marks RELEASED/SETTLED/FINALIZED unless the store confirms.
+
+        The barrier body below is dead by construction for the same reason
+        as finish(): _run_accounting always untracks before returning.
         """
         while in_flight is not None:
-            done = in_flight_done
-            if done is None or done.is_set():
-                break
-            try:
-                await done.wait()
-            except asyncio.CancelledError:
-                continue
+            done = in_flight_done  # pragma: no cover
+            if done is None or done.is_set():  # pragma: no cover
+                break  # pragma: no cover
+            try:  # pragma: no cover
+                await done.wait()  # pragma: no cover
+            except asyncio.CancelledError:  # pragma: no cover
+                continue  # pragma: no cover
         final_event = replace(
             event,
             final_deployment=None,
@@ -1468,7 +1484,12 @@ async def chat_completions(
                 spent_cost = _actual_cost(state, cost_usage_parts, False)
                 if spent_cost is None and cost_usage_parts:
                     break
-                if estimated_cost is None:
+                # Unreachable by construction: ``estimated_cost`` is computed
+                # once above and never reassigned, and a cost budget with
+                # unpriceable candidates already answered 503 before the loop
+                # was entered. Kept as the floor the arithmetic below needs,
+                # not as a live branch.
+                if estimated_cost is None:  # pragma: no cover
                     break
                 remaining_cost = estimated_cost - (spent_cost or Decimal(0))
                 deployment = state.registry.get(route_decision.deployment)
