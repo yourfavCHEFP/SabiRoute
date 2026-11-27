@@ -1,308 +1,672 @@
-"use strict";
-
-/* SabiRoute Phase 15 admin dashboard -- read-only.
+/* SabiRoute gateway console.
  *
- * Every figure on this page comes from the five authenticated admin
- * endpoints. The page holds no credential of its own: the operator pastes an
- * admin key, it is kept in this tab's session storage only, and it is sent as
- * the normal Authorization Bearer header on each GET request.
+ * Read-only by construction: this file issues GET requests only, against the
+ * five authenticated admin endpoints. It holds the operator's admin key in
+ * this tab's session storage and sends it as a Bearer token per request. No
+ * credential is ever written into the page, the URL, or a file.
  *
- * There are no mutating requests in this file. Rendering uses textContent and
- * DOM construction only -- never HTML string injection.
+ * Rendering is text-only. Every node is built with createElement and filled
+ * with textContent, so gateway-supplied strings can never become markup.
+ *
+ * A note on the sparklines: the admin endpoints report cumulative counters,
+ * not time series. Each poll appends the delta since the previous poll, so a
+ * sparkline describes the polling window, not all-time traffic. The tile note
+ * says "since page opened" to keep that honest.
  */
 
-const STORAGE_KEY = "sabiroute.adminKey";
+"use strict";
 
-const ENDPOINTS = [
-  ["health", "/admin/health"],
-  ["metrics", "/admin/metrics"],
-  ["latency", "/admin/latency"],
-  ["errors", "/admin/errors"],
-  ["usage", "/admin/usage"],
-];
+(function () {
+  var KEY_STORAGE = "sabiroute.console.admincredential";
+  var POLL_MS = 15000;
+  var STALE_MS = 45000;
+  var SVG_NS = "http://www.w3.org/2000/svg";
 
-const el = (id) => document.getElementById(id);
+  var ENDPOINTS = {
+    health: "/admin/health",
+    metrics: "/admin/metrics",
+    latency: "/admin/latency",
+    errors: "/admin/errors",
+    usage: "/admin/usage"
+  };
 
-let adminKey = "";
+  var history = {
+    total: [],
+    successRate: [],
+    failed: [],
+    rateLimited: []
+  };
+  var previous = { total: null, failed: null, rateLimited: null };
+  var lastLoad = 0;
+  var pollTimer = null;
+  var clockTimer = null;
 
-class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
+  function byId(id) {
+    return document.getElementById(id);
   }
-}
 
-function readStoredKey() {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) || "";
-  } catch (_) {
-    return "";
+  var ui = {
+    authPanel: byId("auth-panel"),
+    authForm: byId("auth-form"),
+    authKey: byId("admin-key"),
+    authMessage: byId("auth-message"),
+    authForget: byId("auth-forget"),
+    dataView: byId("data-view"),
+    banner: byId("status-banner"),
+    live: byId("live-indicator"),
+    liveLabel: byId("live-label"),
+    refresh: byId("refresh"),
+    signOut: byId("sign-out"),
+    lastUpdated: byId("last-updated"),
+    healthBody: byId("health-body"),
+    healthEmpty: byId("health-empty"),
+    healthSummary: byId("health-summary"),
+    latencyBody: byId("latency-body"),
+    latencyEmpty: byId("latency-empty"),
+    errorsBody: byId("errors-body"),
+    errorsEmpty: byId("errors-empty"),
+    usageBody: byId("usage-body"),
+    usageEmpty: byId("usage-empty"),
+    byModelBody: byId("by-model-body"),
+    byModelEmpty: byId("by-model-empty"),
+    statTotal: byId("stat-total"),
+    statSuccess: byId("stat-success"),
+    statFailed: byId("stat-failed"),
+    statRateLimited: byId("stat-rate-limited"),
+    sparkTotal: byId("spark-total"),
+    sparkSuccess: byId("spark-success"),
+    sparkFailed: byId("spark-failed"),
+    sparkRateLimited: byId("spark-rate-limited")
+  };
+
+  /* ---------- small DOM helpers ---------- */
+
+  function node(tag, className, text) {
+    var element = document.createElement(tag);
+    if (className) {
+      element.className = className;
+    }
+    if (text !== undefined && text !== null) {
+      element.textContent = String(text);
+    }
+    return element;
   }
-}
 
-function writeStoredKey(key) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, key);
-  } catch (_) {
-    /* Storage may be unavailable in some browser modes; the key still works
-       for this page load because it is also held in memory below. */
+  function clear(element) {
+    if (element) {
+      element.replaceChildren();
+    }
   }
-}
 
-function clearStoredKey() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch (_) {
-    /* ignore */
+  function formatCount(value) {
+    if (typeof value !== "number" || !isFinite(value)) {
+      return "0";
+    }
+    return value.toLocaleString();
   }
-}
 
-async function getJson(path) {
-  let response;
-  try {
-    response = await fetch(path, {
+  function formatCompact(value) {
+    if (typeof value !== "number" || !isFinite(value)) {
+      return "0";
+    }
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+    }
+    if (value >= 10000) {
+      return (value / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+    }
+    return formatCount(Math.round(value));
+  }
+
+  function formatMilliseconds(value) {
+    if (typeof value !== "number" || !isFinite(value)) {
+      return "—";
+    }
+    if (value >= 1000) {
+      return (value / 1000).toFixed(2) + " s";
+    }
+    return Math.round(value) + " ms";
+  }
+
+  function formatRemaining(milliseconds) {
+    var seconds = Math.ceil(milliseconds / 1000);
+    if (seconds >= 60) {
+      var minutes = Math.floor(seconds / 60);
+      var rest = seconds % 60;
+      return minutes + "m " + rest + "s left";
+    }
+    return Math.max(seconds, 1) + "s left";
+  }
+
+  function percent(part, whole) {
+    if (!whole || whole <= 0) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, (part / whole) * 100));
+  }
+
+  /* ---------- credential handling ---------- */
+
+  function readKey() {
+    try {
+      return sessionStorage.getItem(KEY_STORAGE) || "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function writeKey(value) {
+    try {
+      sessionStorage.setItem(KEY_STORAGE, value);
+    } catch (error) {
+      /* Session storage can be unavailable in hardened browsers. The console
+       * still works for this page view; the key simply is not remembered. */
+    }
+  }
+
+  function dropKey() {
+    try {
+      sessionStorage.removeItem(KEY_STORAGE);
+    } catch (error) {
+      /* Nothing to clean up. */
+    }
+  }
+
+  /* ---------- transport ---------- */
+
+  function getJson(path) {
+    return fetch(path, {
       method: "GET",
       headers: {
-        Authorization: "Bearer " + adminKey,
-        Accept: "application/json",
+        Authorization: "Bearer " + readKey(),
+        Accept: "application/json"
       },
       cache: "no-store",
+      credentials: "omit"
+    }).then(function (response) {
+      if (response.status === 401) {
+        throw { kind: "unauthorized", status: 401 };
+      }
+      if (!response.ok) {
+        throw { kind: "http", status: response.status };
+      }
+      return response.json();
     });
-  } catch (_) {
-    throw new HttpError(0, "Couldn't reach the SabiRoute backend.");
   }
-  if (response.status === 401) {
-    throw new HttpError(401, "Your admin key was rejected.");
+
+  function loadAll() {
+    return Promise.all([
+      getJson(ENDPOINTS.health),
+      getJson(ENDPOINTS.metrics),
+      getJson(ENDPOINTS.latency),
+      getJson(ENDPOINTS.errors),
+      getJson(ENDPOINTS.usage)
+    ]);
   }
-  if (response.status === 503) {
-    throw new HttpError(503, "Admin authentication is unavailable on the server.");
-  }
-  if (!response.ok) {
-    throw new HttpError(response.status, "The server returned " + response.status + ".");
-  }
-  try {
-    return await response.json();
-  } catch (_) {
-    throw new HttpError(response.status, "The server returned an unreadable response.");
-  }
-}
 
-function clear(node) {
-  while (node.firstChild) {
-    node.removeChild(node.firstChild);
-  }
-}
+  /* ---------- chrome state ---------- */
 
-function makeCell(text) {
-  const td = document.createElement("td");
-  td.textContent = text;
-  return td;
-}
-
-function appendRow(body, values) {
-  const tr = document.createElement("tr");
-  for (let i = 0; i < values.length; i += 1) {
-    tr.appendChild(makeCell(values[i]));
-  }
-  body.appendChild(tr);
-}
-
-function fillTable(bodyId, emptyId, rows) {
-  const body = el(bodyId);
-  const empty = el(emptyId);
-  clear(body);
-  if (rows.length === 0) {
-    empty.hidden = false;
-    return;
-  }
-  empty.hidden = true;
-  for (let i = 0; i < rows.length; i += 1) {
-    appendRow(body, rows[i]);
-  }
-}
-
-function pairs(value) {
-  if (!value || typeof value !== "object") {
-    return [];
-  }
-  return Object.keys(value).map((key) => [key, value[key]]);
-}
-
-function fmt(value) {
-  if (value === null || value === undefined) {
-    return "—";
-  }
-  if (typeof value === "number") {
-    return Number.isInteger(value) ? String(value) : value.toFixed(2);
-  }
-  return String(value);
-}
-
-function yesNo(value) {
-  return value ? "yes" : "no";
-}
-
-function renderMetrics(metrics) {
-  el("stat-total").textContent = fmt(metrics.requests_total);
-  el("stat-success").textContent = fmt(metrics.requests_successful);
-  el("stat-failed").textContent = fmt(metrics.requests_failed);
-  el("stat-rate-limited").textContent = fmt(metrics.requests_rate_limited);
-  fillTable(
-    "by-model-body",
-    "by-model-empty",
-    pairs(metrics.requests_by_model).map((pair) => [pair[0], fmt(pair[1])])
-  );
-}
-
-function renderHealth(health) {
-  fillTable(
-    "health-body",
-    "health-empty",
-    pairs(health).map((pair) => {
-      const item = pair[1] || {};
-      return [
-        pair[0],
-        yesNo(item.healthy),
-        yesNo(item.available),
-        fmt(item.total_successes),
-        fmt(item.total_failures),
-        fmt(item.cooldown_until),
-      ];
-    })
-  );
-}
-
-function renderLatency(latency) {
-  fillTable(
-    "latency-body",
-    "latency-empty",
-    pairs(latency).map((pair) => {
-      const item = pair[1] || {};
-      return [pair[0], fmt(item.samples), fmt(item.average_ms), fmt(item.last_ms)];
-    })
-  );
-}
-
-function renderErrors(errors) {
-  fillTable(
-    "errors-body",
-    "errors-empty",
-    pairs(errors).map((pair) => [pair[0], fmt(pair[1])])
-  );
-}
-
-function renderUsage(usage) {
-  fillTable(
-    "usage-body",
-    "usage-empty",
-    pairs(usage).map((pair) => [pair[0], fmt(pair[1])])
-  );
-}
-
-function showAuth(message) {
-  el("data-view").hidden = true;
-  el("auth-panel").hidden = false;
-  el("auth-message").textContent = message;
-  el("auth-forget").hidden = readStoredKey() === "";
-  const input = el("admin-key");
-  input.value = "";
-  input.focus();
-}
-
-function showData() {
-  el("auth-panel").hidden = true;
-  el("data-view").hidden = false;
-}
-
-function showBanner(message) {
-  const banner = el("status-banner");
-  banner.textContent = message;
-  banner.hidden = false;
-}
-
-function hideBanner() {
-  const banner = el("status-banner");
-  banner.textContent = "";
-  banner.hidden = true;
-}
-
-async function load() {
-  hideBanner();
-  const responses = await Promise.all(ENDPOINTS.map((entry) => getJson(entry[1])));
-  const data = {};
-  for (let i = 0; i < ENDPOINTS.length; i += 1) {
-    data[ENDPOINTS[i][0]] = responses[i];
-  }
-  renderHealth(data.health);
-  renderMetrics(data.metrics);
-  renderLatency(data.latency);
-  renderErrors(data.errors);
-  renderUsage(data.usage);
-  showData();
-  el("last-updated").textContent = "Updated " + new Date().toLocaleTimeString();
-}
-
-async function refresh() {
-  if (!adminKey) {
-    showAuth("Paste your admin key to load the dashboard.");
-    return;
-  }
-  try {
-    await load();
-  } catch (err) {
-    const status = err instanceof HttpError ? err.status : 0;
-    const message =
-      err && err.message ? err.message : "The dashboard could not load.";
-    if (status === 401) {
-      showAuth("Your admin key was rejected (401). Paste a valid admin key.");
-    } else if (status === 503) {
-      showAuth("Admin authentication is unavailable on the server (503).");
-    } else if (el("data-view").hidden) {
-      showAuth(message);
-    } else {
-      showBanner(message);
+  function setLive(state, label) {
+    if (ui.live) {
+      ui.live.setAttribute("data-state", state);
+    }
+    if (ui.liveLabel) {
+      ui.liveLabel.textContent = label;
     }
   }
-}
 
-function forget() {
-  clearStoredKey();
-  adminKey = "";
-  showAuth("Paste your admin key to load the dashboard.");
-}
-
-function init() {
-  const form = el("auth-form");
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const input = el("admin-key");
-    const key = input.value.trim();
-    if (!key) {
-      el("auth-message").textContent = "Enter your admin key to continue.";
+  function showBanner(message) {
+    if (!ui.banner) {
       return;
     }
-    adminKey = key;
-    writeStoredKey(key);
-    input.value = "";
-    refresh();
-  });
-
-  el("auth-forget").addEventListener("click", forget);
-  el("sign-out").addEventListener("click", forget);
-  el("refresh").addEventListener("click", () => {
-    refresh();
-  });
-
-  adminKey = readStoredKey();
-  if (adminKey) {
-    refresh();
-  } else {
-    showAuth("Paste your admin key to load the dashboard.");
+    ui.banner.textContent = message;
+    ui.banner.hidden = false;
   }
-}
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
+  function hideBanner() {
+    if (ui.banner) {
+      ui.banner.hidden = true;
+      ui.banner.textContent = "";
+    }
+  }
+
+  function showAuth(message) {
+    if (ui.authPanel) {
+      ui.authPanel.hidden = false;
+    }
+    if (ui.dataView) {
+      ui.dataView.hidden = true;
+    }
+    if (ui.authForget) {
+      ui.authForget.hidden = true;
+    }
+    if (message && ui.authMessage) {
+      ui.authMessage.textContent = message;
+    }
+    if (ui.authKey) {
+      ui.authKey.focus();
+    }
+  }
+
+  function showData() {
+    if (ui.authPanel) {
+      ui.authPanel.hidden = true;
+    }
+    if (ui.dataView) {
+      ui.dataView.hidden = false;
+    }
+  }
+
+  function setBusy(busy) {
+    if (!ui.refresh) {
+      return;
+    }
+    ui.refresh.disabled = busy;
+    ui.refresh.textContent = busy ? "Refreshing" : "Refresh";
+  }
+
+  /* ---------- sparklines ---------- */
+
+  function drawSpark(container, series, colour) {
+    if (!container) {
+      return;
+    }
+    clear(container);
+    container.style.color = colour || "";
+    if (series.length < 2) {
+      container.appendChild(node("div", "spark-empty"));
+      return;
+    }
+
+    var width = 100;
+    var height = 32;
+    var pad = 3;
+    var max = Math.max.apply(null, series);
+    var min = Math.min.apply(null, series);
+    var span = max - min || 1;
+    var step = width / (series.length - 1);
+    var points = series.map(function (value, index) {
+      var x = index * step;
+      var y = height - pad - ((value - min) / span) * (height - pad * 2);
+      return [x, y];
+    });
+
+    var line = points
+      .map(function (point, index) {
+        return (index === 0 ? "M" : "L") + point[0].toFixed(2) + " " + point[1].toFixed(2);
+      })
+      .join(" ");
+    var area = line + " L " + width + " " + height + " L 0 " + height + " Z";
+
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("role", "presentation");
+
+    var areaPath = document.createElementNS(SVG_NS, "path");
+    areaPath.setAttribute("d", area);
+    areaPath.setAttribute("class", "spark-area");
+
+    var linePath = document.createElementNS(SVG_NS, "path");
+    linePath.setAttribute("d", line);
+    linePath.setAttribute("class", "spark-line");
+
+    svg.appendChild(areaPath);
+    svg.appendChild(linePath);
+    container.appendChild(svg);
+  }
+
+  function pushHistory(series, value, limit) {
+    series.push(value);
+    while (series.length > limit) {
+      series.shift();
+    }
+  }
+
+  /* ---------- tiles ---------- */
+
+  function renderTiles(metrics) {
+    var total = Number(metrics.requests_total) || 0;
+    var successful = Number(metrics.requests_successful) || 0;
+    var failed = Number(metrics.requests_failed) || 0;
+    var limited = Number(metrics.requests_rate_limited) || 0;
+    var rate = total > 0 ? (successful / total) * 100 : null;
+
+    ui.statTotal.textContent = formatCount(total);
+    ui.statSuccess.textContent = rate === null ? "—" : rate.toFixed(1) + "%";
+    ui.statFailed.textContent = formatCount(failed);
+    ui.statRateLimited.textContent = formatCount(limited);
+
+    var deltaTotal = previous.total === null ? 0 : Math.max(0, total - previous.total);
+    var deltaFailed = previous.failed === null ? 0 : Math.max(0, failed - previous.failed);
+    var deltaLimited =
+      previous.rateLimited === null ? 0 : Math.max(0, limited - previous.rateLimited);
+    previous.total = total;
+    previous.failed = failed;
+    previous.rateLimited = limited;
+
+    pushHistory(history.total, deltaTotal, 40);
+    pushHistory(history.failed, deltaFailed, 40);
+    pushHistory(history.rateLimited, deltaLimited, 40);
+    pushHistory(history.successRate, rate === null ? 0 : rate, 40);
+
+    drawSpark(ui.sparkTotal, history.total, "");
+    drawSpark(ui.sparkSuccess, history.successRate, "");
+    drawSpark(ui.sparkFailed, history.failed, history.failed.some(function (v) { return v > 0; }) ? "var(--bad)" : "");
+    drawSpark(ui.sparkRateLimited, history.rateLimited, history.rateLimited.some(function (v) { return v > 0; }) ? "var(--warn)" : "");
+  }
+
+  /* ---------- health ---------- */
+
+  function healthState(entry) {
+    var now = Date.now();
+    var cooling = false;
+    if (entry.cooldown_until) {
+      var until = Date.parse(entry.cooldown_until);
+      cooling = isFinite(until) && until > now;
+    }
+    if (cooling) {
+      return { label: "Cooling down", kind: "warn" };
+    }
+    if (entry.available === false) {
+      return { label: "Unavailable", kind: "bad" };
+    }
+    if (entry.healthy === false) {
+      return { label: "Unhealthy", kind: "warn" };
+    }
+    return { label: "Available", kind: "ok" };
+  }
+
+  function renderHealth(health) {
+    clear(ui.healthBody);
+    var names = Object.keys(health || {}).sort();
+    ui.healthEmpty.hidden = names.length > 0;
+
+    var available = 0;
+    names.forEach(function (name) {
+      var entry = health[name] || {};
+      if (entry.available !== false) {
+        available += 1;
+      }
+      var state = healthState(entry);
+
+      var row = document.createElement("tr");
+
+      var nameCell = node("td");
+      nameCell.appendChild(node("span", "name", name));
+      row.appendChild(nameCell);
+
+      var stateCell = node("td");
+      var stateNode = node("span", "state", state.label);
+      stateNode.setAttribute("data-state", state.kind);
+      stateCell.appendChild(stateNode);
+      if (entry.cooldown_until) {
+        var until = Date.parse(entry.cooldown_until);
+        if (isFinite(until) && until > Date.now()) {
+          var countdown = node("span", "countdown", "");
+          countdown.setAttribute("data-until", entry.cooldown_until);
+          stateCell.appendChild(document.createTextNode(" "));
+          stateCell.appendChild(countdown);
+        }
+      }
+      row.appendChild(stateCell);
+
+      row.appendChild(node("td", "num", formatCount(Number(entry.total_successes) || 0)));
+      row.appendChild(node("td", "num", formatCount(Number(entry.total_failures) || 0)));
+
+      var successes = Number(entry.total_successes) || 0;
+      var failures = Number(entry.total_failures) || 0;
+      var attempts = successes + failures;
+      var ratio = percent(successes, attempts);
+
+      var reliabilityCell = node("td");
+      var wrapper = node("div", "reliability");
+      var track = node("div", "track");
+      var fill = node("i");
+      fill.style.width = (attempts > 0 ? ratio : 0) + "%";
+      track.setAttribute("data-tone", ratio >= 90 ? "ok" : ratio >= 70 ? "warn" : "bad");
+      track.appendChild(fill);
+      wrapper.appendChild(track);
+      wrapper.appendChild(node("span", "pct", attempts > 0 ? Math.round(ratio) + "%" : "—"));
+      reliabilityCell.appendChild(wrapper);
+      row.appendChild(reliabilityCell);
+
+      ui.healthBody.appendChild(row);
+    });
+
+    if (ui.healthSummary) {
+      ui.healthSummary.textContent = names.length > 0 ? available + " of " + names.length + " available" : "—";
+      ui.healthSummary.className =
+        "pill " + (available === names.length && names.length > 0 ? "pill-ok" : names.length > 0 ? "pill-warn" : "pill-neutral");
+    }
+  }
+
+  /* ---------- latency ---------- */
+
+  function renderLatency(latency) {
+    clear(ui.latencyBody);
+    var names = Object.keys(latency || {}).sort();
+    ui.latencyEmpty.hidden = names.length > 0;
+
+    var maxAverage = 0;
+    names.forEach(function (name) {
+      var average = Number((latency[name] || {}).average_ms) || 0;
+      if (average > maxAverage) {
+        maxAverage = average;
+      }
+    });
+
+    names.forEach(function (name) {
+      var entry = latency[name] || {};
+      var average = Number(entry.average_ms) || 0;
+
+      var row = document.createElement("tr");
+      var nameCell = node("td");
+      nameCell.appendChild(node("span", "name", name));
+      var meter = node("div", "row-meter");
+      var fill = node("i");
+      fill.style.width = percent(average, maxAverage) + "%";
+      meter.appendChild(fill);
+      nameCell.appendChild(meter);
+      row.appendChild(nameCell);
+
+      row.appendChild(node("td", "num", formatMilliseconds(average)));
+      row.appendChild(node("td", "num", formatMilliseconds(Number(entry.last_ms))));
+      ui.latencyBody.appendChild(row);
+    });
+  }
+
+  /* ---------- count tables ---------- */
+
+  function renderCounts(source, body, empty, formatter) {
+    clear(body);
+    var entries = Object.keys(source || {})
+      .map(function (name) {
+        return { name: name, value: Number(source[name]) || 0 };
+      })
+      .sort(function (a, b) {
+        return b.value - a.value || a.name.localeCompare(b.name);
+      });
+
+    empty.hidden = entries.length > 0;
+    var max = entries.reduce(function (accumulator, entry) {
+      return Math.max(accumulator, entry.value);
+    }, 0);
+
+    entries.forEach(function (entry) {
+      var row = document.createElement("tr");
+      var nameCell = node("td");
+      nameCell.appendChild(node("span", "name", entry.name));
+      var meter = node("div", "row-meter");
+      var fill = node("i");
+      fill.style.width = percent(entry.value, max) + "%";
+      meter.appendChild(fill);
+      nameCell.appendChild(meter);
+      row.appendChild(nameCell);
+      row.appendChild(node("td", "num", formatter(entry.value)));
+      body.appendChild(row);
+    });
+  }
+
+  /* ---------- cooldown clock ---------- */
+
+  function tick() {
+    var nodes = document.querySelectorAll("[data-until]");
+    nodes.forEach(function (element) {
+      var until = Date.parse(element.getAttribute("data-until") || "");
+      if (!isFinite(until)) {
+        element.textContent = "";
+        return;
+      }
+      var remaining = until - Date.now();
+      element.textContent = remaining > 0 ? formatRemaining(remaining) : "recovering";
+    });
+
+    if (lastLoad > 0 && Date.now() - lastLoad > STALE_MS) {
+      setLive("stale", "Stale");
+    }
+  }
+
+  /* ---------- orchestration ---------- */
+
+  function render(health, metrics, latency, errors, usage) {
+    renderTiles(metrics || {});
+    renderHealth(health || {});
+    renderLatency(latency || {});
+    renderCounts(errors || {}, ui.errorsBody, ui.errorsEmpty, formatCount);
+    renderCounts(usage || {}, ui.usageBody, ui.usageEmpty, formatCompact);
+    renderCounts((metrics || {}).requests_by_model || {}, ui.byModelBody, ui.byModelEmpty, formatCount);
+    tick();
+  }
+
+  function load() {
+    if (!readKey()) {
+      showAuth();
+      setLive("idle", "Not connected");
+      return Promise.resolve();
+    }
+
+    setBusy(true);
+    return loadAll()
+      .then(function (results) {
+        hideBanner();
+        showData();
+        render(results[0], results[1], results[2], results[3], results[4]);
+        lastLoad = Date.now();
+        setLive("live", "Live");
+        if (ui.lastUpdated) {
+          ui.lastUpdated.textContent = "Updated " + new Date().toLocaleTimeString();
+        }
+      })
+      .catch(function (error) {
+        if (error && error.kind === "unauthorized") {
+          dropKey();
+          setLive("error", "Key rejected");
+          showAuth(
+            "That admin key was rejected (401). Paste a valid admin key to continue."
+          );
+          return;
+        }
+        setLive("stale", "Stale");
+        var status = error && error.status ? error.status : "unknown";
+        showBanner(
+          "Could not read the gateway (status " + status + "). The last figures stay on screen until the next successful poll."
+        );
+      })
+      .then(function () {
+        setBusy(false);
+      });
+  }
+
+  function startPolling() {
+    if (pollTimer) {
+      window.clearInterval(pollTimer);
+    }
+    pollTimer = window.setInterval(function () {
+      if (document.visibilityState === "visible") {
+        load();
+      }
+    }, POLL_MS);
+  }
+
+  /* ---------- wiring ---------- */
+
+  function onSubmit(event) {
+    event.preventDefault();
+    if (!ui.authKey) {
+      return;
+    }
+    var value = ui.authKey.value.trim();
+    if (!value) {
+      if (ui.authMessage) {
+        ui.authMessage.textContent = "Enter your admin key to connect.";
+      }
+      ui.authKey.focus();
+      return;
+    }
+    writeKey(value);
+    ui.authKey.value = "";
+    if (ui.authForget) {
+      ui.authForget.hidden = false;
+    }
+    showData();
+    load();
+  }
+
+  function onForget() {
+    dropKey();
+    if (ui.authMessage) {
+      ui.authMessage.textContent =
+        "The key was forgotten for this tab. Paste it again to reconnect.";
+    }
+    showAuth();
+    setLive("idle", "Not connected");
+    clear(ui.healthBody);
+    clear(ui.latencyBody);
+    clear(ui.errorsBody);
+    clear(ui.usageBody);
+    clear(ui.byModelBody);
+    previous.total = null;
+    previous.failed = null;
+    previous.rateLimited = null;
+    history.total.length = 0;
+    history.failed.length = 0;
+    history.rateLimited.length = 0;
+    history.successRate.length = 0;
+  }
+
+  function init() {
+    if (ui.authForm) {
+      ui.authForm.addEventListener("submit", onSubmit);
+    }
+    if (ui.authForget) {
+      ui.authForget.addEventListener("click", onForget);
+    }
+    if (ui.signOut) {
+      ui.signOut.addEventListener("click", onForget);
+    }
+    if (ui.refresh) {
+      ui.refresh.addEventListener("click", function () {
+        load();
+      });
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && Date.now() - lastLoad > POLL_MS) {
+        load();
+      }
+    });
+
+    clockTimer = window.setInterval(tick, 1000);
+    startPolling();
+
+    if (readKey()) {
+      showData();
+      load();
+    } else {
+      showAuth();
+      setLive("idle", "Not connected");
+    }
+  }
+
   init();
-}
+})();

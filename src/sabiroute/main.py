@@ -21,6 +21,7 @@ from .api.dashboard import mount_dashboard
 from .api.deadline import DeadlineMiddleware, request_deadline_seconds
 from .api.health import router as health_router
 from .api.shutdown import router as shutdown_router
+from .config.remote_access import resolve_bind_host
 from .gateway import GatewayState, build_gateway_state, empty_gateway_state
 from .security.redaction import redact_secrets
 from .security.store import (
@@ -282,7 +283,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     uvicorn.run(
         "sabiroute.main:app",
-        host=os.environ.get("SABIROUTE_HOST", "127.0.0.1"),
+        host=resolve_bind_host(),
         port=int(os.environ.get("SABIROUTE_API_PORT", "8000")),
     )
 

@@ -63,7 +63,28 @@ def test_cli_entry_point_delegates_to_uvicorn(
     main_module.main([])
 
     assert captured["target"] == "sabiroute.main:app"
-    assert captured["kwargs"] == {"host": "0.0.0.0", "port": 9000}
+    assert captured["kwargs"] == {"host": "localhost", "port": 9000}
+
+
+def test_cli_entry_point_refuses_a_non_loopback_bind(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ADR-010: a wider listener is a startup error, not a warning."""
+    from sabiroute.config.remote_access import InsecureBindError
+
+    captured: dict[str, dict[str, object]] = {}
+
+    def fake_run(app_path: str, **kwargs: object) -> None:
+        captured["kwargs"] = kwargs
+
+    monkeypatch.setattr(main_module.uvicorn, "run", fake_run)
+    monkeypatch.setenv("SABIROUTE_HOST", "0.0.0.0")
+    monkeypatch.delenv("SABIROUTE_ALLOW_NON_LOOPBACK_BIND", raising=False)
+
+    with pytest.raises(InsecureBindError):
+        main_module.main([])
+
+    assert captured == {}
 
 
 def test_redis_url_configures_the_rate_limiter(

@@ -2,144 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SabiRoute admin dashboard — a read-only view of gateway health, metrics, latency, errors and usage." />
-  <title>SabiRoute Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="SabiRoute gateway console: provider health, request volume, latency, errors and token usage. Read-only." />
+  <title>SabiRoute Console</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./dashboard.css" />
 </head>
 <body>
-  <div id="dashboard">
+  <div class="app">
     <header class="topbar">
-      <h1>SabiRoute Admin Dashboard</h1>
-      <p class="muted">
-        Read-only. Every figure comes from the authenticated
-        <code>/admin</code> endpoints; nothing on this page changes gateway state.
-      </p>
+      <div class="brand">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <path d="M4 8.5h9.5a3 3 0 100-6" />
+            <path d="M4 15.5h13a3 3 0 110 6" />
+            <path d="M4 12h16" />
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>SabiRoute</h1>
+          <p class="sub">Gateway console</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="live-indicator" class="live" data-state="idle">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="live-label">Not connected</span>
+        </span>
+        <button id="refresh" class="btn" type="button">Refresh</button>
+        <button id="sign-out" class="btn btn-quiet" type="button">Forget key</button>
+      </div>
     </header>
 
-    <!-- Key entry / authentication state -->
-    <section id="auth-panel" class="panel auth-panel" aria-labelledby="auth-title" hidden>
-      <h2 id="auth-title">Paste your admin key</h2>
-      <p id="auth-message" class="muted" role="status" aria-live="polite">
-        This dashboard reads the five admin endpoints. Your key is kept in this
-        tab&rsquo;s session storage only and sent as a Bearer token on each request.
-      </p>
-      <form id="auth-form" novalidate>
-        <label for="admin-key">Admin key</label>
-        <input
-          id="admin-key"
-          name="admin-key"
-          type="password"
-          autocomplete="off"
-          spellcheck="false"
-          required
-        />
-        <div class="actions">
-          <button id="auth-submit" type="submit">Load dashboard</button>
-          <button id="auth-forget" type="button" hidden>Forget key</button>
-        </div>
-      </form>
-    </section>
+    <main class="main">
+      <section id="auth-panel" class="auth-card" aria-labelledby="auth-title" hidden>
+        <h2 id="auth-title">Connect to this gateway</h2>
+        <p id="auth-message" class="prose" role="status" aria-live="polite">
+          This console reads the five admin endpoints. Your key stays in this
+          tab&rsquo;s session storage, is sent as a Bearer token on each request,
+          and is never written to disk.
+        </p>
+        <form id="auth-form" novalidate>
+          <label class="field-label" for="admin-key">Admin key</label>
+          <div class="field-row">
+            <input
+              id="admin-key"
+              name="admin-key"
+              class="field"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Paste admin key"
+              required
+            />
+            <button id="auth-submit" class="btn btn-primary" type="submit">Connect</button>
+            <button id="auth-forget" class="btn btn-quiet" type="button" hidden>Forget</button>
+          </div>
+        </form>
+      </section>
 
-    <!-- Data view -->
-    <main id="data-view" hidden>
       <div id="status-banner" class="banner" role="alert" hidden></div>
 
-      <section class="panel" aria-labelledby="summary-title">
-        <h2 id="summary-title">Requests</h2>
-        <div class="stat-grid">
-          <div class="stat">
-            <span class="stat-label">Total</span>
-            <span id="stat-total" class="stat-value">&mdash;</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Successful</span>
-            <span id="stat-success" class="stat-value">&mdash;</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Failed</span>
-            <span id="stat-failed" class="stat-value">&mdash;</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Rate limited</span>
-            <span id="stat-rate-limited" class="stat-value">&mdash;</span>
-          </div>
+      <div id="data-view" hidden>
+        <section class="tiles" aria-label="Request summary">
+          <article class="tile">
+            <div class="tile-head">
+              <span class="tile-label">Requests</span>
+              <span class="tile-note">since start</span>
+            </div>
+            <span id="stat-total" class="tile-value">&#8212;</span>
+            <div class="spark" id="spark-total" aria-hidden="true"></div>
+          </article>
+          <article class="tile">
+            <div class="tile-head">
+              <span class="tile-label">Success rate</span>
+              <span class="tile-note">of all requests</span>
+            </div>
+            <span id="stat-success" class="tile-value">&#8212;</span>
+            <div class="spark" id="spark-success" aria-hidden="true"></div>
+          </article>
+          <article class="tile">
+            <div class="tile-head">
+              <span class="tile-label">Failures</span>
+              <span class="tile-note">provider and policy</span>
+            </div>
+            <span id="stat-failed" class="tile-value">&#8212;</span>
+            <div class="spark" id="spark-failed" aria-hidden="true"></div>
+          </article>
+          <article class="tile">
+            <div class="tile-head">
+              <span class="tile-label">Rate limited</span>
+              <span class="tile-note">refused at the gate</span>
+            </div>
+            <span id="stat-rate-limited" class="tile-value">&#8212;</span>
+            <div class="spark" id="spark-rate-limited" aria-hidden="true"></div>
+          </article>
+        </section>
+
+        <div class="grid">
+          <section class="card card-wide" aria-labelledby="health-title">
+            <header class="card-head">
+              <div>
+                <h2 id="health-title">Deployment health</h2>
+                <p class="card-sub">Health is a hard routing constraint. Cooling-down deployments are skipped.</p>
+              </div>
+              <span id="health-summary" class="pill pill-neutral">&#8212;</span>
+            </header>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Deployment</th>
+                  <th scope="col">State</th>
+                  <th scope="col" class="num">Successes</th>
+                  <th scope="col" class="num">Failures</th>
+                  <th scope="col">Reliability</th>
+                </tr>
+              </thead>
+              <tbody id="health-body"></tbody>
+            </table>
+            <p id="health-empty" class="empty" hidden>No deployments reported. The registry is empty or the catalog failed to load.</p>
+          </section>
+
+          <section class="card" aria-labelledby="latency-title">
+            <header class="card-head">
+              <div>
+                <h2 id="latency-title">Latency</h2>
+                <p class="card-sub">Observed per deployment, in-process.</p>
+              </div>
+            </header>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Deployment</th>
+                  <th scope="col" class="num">Avg</th>
+                  <th scope="col" class="num">Last</th>
+                </tr>
+              </thead>
+              <tbody id="latency-body"></tbody>
+            </table>
+            <p id="latency-empty" class="empty" hidden>No latency samples yet. Send a request through the gateway.</p>
+          </section>
+
+          <section class="card" aria-labelledby="errors-title">
+            <header class="card-head">
+              <div>
+                <h2 id="errors-title">Errors</h2>
+                <p class="card-sub">Every failure is classified. No unlabelled errors.</p>
+              </div>
+            </header>
+            <table class="table">
+              <thead>
+                <tr><th scope="col">Category</th><th scope="col" class="num">Count</th></tr>
+              </thead>
+              <tbody id="errors-body"></tbody>
+            </table>
+            <p id="errors-empty" class="empty" hidden>No errors recorded.</p>
+          </section>
+
+          <section class="card" aria-labelledby="usage-title">
+            <header class="card-head">
+              <div>
+                <h2 id="usage-title">Tokens</h2>
+                <p class="card-sub">Prompt plus completion, by model.</p>
+              </div>
+            </header>
+            <table class="table">
+              <thead>
+                <tr><th scope="col">Model</th><th scope="col" class="num">Tokens</th></tr>
+              </thead>
+              <tbody id="usage-body"></tbody>
+            </table>
+            <p id="usage-empty" class="empty" hidden>No usage recorded yet.</p>
+          </section>
+
+          <section class="card" aria-labelledby="by-model-title">
+            <header class="card-head">
+              <div>
+                <h2 id="by-model-title">Traffic by model</h2>
+                <p class="card-sub">Share of requests handled.</p>
+              </div>
+            </header>
+            <table class="table">
+              <thead>
+                <tr><th scope="col">Model</th><th scope="col" class="num">Requests</th></tr>
+              </thead>
+              <tbody id="by-model-body"></tbody>
+            </table>
+            <p id="by-model-empty" class="empty" hidden>No requests recorded yet.</p>
+          </section>
         </div>
-      </section>
 
-      <section class="panel" aria-labelledby="by-model-title">
-        <h2 id="by-model-title">Requests by model</h2>
-        <table class="data-table">
-          <thead>
-            <tr><th scope="col">Model</th><th scope="col">Requests</th></tr>
-          </thead>
-          <tbody id="by-model-body"></tbody>
-        </table>
-        <p id="by-model-empty" class="muted empty" hidden>No requests recorded yet.</p>
-      </section>
-
-      <section class="panel" aria-labelledby="health-title">
-        <h2 id="health-title">Deployment health</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">Deployment</th>
-              <th scope="col">Healthy</th>
-              <th scope="col">Available</th>
-              <th scope="col">Successes</th>
-              <th scope="col">Failures</th>
-              <th scope="col">Cooldown until</th>
-            </tr>
-          </thead>
-          <tbody id="health-body"></tbody>
-        </table>
-        <p id="health-empty" class="muted empty" hidden>No deployments reported.</p>
-      </section>
-
-      <section class="panel" aria-labelledby="latency-title">
-        <h2 id="latency-title">Latency by deployment</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">Deployment</th>
-              <th scope="col">Samples</th>
-              <th scope="col">Average (ms)</th>
-              <th scope="col">Last (ms)</th>
-            </tr>
-          </thead>
-          <tbody id="latency-body"></tbody>
-        </table>
-        <p id="latency-empty" class="muted empty" hidden>No latency samples yet.</p>
-      </section>
-
-      <section class="panel" aria-labelledby="errors-title">
-        <h2 id="errors-title">Error categories</h2>
-        <table class="data-table">
-          <thead>
-            <tr><th scope="col">Category</th><th scope="col">Count</th></tr>
-          </thead>
-          <tbody id="errors-body"></tbody>
-        </table>
-        <p id="errors-empty" class="muted empty" hidden>No errors recorded.</p>
-      </section>
-
-      <section class="panel" aria-labelledby="usage-title">
-        <h2 id="usage-title">Token usage by model</h2>
-        <table class="data-table">
-          <thead>
-            <tr><th scope="col">Model</th><th scope="col">Tokens</th></tr>
-          </thead>
-          <tbody id="usage-body"></tbody>
-        </table>
-        <p id="usage-empty" class="muted empty" hidden>No usage recorded yet.</p>
-      </section>
-
-      <footer class="foot">
-        <button id="refresh" type="button">Refresh</button>
-        <button id="sign-out" type="button">Forget key</button>
-        <span id="last-updated" class="muted small" aria-live="polite"></span>
-      </footer>
+        <footer class="foot">
+          <span id="last-updated" aria-live="polite">Not updated yet</span>
+          <span class="foot-note">Read-only. Nothing on this page changes gateway state.</span>
+        </footer>
+      </div>
     </main>
   </div>
   <script src="./dashboard.js" defer></script>
