@@ -29,7 +29,7 @@ live evidence.
 | 02 | In progress | 3 of 14 aliases have runtime evidence — `gemini`, `groq`, `openrouter` (`docs/capabilities.md`); 11 marked unknown | 11/14 deployments have zero runtime evidence; Together auth failure recorded 2026-10-10 | run `scripts/test_providers.py` against the next unverified deployment |
 | 03 | Complete | `providers/registry.py`; `config/config.yaml` is the runtime catalog; `tests/test_registry.py` | none blocking | maintain |
 | 04 | Complete | `routing/policies.py`; six route policies validated at startup; `tests/test_policies*.py` | `research` policy is the only one exercised live | exercise a second policy on the live path |
-| 05 | **Implemented** | retry/fallback loop in `api/completions.py` routes every attempt through `Router.choose_deployment`; `tests/test_fallback_injection.py`, `tests/test_proxy_attempt_census.py` | **no live failure-injection**; fallback has never stepped to a second provider against real services | run the documented injection harness (`docs/controlled-failure-injection.md`) against a live stack |
+| 05 | Complete | retry/fallback loop in `api/completions.py` routes every attempt through `Router.choose_deployment`; `tests/test_fallback_injection.py`, `tests/test_proxy_attempt_census.py`; live real-provider failover **PASS** re-verified 2026-11-27 (`artifacts/phase05-live-fallback-reverify-20261127.md`) | failover is proven on a harness-supplied `primary`/`secondary` topology; the shipped catalog gives **every alias exactly one deployment**, so no configured alias has a second target | add a second deployment to at least one alias, or record the single-target constraint as accepted design |
 | 06 | Complete | passive success/failure + cooldown registry in `routing/health.py`; `tests/test_health*.py`, `tests/test_router_and_health_guards.py`; live cooldown → recovery **PASS** re-verified 2026-11-27 (`artifacts/phase06-live-reverify-20261127.md`) | active `ProviderHealthChecker` was removed by design, not neglect (`docs/routing.md`, amendment 2026-11-23, owner accepted passive-only) | maintain; re-open only under the routing.md re-opening conditions |
 | 07 | **Implemented** | `monitoring/{metrics,latency,errors,usage}.py` wired into gateway state; `/admin/metrics`, `/admin/latency`, `/admin/errors`, `/admin/usage` | no stored failure-metric evidence; trackers are process-local and reset on restart | capture an admin metrics snapshot under induced failure |
 | 08 | Complete | `security/store.py` `PostgresApiKeyStore`; `docs/phase13-data-foundation.md` documents the live run | **PostgreSQL integration tests skipped locally** (`SABIROUTE_TEST_PG_URL` unset); never validated on managed PG | set `SABIROUTE_TEST_PG_URL` and run the gated PG tests |
@@ -50,12 +50,14 @@ live evidence.
 
 ## Summary
 
-1. **Complete: 8 phases** — 00, 01, 03, 04, 06, 08, 09, and no others. Of these, 01 and 04 rest
-   on a documented live path that is **success-only and not currently running**; 06 was
-   re-verified live on 2026-11-27, including the failure and recovery transitions.
-2. **Implemented but not live: 7 phases** — 05, 07, 10, 11, 12, 14, 18 (plus 20 as a
+1. **Complete: 9 phases** — 00, 01, 03, 04, 05, 06, 08, 09, and no others. Of these, 01 and 04
+   rest on a documented live path that is **success-only and not currently running**; 06 was
+   re-verified live on 2026-11-27, including the failure and recovery transitions; 05 was
+   re-verified live on 2026-11-27 against real providers, under a real upstream failure.
+2. **Implemented but not live: 6 phases** — 07, 10, 11, 12, 14, 18 (plus 20 as a
    deployment foundation). All have code and tests; none has exercised its failure path
-   against real providers. Phase 06 left this group on 2026-11-27 — see
+   against real providers. Phases 05 and 06 left this group on 2026-11-27 — see
+   `artifacts/phase05-live-fallback-reverify-20261127.md` and
    `artifacts/phase06-live-reverify-20261127.md`.
 3. **Highest-leverage next phase by the constitution's engineering order: Phase 02**
    (provider expansion). It is the earliest non-Complete phase, and it is the direct
