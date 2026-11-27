@@ -1,0 +1,94 @@
+{
+  "verdict": "PASS",
+  "claim": "a real provider failure was observable through SabiRoute's administrative telemetry surfaces: metrics counted the failure and the success, the error tracker classified it, and the latency tracker recorded the serving deployment",
+  "status": 200,
+  "elapsed_ms": 2780.5,
+  "content_preview": "OK",
+  "served_model": "secondary",
+  "checks": {
+    "status_200": true,
+    "non_empty_text": true,
+    "primary_recorded_failure": true,
+    "secondary_recorded_success": true,
+    "metrics_counted_the_request": true,
+    "metrics_counted_a_failure": true,
+    "metrics_counted_a_success": true,
+    "error_tracker_recorded_failure": true,
+    "latency_tracker_recorded_deployment": true
+  },
+  "health": {
+    "secondary": {
+      "healthy": true,
+      "available": true,
+      "consecutive_failures": 0,
+      "total_successes": 7,
+      "total_failures": 0,
+      "last_success": "2026-11-27 19:25:02.770897+00:00",
+      "last_failure": null,
+      "cooldown_until": null
+    },
+    "primary": {
+      "healthy": true,
+      "available": true,
+      "consecutive_failures": 1,
+      "total_successes": 0,
+      "total_failures": 6,
+      "last_success": null,
+      "last_failure": "2026-11-27 19:25:01.778254+00:00",
+      "cooldown_until": null
+    }
+  },
+  "metrics": {
+    "before": {
+      "requests_total": 0,
+      "requests_successful": 0,
+      "requests_failed": 0,
+      "requests_rate_limited": 0
+    },
+    "after": {
+      "requests_total": 2,
+      "requests_successful": 1,
+      "requests_failed": 1,
+      "requests_rate_limited": 0
+    },
+    "delta": {
+      "requests_failed": 1,
+      "requests_rate_limited": 0,
+      "requests_successful": 1,
+      "requests_total": 2
+    },
+    "requests_by_model": {
+      "primary": 1,
+      "secondary": 1
+    }
+  },
+  "errors": {
+    "before": {},
+    "after": {
+      "rate_limit": 1
+    },
+    "delta": {
+      "rate_limit": 1
+    }
+  },
+  "latency": {
+    "body": {
+      "primary": {
+        "samples": 6,
+        "average_ms": 1317.8550276643364,
+        "last_ms": 1774.4951250060694
+      },
+      "secondary": {
+        "samples": 7,
+        "average_ms": 848.7797618581681,
+        "last_ms": 991.5809999947669
+      }
+    }
+  },
+  "usage": {
+    "body": {
+      "secondary": 17
+    }
+  },
+  "durability_note": "counters are in-process and still reset on restart; this snapshot is stored evidence, not persistence"
+}
