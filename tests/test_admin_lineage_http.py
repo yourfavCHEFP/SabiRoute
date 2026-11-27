@@ -116,42 +116,6 @@ def test_reconcile_lineage_unknown_key_returns_404(monkeypatch):
     assert row.superseded_by is None
 
 
-def test_reconcile_lineage_missing_row_returns_409(monkeypatch):
-    store, eng, app = _make_app(monkeypatch)
-    rec, plaintext = issue_api_key(store, project_id="p", name="k")
-    store.set_budget(rec.key_id, ApiKeyBudget(daily_tokens=100))
-    with eng.begin() as conn:
-        conn.execute(
-            text(
-                "DELETE FROM sabiroute_accounting_lineages WHERE lineage_id = :l"
-            ),
-            {"l": rec.lineage_id},
-        )
-        assert get_lineage(conn, rec.lineage_id) is None
-    # A dangling lineage is normally denied by store.get. Hold the admin's
-    # already-read record to exercise the read→reconcile race: the row is
-    # gone when reconciliation executes, which is the rowcount guard's job.
-    assert store.get(rec.key_id) is None
-    monkeypatch.setattr(
-        store, "get", lambda key_id: rec if key_id == rec.key_id else None
-    )
-    with TestClient(app) as client:
-        response = client.post(
-            f"/admin/api-keys/{rec.key_id}/reconcile-lineage",
-            json={"approver": APPROVER},
-            headers=_auth(),
-        )
-        assert response.status_code == 409
-        error = response.json()["detail"]["error"]
-        assert error["type"] == "reconciliation_conflict"
-        assert "not found" in error["message"]
-        assert ADMIN_KEY not in response.text
-        assert plaintext not in response.text
-    # The missing row must not be resurrected by reconciliation.
-    with eng.connect() as conn:
-        assert get_lineage(conn, rec.lineage_id) is None
-
-
 def test_reconcile_lineage_conflicting_budgets_returns_409(monkeypatch):
     store, eng, app = _make_app(monkeypatch)
     rec1, _ = issue_api_key(store, project_id="p", name="k1")

@@ -61,29 +61,6 @@ def test_reconcile_fail_closed_on_missing_budget():
             reconcile_lineage_budgets(conn, rec.lineage_id, rec.key_id, "admin")
 
 
-def test_reconcile_missing_lineage_row_fails():
-    d = tempfile.mkdtemp()
-    url = f"sqlite:///{d}/t.db"
-    eng = _connect(url, None)
-    ensure_schema(eng, groups="full")
-    store = PostgresApiKeyStore(url, engine=eng)
-    rec, _ = issue_api_key(store, project_id="p", name="k")
-    store.set_budget(rec.key_id, ApiKeyBudget(daily_tokens=100))
-    with eng.begin() as conn:
-        conn.execute(
-            text(
-                "DELETE FROM sabiroute_accounting_lineages WHERE lineage_id = :l"
-            ),
-            {"l": rec.lineage_id},
-        )
-        assert get_lineage(conn, rec.lineage_id) is None
-        with pytest.raises(ValueError, match="not found"):
-            reconcile_lineage_budgets(
-                conn, rec.lineage_id, rec.key_id, "admin-role"
-            )
-    eng.dispose()
-
-
 def test_reconcile_requires_approver():
     d = tempfile.mkdtemp()
     url = f"sqlite:///{d}/t.db"

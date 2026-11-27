@@ -1,10 +1,4 @@
-"""Behavioural tests for the readiness contract in :mod:`sabiroute.api.health`.
-
-The readiness probe answers with a bare verdict: component names and whether a
-rate limiter is configured are never disclosed to an unauthenticated caller
-(F-08), and a failed schema re-check is response-local rather than written back
-to shared gateway state (F-09). These tests pin that contract.
-"""
+"""Behavioural tests for the readiness contract in :mod:`sabiroute.api.health`."""
 from __future__ import annotations
 
 import asyncio
@@ -69,36 +63,39 @@ def test_readiness_without_a_gateway_fails_closed() -> None:
     assert response.status_code == 503
     body = _body(response)
     assert body["status"] == "not_ready"
-    # F-08: which components failed is not disclosed to an unauthenticated caller.
-    assert set(body) == {"status"}
+    assert body["failing"] == ["startup", "registry", "key_store"]
 
 
 def test_readiness_reports_a_startup_error() -> None:
     response = _ready(_gateway(startup_error="boom"))
 
     assert response.status_code == 503
-    assert _body(response) == {"status": "not_ready"}
+    assert "startup" in _body(response)["failing"]
 
 
 def test_readiness_is_ready_when_every_component_is_present() -> None:
     response = _ready(_gateway())
 
     assert response.status_code == 200
-    assert _body(response) == {"status": "ready"}
+    body = _body(response)
+    assert body["status"] == "ready"
+    assert body["components"]["startup"] == "ok"
+    assert body["components"]["registry"] == "ok"
+    assert body["components"]["key_store"] == "ok"
+    assert body["components"]["rate_limiter"] == "absent"
 
 
-def test_readiness_does_not_disclose_the_rate_limiter() -> None:
-    """A configured rate limiter must not be visible in the public verdict."""
-    assert _ready(_gateway(rate_limiter=object())).status_code == 200
-    assert _body(_ready(_gateway(rate_limiter=object()))) == {"status": "ready"}
-    assert _body(_ready(_gateway(rate_limiter=None))) == {"status": "ready"}
+def test_readiness_reports_the_rate_limiter_informationally() -> None:
+    response = _ready(_gateway(rate_limiter=object()))
+
+    assert _body(response)["components"]["rate_limiter"] == "configured"
 
 
 def test_readiness_fails_when_no_deployments_are_configured() -> None:
     response = _ready(_gateway(registry=[]))
 
     assert response.status_code == 503
-    assert _body(response) == {"status": "not_ready"}
+    assert _body(response)["failing"] == ["registry"]
 
 
 def test_readiness_fails_when_the_key_store_is_missing() -> None:
@@ -108,38 +105,22 @@ def test_readiness_fails_when_the_key_store_is_missing() -> None:
     response = _ready(gateway)
 
     assert response.status_code == 503
-    assert _body(response) == {"status": "not_ready"}
+    assert _body(response)["failing"] == ["key_store"]
 
 
-def test_schema_failure_is_response_local_and_leaves_gateway_state_intact(
+def test_schema_failure_is_recorded_and_stores_are_dropped(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A transient schema failure must not poison shared gateway state.
-
-    Mutating ``startup_error`` or dropping the stores here would make a single
-    failed unauthenticated probe permanently report not-ready.
-    """
-
     def exploding(engine: Any) -> None:
         raise RuntimeError("connection refused")
 
     monkeypatch.setattr(health_module, "check_schema", exploding)
+    monkeypatch.setattr(health_module, "redact_secrets", lambda exc: f"redacted:{exc}")
     gateway = _gateway()
-    key_store = gateway.key_store
 
     response = _ready(gateway)
 
     assert response.status_code == 503
-    assert gateway.startup_error is None
-    assert gateway.key_store is key_store
-
-
-def test_schema_failures_are_not_cached_but_successes_are() -> None:
-    """F-09: a healthy steady state is cached; a failure is re-probed."""
-    cache = health_module.SchemaCheckCache(ttl_seconds=5.0)
-
-    cache.record(set())
-    assert cache.failures() == frozenset()
-
-    cache.record({"key_store"})
-    assert cache.failures() is None
+    assert gateway.startup_error == "redacted:connection refused"
+    assert gateway.key_store is None
+    assert gateway.chat_store is None

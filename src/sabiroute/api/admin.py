@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import asyncio
-from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any, ParamSpec, TypeVar, cast
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,9 +24,6 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(require_admin_key)],
 )
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 
 class CreateApiKeyRequest(BaseModel):
@@ -56,42 +51,19 @@ def _state(request: Request) -> GatewayState:
     return cast(GatewayState, request.app.state.gateway)
 
 
-def _key_store_unavailable() -> HTTPException:
-    """Stable typed failure for an unusable key store; never carries cause text."""
-    return HTTPException(
-        status_code=503,
-        detail={
-            "error": {
-                "message": "Key management is unavailable.",
-                "type": "key_store_unavailable",
-            }
-        },
-    )
-
-
 def _key_store(request: Request) -> ApiKeyStore:
     store = _state(request).key_store
     if store is None:
-        raise _key_store_unavailable()
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "message": "Key management is unavailable.",
+                    "type": "key_store_unavailable",
+                }
+            },
+        )
     return store
-
-
-async def _run_store(
-    state: GatewayState,
-    func: Callable[P, R],
-    /,
-    *args: P.args,
-    **kwargs: P.kwargs,
-) -> R:
-    """Run a store operation, translating faults without echoing their cause."""
-    try:
-        return await state.store_executor.run(func, *args, **kwargs)
-    except asyncio.CancelledError:
-        # Cancellation stays cancellation. The executor releases its slot in
-        # its own finally path when the worker actually finishes.
-        raise
-    except Exception as exc:
-        raise _key_store_unavailable() from exc
 
 
 def _issued_response(record: ApiKeyRecord, plaintext: str) -> dict[str, Any]:
@@ -135,8 +107,7 @@ async def create_client_api_key(
     payload: CreateApiKeyRequest,
     request: Request,
 ) -> dict[str, Any]:
-    record, plaintext = await _run_store(
-        _state(request),
+    record, plaintext = await _state(request).store_executor.run(
         issue_api_key,
         _key_store(request),
         project_id=payload.project_id,
@@ -148,8 +119,8 @@ async def create_client_api_key(
 
 @router.post("/api-keys/{key_id}/rotate", status_code=201)
 async def rotate_client_api_key(key_id: str, request: Request) -> dict[str, Any]:
-    rotated = await _run_store(
-        _state(request), rotate_api_key, _key_store(request), key_id
+    rotated = await _state(request).store_executor.run(
+        rotate_api_key, _key_store(request), key_id
     )
     if rotated is None:
         raise HTTPException(
@@ -217,15 +188,13 @@ async def reconcile_client_lineage(
             status_code=409,
             detail={"error": {"message": detail, "type": "reconciliation_conflict"}},
         ) from exc
-    except Exception as exc:
-        raise _key_store_unavailable() from exc
     return {"status": "reconciled", "key_id": key_id}
 
 
 @router.post("/api-keys/{key_id}/revoke")
 async def revoke_client_api_key(key_id: str, request: Request) -> dict[str, str]:
-    if not await _run_store(
-        _state(request), revoke_api_key, _key_store(request), key_id
+    if not await _state(request).store_executor.run(
+        revoke_api_key, _key_store(request), key_id
     ):
         raise HTTPException(
             status_code=404,
@@ -247,7 +216,7 @@ async def set_client_rate_limit(
 ) -> dict[str, Any]:
     store = _key_store(request)
     state = _state(request)
-    record = await _run_store(state, store.get, key_id)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None or record.revoked_at is not None:
         raise HTTPException(
             status_code=404,
@@ -262,7 +231,7 @@ async def set_client_rate_limit(
         requests_per_minute=payload.requests_per_minute,
         burst_capacity=payload.burst_capacity,
     )
-    if not await _run_store(state, store.set_rate_limit, key_id, limit):
+    if not await state.store_executor.run(store.set_rate_limit, key_id, limit):
         raise HTTPException(status_code=404, detail="API key not found or inactive.")
     return {
         "key_id": key_id,
@@ -276,13 +245,13 @@ async def set_client_rate_limit(
 async def get_client_rate_limit(key_id: str, request: Request) -> dict[str, Any]:
     store = _key_store(request)
     state = _state(request)
-    record = await _run_store(state, store.get, key_id)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None:
         raise HTTPException(
             status_code=404,
             detail={"error": {"message": "API key not found.", "type": "key_not_found"}},
         )
-    limit = await _run_store(state, store.get_rate_limit, key_id)
+    limit = await state.store_executor.run(store.get_rate_limit, key_id)
     return {
         "key_id": key_id,
         "project_id": record.project_id,
@@ -294,7 +263,9 @@ async def get_client_rate_limit(key_id: str, request: Request) -> dict[str, Any]
 @router.delete("/api-keys/{key_id}/rate-limit")
 async def clear_client_rate_limit(key_id: str, request: Request) -> dict[str, str]:
     store = _key_store(request)
-    if not await _run_store(_state(request), store.set_rate_limit, key_id, None):
+    if not await _state(request).store_executor.run(
+        store.set_rate_limit, key_id, None
+    ):
         raise HTTPException(
             status_code=404,
             detail={
@@ -316,14 +287,14 @@ async def client_usage_events(
 ) -> dict[str, Any]:
     store = _key_store(request)
     state = _state(request)
-    record = await _run_store(state, store.get, key_id)
+    record = await state.store_executor.run(store.get, key_id)
     if record is None:
         raise HTTPException(
             status_code=404,
             detail={"error": {"message": "API key not found.", "type": "key_not_found"}},
         )
-    events, total = await _run_store(
-        state, store.list_usage_events, key_id, limit=limit, offset=offset
+    events, total = await state.store_executor.run(
+        store.list_usage_events, key_id, limit=limit, offset=offset
     )
     return {
         "key_id": key_id,
@@ -370,8 +341,8 @@ async def set_client_budget(
         budget = ApiKeyBudget(**payload.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    if not await _run_store(
-        _state(request), _key_store(request).set_budget, key_id, budget
+    if not await _state(request).store_executor.run(
+        _key_store(request).set_budget, key_id, budget
     ):
         raise HTTPException(
             status_code=404,
@@ -389,11 +360,11 @@ async def set_client_budget(
 async def get_client_budget(key_id: str, request: Request) -> dict[str, Any]:
     store = _key_store(request)
     state = _state(request)
-    if await _run_store(state, store.get, key_id) is None:
+    if await state.store_executor.run(store.get, key_id) is None:
         raise HTTPException(status_code=404, detail="API key not found.")
-    budget = await _run_store(state, store.get_budget, key_id)
-    usage = await _run_store(
-        state, store.get_budget_usage, key_id, datetime.now(UTC)
+    budget = await state.store_executor.run(store.get_budget, key_id)
+    usage = await state.store_executor.run(
+        store.get_budget_usage, key_id, datetime.now(UTC)
     )
     return {
         "key_id": key_id,
@@ -410,8 +381,8 @@ async def get_client_budget(key_id: str, request: Request) -> dict[str, Any]:
 
 @router.delete("/api-keys/{key_id}/budget")
 async def clear_client_budget(key_id: str, request: Request) -> dict[str, str]:
-    if not await _run_store(
-        _state(request), _key_store(request).set_budget, key_id, None
+    if not await _state(request).store_executor.run(
+        _key_store(request).set_budget, key_id, None
     ):
         raise HTTPException(status_code=404, detail="API key not found or inactive.")
     return {"key_id": key_id, "status": "budget_removed"}

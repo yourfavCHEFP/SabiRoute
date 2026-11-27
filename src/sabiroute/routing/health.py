@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from ..monitoring.signals_store import InMemoryBackend, SignalsBackend
-
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
@@ -40,37 +38,6 @@ class HealthRegistry:
     failure_threshold: int = 3
     cooldown_seconds: int = 30
     state_scope_id: str = field(default_factory=lambda: str(uuid4()))
-    backend: SignalsBackend = field(
-        default_factory=InMemoryBackend, repr=False, compare=False
-    )
-
-    def __post_init__(self) -> None:
-        # Hydrate observations that survived a restart. Cooldown state
-        # (healthy / consecutive_failures / cooldown_until) is deliberately not
-        # restored: a restart still grants one fresh failure budget, exactly as
-        # it did before signals were persisted.
-        for model_name, events in self.backend.load_health().items():
-            if not events:
-                continue
-            health = self.deployments.setdefault(
-                model_name,
-                DeploymentHealth(model_name=model_name),
-            )
-            health.scoring_events.extend(events)
-            health.scoring_events.sort(key=lambda item: item[0])
-            successes = sum(1 for _, success in events if success)
-            health.total_successes += successes
-            health.total_failures += len(events) - successes
-            success_times = [
-                observed_at for observed_at, success in events if success
-            ]
-            failure_times = [
-                observed_at for observed_at, success in events if not success
-            ]
-            if success_times:
-                health.last_success = max(success_times)
-            if failure_times:
-                health.last_failure = max(failure_times)
 
     def register(self, model_name: str) -> None:
         self.deployments.setdefault(
@@ -90,7 +57,6 @@ class HealthRegistry:
         health.last_success = observed_at
         health.scoring_events.append((observed_at, True))
         health.cooldown_until = None
-        self.backend.append_health(model_name, observed_at, True)
 
     def mark_failure(self, model_name: str) -> None:
         self.register(model_name)
@@ -102,7 +68,6 @@ class HealthRegistry:
         observed_at = utc_now()
         health.last_failure = observed_at
         health.scoring_events.append((observed_at, False))
-        self.backend.append_health(model_name, observed_at, False)
 
         if health.consecutive_failures >= self.failure_threshold:
             health.healthy = False

@@ -40,13 +40,3 @@ reports/*
 !reports/r02-kill-switch-remediation.md
 !reports/reconciliation-plan.md
 !reports/sprint-02b-unattended-core.md
-# Scan output artifacts from temporary mobilization
-artifacts/production-readiness/scan-outputs/
-# Local agent and tooling state: never part of the repository
-.claude/
-.mcp.json
-.playwright-cli/
-brag-output/
-# Local diagnostic output, not project content
-claude-full-inventory.txt
-SabiRoute_review_*.zip

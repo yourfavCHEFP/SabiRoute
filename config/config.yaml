@@ -21,7 +21,7 @@ model_list:
 
   - model_name: sabiroute-openai
     litellm_params:
-      model: openai/gpt-4o-mini
+      model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
       num_retries: 1
     capabilities: &unverified_capabilities
@@ -82,7 +82,7 @@ model_list:
       reasoning: unknown
       vision: unknown
       long_context: unknown
-      tool_use: true
+      tool_use: unknown
       structured_output: unknown
       json: unknown
       streaming: true
@@ -121,7 +121,7 @@ model_list:
 
   - model_name: sabiroute-kimi
     litellm_params:
-      model: moonshot/kimi-k3.1-pro
+      model: moonshot/moonshot-v1-128k
       api_key: os.environ/MOONSHOT_API_KEY
       num_retries: 1
     capabilities: *unverified_capabilities
@@ -133,7 +133,7 @@ model_list:
 
   - model_name: sabiroute-minimax
     litellm_params:
-      model: minimax/MiniMax-M3
+      model: minimax/MiniMax-M2.1
       api_key: os.environ/MINIMAX_API_KEY
       num_retries: 1
       api_base: https://api.minimax.io/v1
@@ -150,19 +150,7 @@ model_list:
       api_key: os.environ/CLOUDFLARE_API_KEY
       num_retries: 1
       account_id: os.environ/CLOUDFLARE_ACCOUNT_ID
-    capabilities:
-      chat: true
-      coding: unknown
-      reasoning: unknown
-      vision: unknown
-      long_context: unknown
-      tool_use: true
-      structured_output: true
-      json: true
-      streaming: true
-      low_latency: unknown
-      embedding: unknown
-      multimodal: unknown
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -181,10 +169,10 @@ model_list:
       reasoning: unknown
       vision: unknown
       long_context: unknown
-      tool_use: true
-      structured_output: true
-      json: true
-      streaming: true
+      tool_use: unknown
+      structured_output: unknown
+      json: unknown
+      streaming: unknown
       low_latency: unknown
       embedding: unknown
       multimodal: unknown
@@ -208,7 +196,7 @@ model_list:
 
   - model_name: sabiroute-cerebras
     litellm_params:
-      model: cerebras/gpt-oss-120b
+      model: cerebras/llama3-70b-instruct
       api_key: os.environ/CEREBRAS_API_KEY
       num_retries: 1
     capabilities: *unverified_capabilities
@@ -220,22 +208,10 @@ model_list:
 
   - model_name: sabiroute-nvidia
     litellm_params:
-      model: nvidia_nim/nvidia/nemotron-3.5-bolt-e4b
+      model: nvidia_nim/meta/llama3-70b-instruct
       api_key: os.environ/NVIDIA_NIM_API_KEY
       num_retries: 1
-    capabilities:
-      chat: true
-      coding: unknown
-      reasoning: unknown
-      vision: unknown
-      long_context: unknown
-      tool_use: true
-      structured_output: true
-      json: true
-      streaming: true
-      low_latency: unknown
-      embedding: unknown
-      multimodal: unknown
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -247,19 +223,7 @@ model_list:
       model: cohere_chat/command-a-03-2025
       api_key: os.environ/COHERE_API_KEY
       num_retries: 1
-    capabilities:
-      chat: true
-      coding: unknown
-      reasoning: unknown
-      vision: unknown
-      long_context: unknown
-      tool_use: true
-      structured_output: unknown
-      json: unknown
-      streaming: true
-      low_latency: unknown
-      embedding: unknown
-      multimodal: unknown
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================
@@ -268,23 +232,11 @@ model_list:
 
   - model_name: sabiroute-pollinations
     litellm_params:
-      model: openai/openai
+      model: openai/gpt-6-luna
       api_base: https://gen.pollinations.ai/v1
       api_key: os.environ/POLLINATION_API_KEY
       num_retries: 1
-    capabilities:
-      chat: true
-      coding: unknown
-      reasoning: unknown
-      vision: unknown
-      long_context: unknown
-      tool_use: true
-      structured_output: true
-      json: true
-      streaming: true
-      low_latency: unknown
-      embedding: unknown
-      multimodal: unknown
+    capabilities: *unverified_capabilities
 
 
   # ==========================================================

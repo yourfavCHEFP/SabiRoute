@@ -31,7 +31,7 @@ def _deployment(input_price: Any, output_price: Any) -> Any:
 
 def _expected_estimate(messages: list[dict[str, Any]]) -> int:
     serialized = json.dumps(messages, ensure_ascii=False, separators=(",", ":"))
-    return len(serialized.encode("utf-8")) + len(messages) * 16 + 4
+    return len(serialized.encode()) + len(messages) * 16 + 4
 
 
 # --- estimate_input_tokens ----------------------------------------------
@@ -50,7 +50,7 @@ def test_estimate_counts_utf8_bytes_not_characters() -> None:
     messages = [{"role": "user", "content": "é"}]
     serialized = json.dumps(messages, ensure_ascii=False, separators=(",", ":"))
 
-    assert estimate_input_tokens(messages) == len(serialized.encode("utf-8")) + 16 + 4
+    assert estimate_input_tokens(messages) == len(serialized.encode()) + 16 + 4
     assert len("é".encode()) == 2
 
 

@@ -17,7 +17,6 @@ from .api.admin import router as admin_router
 from .api.body_limit import BodySizeMiddleware, request_max_body_bytes
 from .api.chat import router as chat_router
 from .api.completions import router as completions_router
-from .api.dashboard import mount_dashboard
 from .api.deadline import DeadlineMiddleware, request_deadline_seconds
 from .api.health import router as health_router
 from .api.shutdown import router as shutdown_router
@@ -33,75 +32,6 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 logger = logging.getLogger(__name__)
-
-#: F-13: a same-origin-only policy for the zero-build UI. ``/app`` and
-#: ``/admin/dashboard`` load their JavaScript and CSS from their own mount and
-#: build DOM with ``textContent``/CSSOM, so no inline script or style is
-#: needed. ``img-src`` allows the ``data:`` favicons both pages declare.
-CONTENT_SECURITY_POLICY = "; ".join(
-    (
-        "default-src 'self'",
-        "script-src 'self'",
-        "style-src 'self'",
-        "img-src 'self' data:",
-        "font-src 'self'",
-        "connect-src 'self'",
-        "object-src 'none'",
-        "base-uri 'none'",
-        "form-action 'self'",
-        "frame-ancestors 'none'",
-    )
-)
-
-#: Emitted on every response. Browsers ignore STS received over plain HTTP
-#: (RFC 6797 §8.1), so this is harmless on a local HTTP deployment and takes
-#: effect as soon as the origin is served over TLS. ``includeSubDomains`` is
-#: deliberately omitted: this is a local-first gateway and must not upgrade
-#: unrelated sibling hosts.
-STRICT_TRANSPORT_SECURITY = "max-age=31536000"
-
-#: The opt-in developer docs (``SABIROUTE_DOCS_ENABLED``) bootstrap Swagger UI
-#: and ReDoc from a CDN with an inline script, which the strict policy would
-#: block, so those two prefixes are exempt. Everything else — including both
-#: static UIs — keeps the strict policy.
-_CSP_EXEMPT_PREFIXES = ("/docs", "/redoc")
-
-
-class SecurityHeadersMiddleware:
-    """Attach baseline security response headers to every HTTP response.
-
-    Pure ASGI, matching the other boundary middleware, so streamed and static
-    responses are covered too. An existing header of the same name is never
-    overwritten.
-    """
-
-    def __init__(self, app: Any) -> None:
-        self.app = app
-
-    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
-        if scope.get("type") != "http":
-            await self.app(scope, receive, send)
-            return
-        headers: list[tuple[bytes, bytes]] = [
-            (b"x-content-type-options", b"nosniff"),
-            (b"strict-transport-security", STRICT_TRANSPORT_SECURITY.encode("ascii")),
-        ]
-        if not str(scope.get("path", "")).startswith(_CSP_EXEMPT_PREFIXES):
-            headers.append(
-                (b"content-security-policy", CONTENT_SECURITY_POLICY.encode("ascii"))
-            )
-
-        async def send_with_headers(message: Any) -> None:
-            if message.get("type") == "http.response.start":
-                current = list(message.get("headers", []))
-                present = {name.lower() for name, _ in current}
-                for name, value in headers:
-                    if name not in present:
-                        current.append((name, value))
-                message["headers"] = current
-            await send(message)
-
-        await self.app(scope, receive, send_with_headers)
 
 
 def _web_dir() -> Path | None:
@@ -241,18 +171,12 @@ def create_app(state: GatewayState | None = None) -> FastAPI:
         # Mounted under /app so API routes and docs are untouched; the same
         # directory deploys to static hosting unchanged.
         app.mount("/app", StaticFiles(directory=web_dir, html=True), name="sabichat-web")
-        # Phase 15: read-only admin dashboard over the existing /admin
-        # endpoints. Mounted beside, not over, the admin router.
-        mount_dashboard(app, web_dir)
     app.add_middleware(
         DeadlineMiddleware, deadline_seconds=request_deadline_seconds()
     )
     app.add_middleware(
         BodySizeMiddleware, max_body_bytes=request_max_body_bytes()
     )
-    # Added last so it is the outermost user middleware: the headers are
-    # attached to responses produced by the body-limit and deadline layers too.
-    app.add_middleware(SecurityHeadersMiddleware)
 
     return app
 

@@ -6,18 +6,15 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from redis import Redis as SyncRedis
 from redis.asyncio import Redis
 
 from .chat.store import SabiChatStore
 from .config.loader import load_config
 from .config.models import SabiRouteConfig
-from .config.validation import OptimizationSettings, load_optimization_settings
 from .freepool.eligibility import FreePoolPolicy
 from .monitoring.errors import ErrorTracker
 from .monitoring.latency import LatencyTracker
 from .monitoring.metrics import Metrics
-from .monitoring.signals_store import InMemoryBackend, RedisBackend, SignalsBackend
 from .monitoring.usage import UsageTracker
 from .providers.litellm_client import LiteLLMClient
 from .providers.registry import ProviderRegistry, registry_from_config
@@ -38,50 +35,6 @@ from .security.store_executor import BoundedStoreExecutor
 
 DEFAULT_PROXY_URL = "http://127.0.0.1:4000"
 DEFAULT_ROUTES_PATH = Path(__file__).resolve().parents[2] / "config" / "routes"
-
-#: Bounded so an unavailable signals store degrades quickly instead of
-#: stalling the background writer (and, at startup, hydration).
-_SIGNALS_SOCKET_TIMEOUT_SECONDS = 0.5
-
-
-def _signals_backend_from_env(ttl_seconds: int) -> SignalsBackend:
-    """Select the health/latency signal store using the rate limiter's rules.
-
-    ``REDIS_URL`` wins; otherwise ``REDIS_HOST`` with ``REDIS_PORT``,
-    ``REDIS_DB`` and ``REDIS_PASSWORD`` is used, with the same blank-means-unset
-    handling as request admission. No Redis configuration selects the
-    in-process default, which is exactly the pre-persistence behaviour.
-
-    The client is synchronous because the registry write path is synchronous
-    and runs inside async request handlers; ``RedisBackend`` moves the actual
-    I/O to a background writer so the event loop never blocks. ``Redis`` does
-    not dial on construction, so an unavailable server degrades at first use
-    rather than failing startup.
-    """
-    redis_url = os.environ.get("REDIS_URL")
-    redis_host = os.environ.get("REDIS_HOST")
-    if redis_url:
-        client = SyncRedis.from_url(
-            redis_url,
-            decode_responses=True,
-            socket_timeout=_SIGNALS_SOCKET_TIMEOUT_SECONDS,
-            socket_connect_timeout=_SIGNALS_SOCKET_TIMEOUT_SECONDS,
-        )
-    elif redis_host:
-        redis_port = (os.environ.get("REDIS_PORT") or "").strip() or "6379"
-        redis_db = (os.environ.get("REDIS_DB") or "").strip() or "0"
-        client = SyncRedis(
-            host=redis_host,
-            port=int(redis_port),
-            password=os.environ.get("REDIS_PASSWORD") or None,
-            db=int(redis_db),
-            decode_responses=True,
-            socket_timeout=_SIGNALS_SOCKET_TIMEOUT_SECONDS,
-            socket_connect_timeout=_SIGNALS_SOCKET_TIMEOUT_SECONDS,
-        )
-    else:
-        return InMemoryBackend()
-    return RedisBackend(client, ttl_seconds=ttl_seconds)
 
 
 @dataclass
@@ -116,10 +69,6 @@ class GatewayState:
     # Per-user quota policy for pilot shared inference. Empty pilot cohort
     # by default: nobody is metered until deliberately configured.
     quota_policy: QuotaPolicy = field(default_factory=QuotaPolicy)
-    # R6.3 / I5: the optimisation policy, resolved once at startup and frozen.
-    # Never re-read during a request: a mid-request flip would split one
-    # reservation across two requests.
-    optimization: OptimizationSettings = field(default_factory=OptimizationSettings)
     store_executor: BoundedStoreExecutor = field(
         default_factory=BoundedStoreExecutor
     )
@@ -173,12 +122,9 @@ def build_gateway_state(
         # Explicitly injected configs are used by tests and embedders; keep
         # their policy defaults independent of the repository's production routes.
         policies = PolicyRegistry()
-    signals_backend = _signals_backend_from_env(
-        config.routing_scoring.max_signal_age_seconds
-    )
-    health = HealthRegistry(backend=signals_backend)
+    health = HealthRegistry()
     metrics = Metrics()
-    latency = LatencyTracker(backend=signals_backend)
+    latency = LatencyTracker()
     errors = ErrorTracker()
     usage = UsageTracker()
 
@@ -243,15 +189,6 @@ def build_gateway_state(
     if quota_policy is None:
         quota_policy = QuotaPolicy.from_env()
 
-    # R6.3 / I5: optimisation settings load once here and are frozen on the state.
-    # Invalid values raise ConfigValidationError, which is a startup failure rather
-    # than a runtime degrade — an operator who mistyped a policy should not discover
-    # it by silently serving uncompressed traffic. Absent section means defaults,
-    # which is disabled.
-    optimization = load_optimization_settings(
-        (config.model_extra or {}).get("optimization")
-    )
-
     if chat_store is None and not stores_managed_by_caller:
         # Neither store was injected, so this is a real deployment (or a
         # storeless test): both stores come from the environment together.
@@ -282,7 +219,6 @@ def build_gateway_state(
         free_pool=free_pool,
         chat_store=chat_store,
         quota_policy=quota_policy,
-        optimization=optimization,
     )
 
 

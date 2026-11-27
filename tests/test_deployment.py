@@ -41,8 +41,11 @@ def test_readiness_reports_ready_without_providers(tmp_path):
         assert ready.status_code == 200
         body = ready.json()
         assert body["status"] == "ready"
-        # F-08: a bare verdict. Component detail stays server-side and in the logs.
-        assert set(body) == {"status"}
+        assert body["components"]["startup"] == "ok"
+        assert body["components"]["registry"] == "ok"
+        assert body["components"]["key_store"] == "ok"
+        # No Redis configured: reported, never probed, never a failure.
+        assert body["components"]["rate_limiter"] == "absent"
 
 
 def test_readiness_fails_without_request_accounting(monkeypatch):
@@ -56,8 +59,7 @@ def test_readiness_fails_without_request_accounting(monkeypatch):
         ready = client.get("/health/ready")
         assert ready.status_code == 503
         assert ready.json()["status"] == "not_ready"
-        # F-08: the failing component is not disclosed.
-        assert set(ready.json()) == {"status"}
+        assert "key_store" in ready.json()["failing"]
 
 
 def test_lifespan_closes_key_store(tmp_path, monkeypatch):
