@@ -116,13 +116,31 @@ own approval.
 
 ---
 
-## Cross-reference: Phase 05 counter anomaly
+## Cross-reference: Phase 05 counter arithmetic (resolved)
 
 The Phase 05 record flagged `consecutive_failures: 1` alongside `total_failures: 5` as
-UNVERIFIED. This run does not resolve it, but it does explain one adjacent number: two
-`record_request` calls per failover mean attempt-level and request-level counters measure
-different things by design. The `consecutive_failures` arithmetic itself remains **UNVERIFIED**
-and is worth inspecting before it is trusted as a cooldown input.
+UNVERIFIED. It is now resolved, and it is not a defect:
+
+- `total_failures` / `total_successes` are **hydrated from persisted signals** at startup
+  (`src/sabiroute/routing/health.py:51-72`), and `gateway.py:179` builds the registry over
+  `RedisBackend` when Redis is configured — so those totals include earlier runs.
+- `consecutive_failures` is **deliberately not restored** (`src/sabiroute/routing/health.py:47-50`):
+  a restart grants one fresh failure budget, so the streak counts this process only.
+
+Separately, this run shows why attempt-level and request-level numbers differ: two
+`record_request` calls per failover mean one client request produces two routing attempts.
+
+## Durability — settled as accepted design, not fixed
+
+The counters are in-process and still reset on restart. That is **already the documented
+behaviour**, not an oversight: `docs/observability.md:80-83` states that restarting SabiRoute
+resets every counter, that there is no persistence or export yet, and that durable
+per-request accounting is a *separate* system (the usage-event store). Persistent
+health/latency *signals* live in `monitoring/signals_store.py`.
+
+Making these counters durable would duplicate the usage-event store and is an architectural
+change requiring its own approval, so it is recorded here as accepted design rather than
+implemented in this phase.
 
 ---
 

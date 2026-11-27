@@ -106,15 +106,24 @@ This is a configuration/design gap, not a Phase 05 code defect.
 
 ---
 
-## Open observation (UNVERIFIED cause)
+## Counter arithmetic — explained (was UNVERIFIED, now resolved)
 
 `primary` reports `consecutive_failures: 1` alongside `total_failures: 5` and
-`total_successes: 0`. With no intervening success recorded, a consecutive count of 1 is
-inconsistent with 5 total failures. This does not affect the verdict — the failover itself is
-corroborated by `"model": "secondary"` — but the counter arithmetic is not explained here and
-should be inspected before anyone trusts `consecutive_failures` as a cooldown input.
+`total_successes: 0`. The two numbers measure different things, by design:
 
-Status: **UNVERIFIED**. Not investigated in this run.
+- `total_failures` / `total_successes` are **hydrated from persisted signals** on startup.
+  `HealthRegistry.__post_init__` replays `backend.load_health()` and adds the counts
+  (`src/sabiroute/routing/health.py:51-72`). With Redis configured, `gateway.py:179` builds the
+  registry over `RedisBackend`, so the totals carry observations from earlier runs — including
+  the earlier Phase 05 runs against the same Redis.
+- `consecutive_failures` is **deliberately not restored**. The comment at
+  `src/sabiroute/routing/health.py:47-50` states it plainly: *"Cooldown state (healthy /
+  consecutive_failures / cooldown_until) is deliberately not restored: a restart still grants
+  one fresh failure budget."* It therefore counts this process only — 1.
+
+So `5 failures / 0 successes / 1 consecutive` is correct: four historical failures replayed
+from Redis plus this run's single failure, with the streak counter scoped to the process.
+No defect, and nothing to fix. Status: **VERIFIED BY INSPECTION**.
 
 ---
 
