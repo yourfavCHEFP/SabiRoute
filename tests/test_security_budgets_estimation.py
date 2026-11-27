@@ -51,7 +51,7 @@ def test_estimate_counts_utf8_bytes_not_characters() -> None:
     serialized = json.dumps(messages, ensure_ascii=False, separators=(",", ":"))
 
     assert estimate_input_tokens(messages) == len(serialized.encode("utf-8")) + 16 + 4
-    assert len("é".encode("utf-8")) == 2
+    assert len("é".encode()) == 2
 
 
 def test_estimate_rejects_empty_message_list() -> None:
