@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any, Protocol
-from uuid import uuid4
 
 _KEY_PATTERN = re.compile(r"^sr_live_([a-f0-9]{24})_([A-Za-z0-9_-]{43})$")
 
@@ -27,7 +26,6 @@ class ApiKeyRecord:
     created_at: datetime
     revoked_at: datetime | None = None
     metadata: dict[str, Any] | None = None
-    lineage_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +34,6 @@ class ApiKeyIdentity:
 
     key_id: str
     project_id: str
-    lineage_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -375,8 +372,7 @@ class ApiKeyStore(Protocol):
 
 
 def _new_key_record(
-    *, project_id: str, name: str, metadata: dict[str, Any] | None = None,
-    lineage_id: str | None = None,
+    *, project_id: str, name: str, metadata: dict[str, Any] | None = None
 ) -> tuple[ApiKeyRecord, str]:
     key_id = secrets.token_hex(12)
     secret = secrets.token_urlsafe(32)
@@ -388,7 +384,6 @@ def _new_key_record(
         name=name,
         created_at=datetime.now(UTC),
         metadata=metadata or {},
-        lineage_id=lineage_id if lineage_id is not None else str(uuid4()),
     )
     return record, plaintext
 
@@ -412,14 +407,10 @@ def rotate_api_key(store: ApiKeyStore, old_key_id: str) -> tuple[ApiKeyRecord, s
     if old_record is None or old_record.revoked_at is not None:
         return None
 
-    # NULL-lineage legacy keys: establish a fresh lineage row in the same
-    # transaction as the rotation (handled inside store.rotate via the
-    # same-transaction backstop). Do not mint a dangling pointer here.
     new_record, plaintext = _new_key_record(
         project_id=old_record.project_id,
         name=old_record.name,
         metadata=old_record.metadata,
-        lineage_id=old_record.lineage_id,
     )
     if not store.rotate(old_key_id, new_record, datetime.now(UTC)):
         return None

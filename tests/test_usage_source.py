@@ -62,7 +62,7 @@ def test_fresh_database_records_revision_and_round_trips_source(tmp_path):
     database_url = f"sqlite:///{tmp_path / 'fresh.sqlite'}"
     store = PostgresApiKeyStore(database_url)
     try:
-        assert store.applied_revisions()[:4] == [
+        assert store.applied_revisions() == [
             "0001-usage-source",
             "0002-sabichat-backend",
             "0003-shared-inference-switch",
@@ -108,7 +108,7 @@ def test_legacy_schema_upgrades_without_losing_rows_and_stays_unknown(tmp_path):
 
     store = PostgresApiKeyStore(database_url)
     try:
-        assert store.applied_revisions()[:4] == [
+        assert store.applied_revisions() == [
             "0001-usage-source",
             "0002-sabichat-backend",
             "0003-shared-inference-switch",
@@ -133,7 +133,7 @@ def test_migrations_rerun_idempotently(tmp_path):
 
     second = PostgresApiKeyStore(database_url)
     try:
-        assert second.applied_revisions()[:4] == [
+        assert second.applied_revisions() == [
             "0001-usage-source",
             "0002-sabichat-backend",
             "0003-shared-inference-switch",
@@ -144,7 +144,6 @@ def test_migrations_rerun_idempotently(tmp_path):
             "0002-sabichat-backend",
             "0003-shared-inference-switch",
             "0004-user-quota-ledger",
-            "0006-accounting-lineages",
         ]
     finally:
         second.close()
@@ -359,23 +358,19 @@ def test_finalize_updates_source_on_sql_database(tmp_path):
 
 
 def test_failed_migration_surfaces_and_recovers(tmp_path, monkeypatch):
-    from sabiroute.security.store import _connect, ensure_schema
-
     database_url = f"sqlite:///{tmp_path / 'migration-failure.sqlite'}"
-    engine = _connect(database_url, None)
 
-    def _boom(connection, engine) -> None:
+    def _boom(self) -> None:
         raise RuntimeError("simulated migration failure")
 
-    monkeypatch.setattr("sabiroute.security.store._migrate_usage_columns", _boom)
+    monkeypatch.setattr(PostgresApiKeyStore, "_migrate_usage_columns", _boom)
     with pytest.raises(RuntimeError, match="simulated migration failure"):
-        ensure_schema(engine, groups="full")
+        PostgresApiKeyStore(database_url)
 
     monkeypatch.undo()
-    ensure_schema(engine, groups="full")
-    store = PostgresApiKeyStore(database_url, engine=engine)
+    store = PostgresApiKeyStore(database_url)
     try:
-        assert store.applied_revisions()[:4] == [
+        assert store.applied_revisions() == [
             "0001-usage-source",
             "0002-sabichat-backend",
             "0003-shared-inference-switch",

@@ -1,5 +1,5 @@
 # Keep secrets, local state, caches, and dev-only bulk out of the image.
-# src/, config/, web/, pyproject.toml, uv.lock, and LICENSE must stay
+# src/, config/, pyproject.toml, uv.lock, and LICENSE must stay
 # included — the runtime needs all of them.
 .env
 .env.*

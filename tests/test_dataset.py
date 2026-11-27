@@ -1116,9 +1116,7 @@ def test_store_additively_migrates_feature_columns_on_existing_usage_table() -> 
     engine = create_engine("sqlite:///:memory:")
     with engine.begin() as connection:
         connection.exec_driver_sql(
-            "CREATE TABLE sabiroute_request_usage "
-            "(request_id VARCHAR(36) PRIMARY KEY, key_id VARCHAR(24), "
-            "project_id VARCHAR(128), created_at DATETIME, final_status INTEGER)"
+            "CREATE TABLE sabiroute_request_usage (request_id VARCHAR(36) PRIMARY KEY)"
         )
     store = PostgresApiKeyStore("sqlite:///:memory:", engine=engine)
     columns = {column["name"] for column in inspect(engine).get_columns("sabiroute_request_usage")}

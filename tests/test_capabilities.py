@@ -335,7 +335,11 @@ def test_config_rejects_unknown_capability_and_accepts_unknown_state() -> None:
         "coding": True,
         "vision": False,
     }
-    config = validate_config(SabiRouteConfig.from_mapping(base))
+    # ``base`` is derived from make_config(), which carries a literal marked
+    # test credential and therefore re-validates under the same opt-in.
+    config = validate_config(
+        SabiRouteConfig.from_mapping(base), allow_test_credentials=True
+    )
     profile = registry_from_config(config).get("primary").capabilities
     assert profile.supported == frozenset({Capability.CODING})
     assert profile.unsupported == frozenset({Capability.VISION})

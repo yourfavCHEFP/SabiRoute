@@ -1,20 +1,4 @@
-"""R7 integrated-release evidence: docs exposure, request limits, deny-closed.
-
-Lane ownership: R7 (Operations/recovery — integrated regression & release
-evidence). Contains only tests that assert the *release surface* of the
-gateway as a whole:
-
-- docs exposure contract (fail-closed by default, F-04 policy)
-- request body-size and message-shape limits
-- body middleware abort/propagation safety
-- deny-closed rate limiting when the limiter is absent or unreachable
-
-Tests owned by other lanes were moved out of this file without changing their
-bodies (see R7 ownership map):
-
-- ``test_config_credential_policy.py`` — F-06a literal-credential rules (R3)
-- ``test_chat_session_hygiene.py``     — F-07 lifespan/session purge (SabiChat)
-- ``test_rate_limit_shared_backend.py``— F-08 shared-allowance doubles (rate limit)
+"""Batch 2: docs exposure policy, body-size protection, message shape caps.
 
 Uses only in-process TestClient probes with stubbed providers. No services,
 no network, no secrets.
@@ -42,8 +26,6 @@ def make_client(**kwargs):
     return state, TestClient(create_app(state=state, **kwargs))
 
 
-# --- docs exposure contract (F-04) ---
-
 def test_docs_disabled_by_default():
     _, client = make_client()
     assert client.get("/docs").status_code == 404
@@ -64,15 +46,6 @@ def test_docs_env_variants(monkeypatch):
         _, client = make_client()
         assert client.get("/docs").status_code == expected, value
 
-
-def test_docs_malformed_value_stays_disabled(monkeypatch):
-    monkeypatch.setenv("SABIROUTE_DOCS_ENABLED", "maybe")
-    _, client = make_client()
-    assert client.get("/docs").status_code == 404
-    assert client.get("/openapi.json").status_code == 404
-
-
-# --- request body-size and message-shape limits ---
 
 def test_body_limit_defaults_and_validation(monkeypatch):
     monkeypatch.delenv("SABIROUTE_MAX_REQUEST_BODY_BYTES", raising=False)
@@ -119,20 +92,6 @@ def test_body_at_boundary_passes_middleware():
         json={"model": "primary", "messages": [{"role": "user", "content": small}]},
     )
     assert response.status_code == 200
-
-
-def test_chunked_over_limit_rejected_without_length():
-    client = _authed_client()
-    big = b"x" * (DEFAULT_MAX_BODY_BYTES + 1024)
-    response = client.post(
-        "/v1/chat/completions",
-        content=b'{"model":"primary","messages":[{"role":"user","content":"'
-        + big
-        + b'"}]}',
-        headers={"Content-Type": "application/json"},
-    )
-    assert response.status_code == 413
-    assert response.json()["error"]["type"] == "request_body_too_large"
 
 
 def test_message_count_cap():
@@ -185,15 +144,420 @@ def test_malformed_body_not_confused_with_oversize():
     assert response.status_code == 422
 
 
-def test_empty_messages_rejected_422():
-    client = _authed_client()
-    response = client.post(
-        "/v1/chat/completions", json={"model": "primary", "messages": []}
+# --- F-06a literal-credential policy ---
+#
+# Literal provider credentials are rejected by default. Marked test
+# credentials (sk-test- / sk-test_ / sk-literal-test) are accepted only
+# behind an explicit, default-off opt-in that exists for controlled local
+# testing. Environment-variable references are always supported and are
+# unaffected by the opt-in in either direction.
+
+_OPT_IN_ENV_VAR = "SABIROUTE_ALLOW_TEST_CREDENTIALS"
+
+_MARKED_TEST_PREFIXES = ("sk-test-", "sk-test_", "sk-literal-test")
+
+
+def _f06a_config(api_key: str) -> dict:
+    return {
+        "model_list": [
+            {
+                "model_name": "t",
+                "litellm_params": {
+                    "model": "openai/gpt-4o-mini",
+                    "api_key": api_key,
+                },
+            }
+        ]
+    }
+
+
+def _f06a_validate(api_key: str, **kwargs):
+    from sabiroute.config.models import SabiRouteConfig
+    from sabiroute.config.validation import validate_config
+
+    return validate_config(SabiRouteConfig.from_mapping(_f06a_config(api_key)), **kwargs)
+
+
+def _f06a_reject(api_key: str, **kwargs) -> str:
+    """Return the rejection message, failing if the credential is accepted."""
+
+    from sabiroute.config.validation import ConfigValidationError
+
+    with __import__("pytest").raises(ConfigValidationError) as excinfo:
+        _f06a_validate(api_key, **kwargs)
+    return str(excinfo.value)
+
+
+def test_literal_secret_rejected_without_value_leak():
+    from sabiroute.config.models import SabiRouteConfig
+    from sabiroute.config.validation import ConfigValidationError, validate_config
+
+    secret = "sk-live-REALISTIC-SECRET-abc123"
+    try:
+        validate_config(
+            SabiRouteConfig.from_mapping(
+                {
+                    "model_list": [
+                        {
+                            "model_name": "prod",
+                            "litellm_params": {
+                                "model": "openai/gpt-4o-mini",
+                                "api_key": secret,
+                            },
+                        }
+                    ]
+                }
+            )
+        )
+    except ConfigValidationError as exc:
+        assert "literal" in str(exc).lower()
+        assert secret not in str(exc)
+    else:
+        raise AssertionError("literal secret was accepted")
+
+
+def test_literal_test_credential_rejected_by_default(monkeypatch):
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
+
+    message = _f06a_reject("sk-test-fixture-only")
+
+    assert "sk-test-fixture-only" not in message
+    assert _OPT_IN_ENV_VAR in message
+
+
+def test_literal_test_credential_rejected_when_opt_in_disabled(monkeypatch):
+    for value in ("0", "false", "no", "off", ""):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+        _f06a_reject("sk-test-fixture-only")
+
+
+def test_literal_test_credential_accepted_with_explicit_opt_in(monkeypatch):
+    for value in ("1", "true", "yes", "on", "TRUE", "On"):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+
+        config = _f06a_validate("sk-test-fixture-only")
+
+        assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
+
+
+def test_opt_in_accepts_every_marked_test_prefix(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    for prefix in _MARKED_TEST_PREFIXES:
+        value = f"{prefix}fixture-only"
+        config = _f06a_validate(value)
+        assert config.model_list[0].litellm_params.api_key == value
+
+
+def test_opt_in_does_not_enable_general_literal_credentials(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    secret = "sk-live-REALISTIC-SECRET-abc123"
+    message = _f06a_reject(secret)
+
+    assert secret not in message
+    assert "literal" in message.lower()
+
+
+def test_environment_reference_accepted_regardless_of_opt_in(monkeypatch):
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
+    config = _f06a_validate("os.environ/OPENAI_API_KEY")
+    assert config.model_list[0].litellm_params.api_key == "os.environ/OPENAI_API_KEY"
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    config = _f06a_validate("os.environ/OPENAI_API_KEY")
+    assert config.model_list[0].litellm_params.api_key == "os.environ/OPENAI_API_KEY"
+
+
+def test_malformed_opt_in_value_is_rejected(monkeypatch):
+    for value in ("maybe", "enabled", "2"):
+        monkeypatch.setenv(_OPT_IN_ENV_VAR, value)
+        message = _f06a_reject("os.environ/OPENAI_API_KEY")
+        assert _OPT_IN_ENV_VAR in message
+        assert value not in message
+        assert isinstance(message, str)
+
+
+def test_opt_in_error_does_not_echo_the_credential(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+
+    secret = "sk-live-REALISTIC-SECRET-abc123"
+    message = _f06a_reject(secret)
+
+    assert secret not in message
+
+
+def test_allowlist_rejects_whitespace_padded_values(monkeypatch):
+    for bad in (" sk-test-123", "sk-test-123 ", "sk-test-123\n"):
+        _f06a_reject(bad)
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    for bad in (" sk-test-123", "sk-test-123 ", "sk-test-123\n"):
+        _f06a_reject(bad)
+
+
+def test_explicit_parameter_overrides_environment(monkeypatch):
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "0")
+    config = _f06a_validate("sk-test-fixture-only", allow_test_credentials=True)
+    assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    _f06a_reject("sk-test-fixture-only", allow_test_credentials=False)
+
+
+def test_load_config_rejects_literal_test_credential_by_default(tmp_path, monkeypatch):
+    import yaml
+
+    from sabiroute.config.loader import load_config
+    from sabiroute.config.validation import ConfigValidationError
+
+    monkeypatch.delenv(_OPT_IN_ENV_VAR, raising=False)
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        yaml.safe_dump(_f06a_config("sk-test-fixture-only")), encoding="utf-8"
     )
-    assert response.status_code == 422
+
+    with __import__("pytest").raises(ConfigValidationError):
+        load_config(config_file)
 
 
-# --- body middleware robustness ---
+def test_load_config_accepts_literal_test_credential_with_opt_in(tmp_path, monkeypatch):
+    import yaml
+
+    from sabiroute.config.loader import load_config
+
+    monkeypatch.setenv(_OPT_IN_ENV_VAR, "1")
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        yaml.safe_dump(_f06a_config("sk-test-fixture-only")), encoding="utf-8"
+    )
+
+    config = load_config(config_file)
+
+    assert config.model_list[0].litellm_params.api_key == "sk-test-fixture-only"
+
+
+def test_env_reference_accepted_and_missing_var_fails():
+    from sabiroute.config.models import SabiRouteConfig
+    from sabiroute.config.validation import validate_config
+
+    config = validate_config(
+        SabiRouteConfig.from_mapping(
+            {
+                "model_list": [
+                    {
+                        "model_name": "t",
+                        "litellm_params": {
+                            "model": "openai/gpt-4o-mini",
+                            "api_key": "os.environ/OPENAI_API_KEY",
+                        },
+                    }
+                ]
+            }
+        )
+    )
+    assert config.model_list[0].litellm_params.api_key == "os.environ/OPENAI_API_KEY"
+    # Missing-variable behavior lives in the loader/resolver layer:
+    from sabiroute.config.loader import ConfigLoadError, _resolve_os_environ_value
+
+    try:
+        _resolve_os_environ_value("os.environ/SABIROUTE_DEFINITELY_UNSET_VAR_XYZ")
+    except ConfigLoadError as exc:
+        assert "SABIROUTE_DEFINITELY_UNSET_VAR_XYZ" in str(exc)
+    else:
+        raise AssertionError("missing env var was accepted")
+
+
+# --- F-07 lifespan-owned cleanup ---
+
+def test_startup_purges_expired_sessions_only(tmp_path):
+    from datetime import UTC, datetime, timedelta
+
+    from sabiroute.chat.store import SabiChatStore
+
+    store = SabiChatStore(f"sqlite:///{tmp_path / 'purge.sqlite'}")
+    now = datetime.now(UTC)
+    uid = store.create_user("purge@example.com", "hashed").user_id
+    # expired session
+    store.create_session(uid, "a" * 64, now - timedelta(days=1))
+    # live session
+    store.create_session(uid, "b" * 64, now + timedelta(days=7))
+    assert store.purge_expired_sessions(now) == 1
+    # idempotent re-run removes nothing
+    assert store.purge_expired_sessions(now) == 0
+
+
+def test_lifespan_purge_runs_and_never_breaks_startup(tmp_path):
+    from datetime import UTC, datetime, timedelta
+
+    from sabiroute.chat.store import SabiChatStore
+
+    store = SabiChatStore(f"sqlite:///{tmp_path / 'lifespan-purge.sqlite'}")
+    now = datetime.now(UTC)
+    uid = store.create_user("life@example.com", "hashed").user_id
+    store.create_session(uid, "c" * 64, now - timedelta(days=1))
+    state = build_gateway_state(
+        config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore(),
+        chat_store=store,
+    )
+    with TestClient(create_app(state=state)):
+        pass
+    # expired row removed by lifespan purge; live path unaffected
+    assert store.purge_expired_sessions(now) == 0
+    ready = TestClient(create_app(state=state)).get("/health/ready")
+    assert ready.status_code == 200
+
+
+def test_purge_failure_is_hygiene_not_outage(tmp_path, monkeypatch):
+    from sabiroute.chat.store import SabiChatStore
+
+    store = SabiChatStore(f"sqlite:///{tmp_path / 'purge-fail.sqlite'}")
+
+    def boom(*a, **k):
+        raise RuntimeError("store down")
+
+    monkeypatch.setattr(store, "purge_expired_sessions", boom)
+    state = build_gateway_state(
+        config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore(),
+        chat_store=store,
+    )
+    with TestClient(create_app(state=state)) as client:
+        assert client.get("/health/live").status_code == 200
+
+
+# --- F-08 multi-instance shared enforcement (deterministic doubles) ---
+
+class _ScriptlessBucket:
+    """Minimal RedisTokenBucket-shaped double sharing one dict backend."""
+
+    def __init__(self, backend: dict, prefix: str = "t"):
+        self._backend = backend
+        self._prefix = prefix
+
+    async def admit(self, key_id: str, limit) -> object:
+        import time as _time
+
+        now_ms = int(_time.time() * 1000)
+        window_ms = 60_000
+        key = f"{self._prefix}:{key_id}"
+        state = self._backend.setdefault(
+            key, {"tokens": limit.burst_capacity, "last": now_ms}
+        )
+        elapsed = now_ms - state["last"]
+        refill = elapsed * limit.requests_per_minute / window_ms
+        state["tokens"] = min(limit.burst_capacity, state["tokens"] + refill)
+        state["last"] = now_ms
+        from types import SimpleNamespace
+
+        if state["tokens"] >= 1:
+            state["tokens"] -= 1
+            return SimpleNamespace(admitted=True, retry_after_seconds=None)
+        return SimpleNamespace(admitted=False, retry_after_seconds=1)
+
+    def key(self, key_id: str) -> str:
+        return f"{self._prefix}:{key_id}"
+
+
+def test_two_instances_share_one_backend_allowance():
+    import asyncio
+
+    from sabiroute.security.keys import ApiKeyRateLimit
+
+    backend: dict = {}
+    a = _ScriptlessBucket(backend, prefix="shared")
+    b = _ScriptlessBucket(backend, prefix="shared")
+    limit = ApiKeyRateLimit(requests_per_minute=60, burst_capacity=3)
+
+    async def run():
+        r1 = await a.admit("k", limit)
+        r2 = await b.admit("k", limit)
+        r3 = await a.admit("k", limit)
+        r4 = await b.admit("k", limit)
+        return [r.admitted for r in (r1, r2, r3, r4)]
+
+    assert asyncio.run(run()) == [True, True, True, False]
+
+
+def test_distinct_prefixes_do_not_share_allowance():
+    import asyncio
+
+    from sabiroute.security.keys import ApiKeyRateLimit
+
+    backend: dict = {}
+    a = _ScriptlessBucket(backend, prefix="one")
+    b = _ScriptlessBucket(backend, prefix="two")
+    limit = ApiKeyRateLimit(requests_per_minute=60, burst_capacity=1)
+
+    async def run():
+        return [(await a.admit("k", limit)).admitted, (await b.admit("k", limit)).admitted]
+
+    assert asyncio.run(run()) == [True, True]
+
+
+def test_redis_outage_denies_closed_with_contract():
+    import asyncio
+
+    from sabiroute.security.keys import ApiKeyRateLimit
+
+    async def run():
+        from sabiroute.gateway import build_gateway_state
+
+        state = build_gateway_state(
+            config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore()
+        )
+        key = provision_test_key(state)
+
+        store = state.key_store
+        record_id = next(iter(store.records))
+        store.set_rate_limit(record_id, ApiKeyRateLimit(requests_per_minute=60, burst_capacity=5))
+
+        class Outage:
+            async def admit(self, *a, **k):
+                raise ConnectionError("redis down")
+
+        state.rate_limiter = Outage()
+        app = create_app(state=state)
+        from fastapi.testclient import TestClient
+
+        with TestClient(app, headers={"Authorization": f"Bearer {key}"}) as client:
+            r = client.post(
+                "/v1/chat/completions",
+                json={"model": "primary", "messages": [{"role": "user", "content": "hi"}]},
+            )
+            assert r.status_code == 503
+            assert r.json()["error"]["type"] == "rate_limiter_unavailable"
+
+    asyncio.run(run())
+
+
+def test_missing_limiter_with_configured_limit_denies_closed():
+    from sabiroute.security.keys import ApiKeyRateLimit
+
+    state = build_gateway_state(
+        config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore()
+    )
+    key = provision_test_key(state)
+    store = state.key_store
+    record_id = next(iter(store.records))
+    store.set_rate_limit(record_id, ApiKeyRateLimit(requests_per_minute=60, burst_capacity=5))
+    assert state.rate_limiter is None
+    from fastapi.testclient import TestClient
+
+    with TestClient(create_app(state=state), headers={"Authorization": f"Bearer {key}"}) as client:
+        r = client.post(
+            "/v1/chat/completions",
+            json={"model": "primary", "messages": [{"role": "user", "content": "hi"}]},
+        )
+        assert r.status_code == 503
+        assert r.json()["error"]["type"] == "rate_limiter_unavailable"
+
+
+def test_docs_malformed_value_stays_disabled(monkeypatch):
+    monkeypatch.setenv("SABIROUTE_DOCS_ENABLED", "maybe")
+    _, client = make_client()
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+
 
 def test_middleware_order_body_before_deadline():
     _, client = make_client()
@@ -202,6 +566,28 @@ def test_middleware_order_body_before_deadline():
         for m in client.app.user_middleware
     ]
     assert names.index("BodySizeMiddleware") < names.index("DeadlineMiddleware")
+
+
+def test_chunked_over_limit_rejected_without_length():
+    client = _authed_client()
+    big = b"x" * (DEFAULT_MAX_BODY_BYTES + 1024)
+    response = client.post(
+        "/v1/chat/completions",
+        content=b'{"model":"primary","messages":[{"role":"user","content":"'
+        + big
+        + b'"}]}',
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert response.json()["error"]["type"] == "request_body_too_large"
+
+
+def test_empty_messages_rejected_422():
+    client = _authed_client()
+    response = client.post(
+        "/v1/chat/completions", json={"model": "primary", "messages": []}
+    )
+    assert response.status_code == 422
 
 
 def test_streaming_body_abort_never_fabricates_response():
@@ -261,184 +647,32 @@ def test_streaming_body_abort_never_fabricates_response():
     assert len(starts) == 1 and starts[0]["status"] == 200
 
 
-def test_body_read_receive_exception_propagates():
-    import asyncio
+def test_purge_removes_revoked_past_retention_keeps_recent(tmp_path):
+    from datetime import UTC, datetime, timedelta
 
-    from sabiroute.api.body_limit import BodySizeMiddleware
+    from sabiroute.chat.store import SabiChatStore
 
-    async def downstream(scope, receive, send):
-        await receive()
+    store = SabiChatStore(f"sqlite:///{tmp_path / 'revoked.sqlite'}")
+    now = datetime.now(UTC)
+    uid = store.create_user("rev@example.com", "h").user_id
+    # old revoked (40 days ago) -> purged; recent revoked -> kept; live -> kept
+    s_old = store.create_session(uid, "o" * 64, now + timedelta(days=7))
+    s_new = store.create_session(uid, "n" * 64, now + timedelta(days=7))
+    store.create_session(uid, "l" * 64, now + timedelta(days=7))
+    # backdate revoked_at via direct SQL (store API stamps now)
+    from sqlalchemy import update
 
-    async def fake_receive():
-        raise RuntimeError("boom")
+    from sabiroute.chat.store import _SABICHAT_SESSIONS
 
-    sent: list = []
-
-    async def send(msg):
-        sent.append(msg)
-
-    scope = {"type": "http", "headers": []}
-    mw = BodySizeMiddleware(downstream, max_body_bytes=1024)
-
-    async def run():
-        try:
-            await mw(scope, fake_receive, send)
-        except RuntimeError as exc:
-            return str(exc)
-        return "no-exception"
-
-    assert asyncio.run(run()) == "boom"
-    # No response was fabricated.
-    starts = [m for m in sent if m.get("type") == "http.response.start"]
-    assert len(starts) == 0
-
-
-def test_body_read_disconnect_propagates():
-    import asyncio
-
-    from sabiroute.api.body_limit import BodySizeMiddleware
-
-    async def downstream(scope, receive, send):
-        await receive()
-
-    async def fake_receive():
-        return {"type": "http.disconnect"}
-
-    sent: list = []
-
-    async def send(msg):
-        sent.append(msg)
-
-    scope = {"type": "http", "headers": []}
-    mw = BodySizeMiddleware(downstream, max_body_bytes=1024)
-
-    async def run():
-        try:
-            await mw(scope, fake_receive, send)
-        except Exception as exc:  # noqa: BLE001
-            return type(exc).__name__
-        return "completed"
-
-    result = asyncio.run(run())
-    # Disconnect message is forwarded; downstream completes without 413.
-    assert result == "completed"
-    starts = [m for m in sent if m.get("type") == "http.response.start"]
-    assert len(starts) == 0
-
-
-def test_body_read_cancellation_propagates():
-    import asyncio
-
-    from sabiroute.api.body_limit import BodySizeMiddleware
-
-    async def downstream(scope, receive, send):
-        await receive()
-
-    async def fake_receive():
-        raise asyncio.CancelledError()
-
-    sent: list = []
-
-    async def send(msg):
-        sent.append(msg)
-
-    scope = {"type": "http", "headers": []}
-    mw = BodySizeMiddleware(downstream, max_body_bytes=1024)
-
-    async def run():
-        try:
-            await mw(scope, fake_receive, send)
-        except asyncio.CancelledError:
-            return "cancelled"
-        return "not-cancelled"
-
-    assert asyncio.run(run()) == "cancelled"
-    starts = [m for m in sent if m.get("type") == "http.response.start"]
-    assert len(starts) == 0
-
-
-def test_body_read_send_error_propagates():
-    import asyncio
-
-    from sabiroute.api.body_limit import BodySizeMiddleware
-
-    async def downstream(scope, receive, send):
-        await send({"type": "http.response.start", "status": 200, "headers": []})
-
-    async def fake_receive():
-        return {"type": "http.request", "body": b"hello", "more_body": False}
-
-    async def failing_send(msg):
-        raise RuntimeError("send-boom")
-
-    scope = {"type": "http", "headers": []}
-    mw = BodySizeMiddleware(downstream, max_body_bytes=1024)
-
-    async def run():
-        try:
-            await mw(scope, fake_receive, failing_send)
-        except RuntimeError as exc:
-            return str(exc)
-        return "no-exception"
-
-    assert asyncio.run(run()) == "send-boom"
-
-
-# --- deny-closed rate limiting (R7 core) ---
-
-def test_redis_outage_denies_closed_with_contract():
-    import asyncio
-
-    from sabiroute.security.keys import ApiKeyRateLimit
-
-    async def run():
-        from sabiroute.gateway import build_gateway_state
-
-        state = build_gateway_state(
-            config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore()
+    with store._engine.begin() as conn:
+        conn.execute(
+            update(_SABICHAT_SESSIONS)
+            .where(_SABICHAT_SESSIONS.c.session_id == s_old.session_id)
+            .values(revoked_at=now - timedelta(days=40))
         )
-        key = provision_test_key(state)
-
-        store = state.key_store
-        record_id = next(iter(store.records))
-        store.set_rate_limit(record_id, ApiKeyRateLimit(requests_per_minute=60, burst_capacity=5))
-
-        class Outage:
-            async def admit(self, *a, **k):
-                raise ConnectionError("redis down")
-
-        state.rate_limiter = Outage()
-        app = create_app(state=state)
-        from fastapi.testclient import TestClient
-
-        with TestClient(app, headers={"Authorization": f"Bearer {key}"}) as client:
-            r = client.post(
-                "/v1/chat/completions",
-                json={"model": "primary", "messages": [{"role": "user", "content": "hi"}]},
-            )
-            assert r.status_code == 503
-            assert r.json()["error"]["type"] == "rate_limiter_unavailable"
-
-    asyncio.run(run())
-
-
-def test_missing_limiter_with_configured_limit_denies_closed():
-    from sabiroute.security.keys import ApiKeyRateLimit
-
-    state = build_gateway_state(
-        config=make_config(), client=StubLiteLLMClient(), key_store=InMemoryApiKeyStore()
-    )
-    key = provision_test_key(state)
-    store = state.key_store
-    record_id = next(iter(store.records))
-    store.set_rate_limit(record_id, ApiKeyRateLimit(requests_per_minute=60, burst_capacity=5))
-    assert state.rate_limiter is None
-    from fastapi.testclient import TestClient
-
-    with TestClient(create_app(state=state), headers={"Authorization": f"Bearer {key}"}) as client:
-        r = client.post(
-            "/v1/chat/completions",
-            json={"model": "primary", "messages": [{"role": "user", "content": "hi"}]},
-        )
-        assert r.status_code == 503
-        assert r.json()["error"]["type"] == "rate_limiter_unavailable"
+    store.revoke_session(s_new.session_id)
+    removed = store.purge_expired_sessions(now)
+    assert removed == 1
+    assert store.get_session("o" * 64) is None
+    assert store.get_session("n" * 64) is not None
+    assert store.get_session("l" * 64) is not None

@@ -367,7 +367,11 @@ def make_config() -> SabiRouteConfig:
                     },
                 ]
             }
-        )
+        ),
+        # The fixture deliberately carries a literal marked test credential
+        # so the deployment shapes stay covered; the credential policy is
+        # opt-in, so the suite enables it explicitly here.
+        allow_test_credentials=True,
     )
 
 
@@ -462,11 +466,13 @@ _ISOLATED_RUNTIME_ENV_VARS = (
     "SABIROUTE_LITELLM_URL",
     "SABIROUTE_CONFIG_PATH",
     "SABIROUTE_ROUTES_PATH",
-    "SABIROUTE_WEB_DIR",
     "SABIROUTE_REQUEST_DEADLINE_SECONDS",
     "SABIROUTE_FREEPOOL_ENABLED",
     "SABIROUTE_FREEPOOL_DEPLOYMENTS",
     "SABIROUTE_QUOTA_PILOT_USERS",
+    "SABIROUTE_DOCS_ENABLED",
+    "SABIROUTE_MAX_REQUEST_BODY_BYTES",
+    "SABIROUTE_ALLOW_TEST_CREDENTIALS",
 )
 
 
@@ -1929,35 +1935,28 @@ def test_explicit_dotenv_file_loading_is_preserved_and_isolated(
     import sabiroute.config.loader as config_loader
     from sabiroute.config.loader import load_raw_config
 
-    # The isolated .env must not be contaminated by ambient credentials. Preserve
-    # and restore any ambient value so the test is independent of the shell env.
-    _saved_openai = os.environ.pop("OPENAI_API_KEY", None)
-    try:
-        assert "REDIS_URL" not in os.environ
-        assert "DATABASE_URL" not in os.environ
+    assert "REDIS_URL" not in os.environ
+    assert "DATABASE_URL" not in os.environ
 
-        # Write to the isolated per-test DEFAULT_ENV_PATH provided by the fixture.
-        config_loader.DEFAULT_ENV_PATH.write_text(
-            "OPENAI_API_KEY=sk-from-isolated-dotenv\n"
-            "REDIS_URL=redis://127.0.0.1:6379/9\n",
-            encoding="utf-8",
-        )
-        config_file = tmp_path / "config.yaml"
-        config_file.write_text(
-            "model_list:\n"
-            "  - model_name: openai-test\n"
-            "    litellm_params:\n"
-            "      model: openai/gpt-4o-mini\n"
-            "      api_key: os.environ/OPENAI_API_KEY\n",
-            encoding="utf-8",
-        )
+    # Write to the isolated per-test DEFAULT_ENV_PATH provided by the fixture.
+    config_loader.DEFAULT_ENV_PATH.write_text(
+        "OPENAI_API_KEY=sk-from-isolated-dotenv\n"
+        "REDIS_URL=redis://127.0.0.1:6379/9\n",
+        encoding="utf-8",
+    )
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        "model_list:\n"
+        "  - model_name: openai-test\n"
+        "    litellm_params:\n"
+        "      model: openai/gpt-4o-mini\n"
+        "      api_key: os.environ/OPENAI_API_KEY\n",
+        encoding="utf-8",
+    )
 
-        raw = load_raw_config(config_file, resolve_env=True)
-        assert raw["model_list"][0]["litellm_params"]["api_key"] == "sk-from-isolated-dotenv"
-        assert os.environ.get("REDIS_URL") == "redis://127.0.0.1:6379/9"
-    finally:
-        if _saved_openai is not None:
-            os.environ["OPENAI_API_KEY"] = _saved_openai
+    raw = load_raw_config(config_file, resolve_env=True)
+    assert raw["model_list"][0]["litellm_params"]["api_key"] == "sk-from-isolated-dotenv"
+    assert os.environ.get("REDIS_URL") == "redis://127.0.0.1:6379/9"
 
 
 def pytest_collectstart(collector: pytest.Collector) -> None:
@@ -1981,25 +1980,3 @@ def pytest_collectstart(collector: pytest.Collector) -> None:
             collector.obj.test_explicit_dotenv_file_loading_is_preserved_and_isolated = (
                 test_explicit_dotenv_file_loading_is_preserved_and_isolated
             )
-
-
-@pytest.fixture(autouse=True)
-def _ensure_schema_for_stores(monkeypatch):
-    """Tests rely on schema existing; run explicit migration before store use."""
-    from sabiroute.chat.store import SabiChatStore
-    from sabiroute.security.store import PostgresApiKeyStore, ensure_schema
-
-    orig_key = PostgresApiKeyStore.__init__
-    orig_chat = SabiChatStore.__init__
-
-    def key_init(self, database_url, *, engine=None):
-        orig_key(self, database_url, engine=engine)
-        ensure_schema(self._engine, groups="full")
-
-    def chat_init(self, database_url, *, engine=None):
-        orig_chat(self, database_url, engine=engine)
-        ensure_schema(self._engine, groups="full")
-
-    monkeypatch.setattr(PostgresApiKeyStore, "__init__", key_init)
-    monkeypatch.setattr(SabiChatStore, "__init__", chat_init)
-    yield

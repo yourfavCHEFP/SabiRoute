@@ -35,8 +35,10 @@ class ProviderDeployment:
 
     Credentials are stored as environment variable names and resolved
     lazily at the LiteLLM call boundary, keeping secrets out of config
-    snapshots and logs. ``api_key`` holds a literal key only when the
-    configuration did not use an environment reference.
+    snapshots and logs. ``api_key`` holds a literal only for explicitly marked
+    test credentials (``sk-test-*``), and only when the
+    ``SABIROUTE_ALLOW_TEST_CREDENTIALS`` opt-in is enabled; production
+    configuration must use environment references.
     """
 
     name: str

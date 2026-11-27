@@ -25,6 +25,7 @@ from ..security.store import (
     _SABICHAT_SESSIONS,
     _SABICHAT_USERS,
     _connect,
+    ensure_schema,
 )
 
 
@@ -98,8 +99,7 @@ class SabiChatStore:
         if not database_url:
             raise ValueError("DATABASE_URL is required for SabiChat persistence.")
         self._engine = _connect(database_url, engine)
-        # No schema mutation at startup. Compatibility is validated by the
-        # caller via check_schema when required.
+        ensure_schema(self._engine)
 
     # -- users ---------------------------------------------------------
 
@@ -209,16 +209,20 @@ class SabiChatStore:
             )
         return result.rowcount
 
-    # Revoked sessions are retained for this window before purge.
-    REVOKED_SESSION_RETENTION = timedelta(days=30)
+    def purge_expired_sessions(
+        self,
+        now: datetime | None = None,
+        *,
+        revoked_retention_days: int = 30,
+    ) -> int:
+        """Delete sessions past expiry plus long-revoked sessions.
 
-    def purge_expired_sessions(self, now: datetime | None = None) -> int:
-        """Delete sessions past expiry or revoked beyond retention.
-
-        Returns rows removed; safe to re-run.
+        Removes rows whose expiry passed, plus revoked rows older than
+        ``revoked_retention_days`` (audit window for recent logouts).
+        Returns rows removed; safe to re-run. Never touches live rows.
         """
         cutoff = now or _utcnow()
-        revoked_cutoff = cutoff - self.REVOKED_SESSION_RETENTION
+        revoked_cutoff = cutoff - timedelta(days=revoked_retention_days)
         with self._engine.begin() as connection:
             result = connection.execute(
                 delete(_SABICHAT_SESSIONS).where(

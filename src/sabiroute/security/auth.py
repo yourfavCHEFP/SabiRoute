@@ -71,31 +71,16 @@ async def require_client_key(
     store = _store(request)
     presented = _credentials(credentials)
     executor = _executor(request)
-    try:
-        if executor is None:
-            # States without an executor keep exact synchronous behavior.
-            record = authenticate_api_key(store, presented)
-        else:
-            record = await executor.run(authenticate_api_key, store, presented)
-    except Exception:  # noqa: BLE001 - a store fault must deny, never escape
-        # R3-S5 fail-closed: a credential-store fault denies the request with
-        # the established typed 503, exactly as the missing-store case above
-        # and the accounting path's ``usage_store_unavailable`` do.
-        #
-        # R3-S3: an exception escaping here becomes an unhandled 500 whose
-        # full traceback the ASGI server logs, and a store driver failure
-        # carries the DSN (password included) in its message. Handling it here
-        # keeps that text out of the log, and ``from None`` stops the original
-        # exception leaking through exception chaining.
-        raise _unavailable(
-            "Authentication is unavailable.", "authentication_unavailable"
-        ) from None
+    if executor is None:
+        # States without an executor keep exact synchronous behavior.
+        record = authenticate_api_key(store, presented)
+    else:
+        record = await executor.run(authenticate_api_key, store, presented)
     if record is None:
         raise _unauthorized()
     request.state.api_identity = ApiKeyIdentity(
         key_id=record.key_id,
         project_id=record.project_id,
-        lineage_id=record.lineage_id,
     )
     return record
 

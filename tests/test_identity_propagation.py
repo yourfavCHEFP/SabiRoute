@@ -313,35 +313,3 @@ def test_usage_source_invariance(caplog):
     assert plaintext not in caplog.text
 
 
-def test_chat_round_trip_still_succeeds(tmp_path):
-    from sabiroute.chat.store import SabiChatStore
-
-    stub = StubLiteLLMClient()
-    state, plaintext = make_service_state(stub)
-    chat_store = SabiChatStore(f"sqlite:///{tmp_path / 'identity-chat.sqlite'}")
-    state.chat_store = chat_store
-    app = create_app(state=state)
-
-    from fastapi.testclient import TestClient as TC
-
-    issued = issue_api_key(
-        state.key_store, project_id="chat-user", name="chat-user"
-    )[1]
-    client = TC(app, headers={"Authorization": f"Bearer {issued}"})
-    registered = client.post(
-        "/v1/auth/register",
-        json={"email": "id@example.com", "password": "propagation-proof-99"},
-    )
-    assert registered.status_code == 201
-    token = registered.json()["token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    conversation = client.post("/v1/conversations", json={}, headers=headers)
-    assert conversation.status_code == 201
-    conversation_id = conversation.json()["conversation_id"]
-    sent = client.post(
-        f"/v1/conversations/{conversation_id}/messages",
-        json={"content": "hello identity", SABI_USER_ID_FIELD: "mallory"},
-        headers=headers,
-    )
-    assert sent.status_code == 200
-    assert sent.json()["assistant_message"]["content"] == "ok"

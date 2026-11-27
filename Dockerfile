@@ -1,12 +1,9 @@
 # SabiRoute API image (Sprint 5 deployment foundation, not a production launch).
 #
-# Reproducible installs from uv.lock; the gateway runs as a non-root user.
-# The container probes READINESS, not liveness: readiness re-validates the
-# database schema, so an unmigrated or otherwise degraded gateway reports
-# unhealthy instead of passing. Schema is never created by this image's
-# startup path — run the explicit migration first (see the note below CMD).
+# Reproducible installs from uv.lock; the gateway runs as a non-root user;
+# readiness is the dependency-free liveness probe (no provider calls).
 # Secrets come from the environment at run time — never baked in, never
-# copied (see .dockerignore). Static UI ships from web/ at /app/.
+# copied (see .dockerignore).
 
 FROM python:3.11-slim AS runtime
 
@@ -19,8 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SABIROUTE_HOST=0.0.0.0 \
     SABIROUTE_API_PORT=8000 \
     SABIROUTE_CONFIG_PATH=/srv/sabiroute/config/config.yaml \
-    SABIROUTE_ROUTES_PATH=/srv/sabiroute/config/routes \
-    SABIROUTE_WEB_DIR=/srv/sabiroute/web
+    SABIROUTE_ROUTES_PATH=/srv/sabiroute/config/routes
 
 WORKDIR /srv/sabiroute
 
@@ -34,7 +30,6 @@ RUN uv sync --frozen --no-dev --no-editable --no-install-project
 
 COPY src/ ./src/
 COPY config/ ./config/
-COPY web/ ./web/
 RUN uv sync --frozen --no-dev --no-editable
 
 RUN groupadd --system sabiroute \
@@ -46,18 +41,7 @@ ENV PATH="/srv/sabiroute/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-# Readiness, not liveness: the container must only report healthy when the
-# gateway can actually serve requests. A fresh, unmigrated database fails the
-# read-only schema check at startup, so readiness returns 503 and this probe
-# marks the container unhealthy instead of falsely healthy. Liveness alone
-# would pass in that degraded state.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=4)"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live', timeout=4)"
 
-# This image never creates or alters schema: store constructors only open
-# connections and startup only validates. Apply the schema explicitly before
-# starting the container, e.g.:
-#   docker run --rm --env-file <environment file> <image> python -m sabiroute.migrate
-# docker-compose.yml performs this as the one-shot ``sabiroute-migrate``
-# service and starts this container only after it exits 0.
 CMD ["sabiroute"]

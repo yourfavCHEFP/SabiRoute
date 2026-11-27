@@ -71,8 +71,9 @@ In the pinned SDK source (litellm 1.103.0, `router.py:1031-1036`), `Router`
 resolves retries as: explicit `num_retries` → `litellm.num_retries`
 (module default `None`, `__init__.py:532`; a separate
 `num_retries_per_request` knob also defaults `None`) →
-`openai.DEFAULT_MAX_RETRIES` (= 2 with openai 2.54.0). `proxy_server.py`
-sets no `num_retries`, so *under 1.103.0 semantics* an unconfigured proxy
+`openai.DEFAULT_MAX_RETRIES` (= 2 with openai 2.54.0). LiteLLM's own
+`proxy_server.py` (a LiteLLM-internal module, not a file in this
+repository) sets no `num_retries`, so *under 1.103.0 semantics* an unconfigured proxy
 may retry failed provider calls before SabiRoute ever sees a response. The
 running `main-latest` image may differ — treat this as a concrete suspicion
 to verify, not a fact about the deployment.

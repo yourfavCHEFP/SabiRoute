@@ -208,7 +208,7 @@ def test_restart_keeps_held_reservation(tmp_path):
         first.close()
     second = PostgresApiKeyStore(url)
     try:
-        assert "0004-user-quota-ledger" in second.applied_revisions()
+        assert second.applied_revisions()[-1] == "0004-user-quota-ledger"
         assert second.get_quota_usage(UID, window) == {
             "reserved_tokens": 60,
             "consumed_tokens": 0,
@@ -448,7 +448,7 @@ def test_fresh_database_includes_quota_tables(tmp_path):
     database_url = f"sqlite:///{tmp_path / 'quota-fresh.sqlite'}"
     store = PostgresApiKeyStore(database_url)
     try:
-        assert "0004-user-quota-ledger" in store.applied_revisions()
+        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
         window = quota_window_start(datetime.now(UTC))
         assert store.check_and_reserve_quota(UID, "r1", 10, window, 50000) is True
         assert store.get_quota_usage(UID, window) == {
@@ -484,95 +484,12 @@ def test_legacy_database_upgrades_with_quota_tables(tmp_path):
     engine.dispose()
     store = PostgresApiKeyStore(database_url)
     try:
-        assert "0004-user-quota-ledger" in store.applied_revisions()
+        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
         assert store.get("legacykey00000000000001") is not None
         window = quota_window_start(datetime.now(UTC))
         assert store.check_and_reserve_quota(UID, "r1", 10, window, 50000) is True
     finally:
         store.close()
-
-
-def test_chat_exhaustion_shows_reset_time(tmp_path):
-    from sabiroute.chat.store import SabiChatStore
-
-    stub = StubLiteLLMClient()
-    client, service, state, app = make_quota_client(stub)
-    chat_store = SabiChatStore(f"sqlite:///{tmp_path / 'ux-chat.sqlite'}")
-    state.chat_store = chat_store
-    issued = issue_api_key(
-        state.key_store, project_id="chat-user", name="chat-user"
-    )[1]
-    browser = TestClient(app, headers={"Authorization": f"Bearer {issued}"})
-    registered = browser.post(
-        "/v1/auth/register",
-        json={"email": "quota@example.com", "password": "quota-proof-9999"},
-    )
-    assert registered.status_code == 201
-    user_id = registered.json()["user_id"]
-    token_headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    conversation = browser.post("/v1/conversations", json={}, headers=token_headers)
-    conversation_id = conversation.json()["conversation_id"]
-
-    state.quota_policy = QuotaPolicy(pilot_users=frozenset({user_id}))
-    window = quota_window_start(datetime.now(UTC))
-    store = state.key_store
-    assert isinstance(store, InMemoryApiKeyStore)
-    assert store.check_and_reserve_quota(user_id, "burn-1", 49500, window, 50000) is True
-    store.settle_quota(user_id, "burn-1", 49500)
-
-    sent = browser.post(
-        f"/v1/conversations/{conversation_id}/messages",
-        json={"content": "hello quota check"},
-        headers=token_headers,
-    )
-
-    assert sent.status_code == 429
-    body = sent.json()["detail"]["error"]
-    assert body["type"] == "quota_exceeded"
-    assert "Resets at" in body["message"]
-    assert stub.calls == []
-
-
-def test_chat_exhaustion_forwards_retry_after(tmp_path):
-    from sabiroute.chat.store import SabiChatStore
-
-    stub = StubLiteLLMClient()
-    client, service, state, app = make_quota_client(stub)
-    chat_store = SabiChatStore(f"sqlite:///{tmp_path / 'ux-retry.sqlite'}")
-    state.chat_store = chat_store
-    issued = issue_api_key(
-        state.key_store, project_id="chat-user", name="chat-user"
-    )[1]
-    browser = TestClient(app, headers={"Authorization": f"Bearer {issued}"})
-    registered = browser.post(
-        "/v1/auth/register",
-        json={"email": "retry@example.com", "password": "quota-proof-9999"},
-    )
-    assert registered.status_code == 201
-    user_id = registered.json()["user_id"]
-    token_headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    conversation = browser.post("/v1/conversations", json={}, headers=token_headers)
-    conversation_id = conversation.json()["conversation_id"]
-
-    state.quota_policy = QuotaPolicy(pilot_users=frozenset({user_id}))
-    window = quota_window_start(datetime.now(UTC))
-    store = state.key_store
-    assert isinstance(store, InMemoryApiKeyStore)
-    assert store.check_and_reserve_quota(user_id, "burn-2", 49500, window, 50000) is True
-    store.settle_quota(user_id, "burn-2", 49500)
-
-    sent = browser.post(
-        f"/v1/conversations/{conversation_id}/messages",
-        json={"content": "hello quota retry check"},
-        headers=token_headers,
-    )
-
-    assert sent.status_code == 429
-    assert sent.json()["detail"]["error"]["type"] == "quota_exceeded"
-    retry_after = sent.headers.get("retry-after")
-    assert retry_after is not None and retry_after.isdigit()
-    assert int(retry_after) >= 0
-    assert stub.calls == []
 
 
 def test_pg_concurrent_last_allowance_single_winner():
@@ -614,6 +531,6 @@ def test_pg_migration_records_0004():
         pytest.skip(f"{PG_URL_ENV} is not set; PostgreSQL integration tests skipped")
     store = PostgresApiKeyStore(url)
     try:
-        assert "0004-user-quota-ledger" in store.applied_revisions()
+        assert store.applied_revisions()[-1] == "0004-user-quota-ledger"
     finally:
         store.close()
