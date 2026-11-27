@@ -221,6 +221,7 @@ model_list:
   - model_name: sabiroute-nvidia
     litellm_params:
       model: nvidia_nim/nvidia/nemotron-3.5-bolt-e4b
+      api_base: https://integrate.api.nvidia.com/v1
       api_key: os.environ/NVIDIA_NIM_API_KEY
       num_retries: 1
     capabilities:
