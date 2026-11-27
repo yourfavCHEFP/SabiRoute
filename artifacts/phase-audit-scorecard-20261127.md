@@ -31,7 +31,7 @@ live evidence.
 | 04 | Complete | `routing/policies.py`; six route policies validated at startup; `tests/test_policies*.py` | `research` policy is the only one exercised live | exercise a second policy on the live path |
 | 05 | Complete | retry/fallback loop in `api/completions.py` routes every attempt through `Router.choose_deployment`; `tests/test_fallback_injection.py`, `tests/test_proxy_attempt_census.py`; live real-provider failover **PASS** re-verified 2026-11-27 (`artifacts/phase05-live-fallback-reverify-20261127.md`) | failover is proven on a harness-supplied `primary`/`secondary` topology; the shipped catalog gives **every alias exactly one deployment**, so no configured alias has a second target | add a second deployment to at least one alias, or record the single-target constraint as accepted design |
 | 06 | Complete | passive success/failure + cooldown registry in `routing/health.py`; `tests/test_health*.py`, `tests/test_router_and_health_guards.py`; live cooldown → recovery **PASS** re-verified 2026-11-27 (`artifacts/phase06-live-reverify-20261127.md`) | active `ProviderHealthChecker` was removed by design, not neglect (`docs/routing.md`, amendment 2026-11-23, owner accepted passive-only) | maintain; re-open only under the routing.md re-opening conditions |
-| 07 | **Implemented** | `monitoring/{metrics,latency,errors,usage}.py` wired into gateway state; `/admin/metrics`, `/admin/latency`, `/admin/errors`, `/admin/usage` | no stored failure-metric evidence; trackers are process-local and reset on restart | capture an admin metrics snapshot under induced failure |
+| 07 | Complete | `monitoring/{metrics,latency,errors,usage}.py` wired into gateway state; `/admin/{metrics,latency,errors,usage}`; success path live-verified 2026-11-23 (`artifacts/sprint-4/PHASE07-LIVE-TELEMETRY-2026-11-23.md`); **failure path live-verified 2026-11-27** (`artifacts/phase07-metrics-under-failure-20261127.md`) | trackers remain in-process and still reset on restart; `signals_store.py` persists health/latency signals, **not** these counters | make the counters durable, or record the restart-reset as accepted design |
 | 08 | Complete | `security/store.py` `PostgresApiKeyStore`; `docs/phase13-data-foundation.md` documents the live run | **PostgreSQL integration tests skipped locally** (`SABIROUTE_TEST_PG_URL` unset); never validated on managed PG | set `SABIROUTE_TEST_PG_URL` and run the gated PG tests |
 | 09 | Complete | `security/{auth,keys}.py`; client/admin boundary; `tests/test_api_key_validation.py`, `test_auth_dependencies.py`, `test_admin.py` | key issuance/revocation rests on the same documentary run as 08 | re-issue and revoke a key against a live stack |
 | 10 | **Implemented** | `security/{budgets,rate_limit}.py`; `tests/test_phase10.py`, `test_rate_limit*.py`, `scripts/verify_phase10.py` | **all 4 Redis rate-limit tests skipped locally**; rejection paths never exercised live; token estimator is text-only | run with `SABIROUTE_TEST_REDIS_URL` set, then force a real 429 |
@@ -50,15 +50,14 @@ live evidence.
 
 ## Summary
 
-1. **Complete: 9 phases** — 00, 01, 03, 04, 05, 06, 08, 09, and no others. Of these, 01 and 04
-   rest on a documented live path that is **success-only and not currently running**; 06 was
+1. **Complete: 10 phases** — 00, 01, 03, 04, 05, 06, 07, 08, 09, and no others. Of these, 01 and
+   04 rest on a documented live path that is **success-only and not currently running**; 06 was
    re-verified live on 2026-11-27, including the failure and recovery transitions; 05 was
-   re-verified live on 2026-11-27 against real providers, under a real upstream failure.
-2. **Implemented but not live: 6 phases** — 07, 10, 11, 12, 14, 18 (plus 20 as a
+   re-verified live on 2026-11-27 against real providers, under a real upstream failure; 07 was
+   live-verified on both the success path (2026-11-23) and the failure path (2026-11-27).
+2. **Implemented but not live: 5 phases** — 10, 11, 12, 14, 18 (plus 20 as a
    deployment foundation). All have code and tests; none has exercised its failure path
-   against real providers. Phases 05 and 06 left this group on 2026-11-27 — see
-   `artifacts/phase05-live-fallback-reverify-20261127.md` and
-   `artifacts/phase06-live-reverify-20261127.md`.
+   against real providers. Phases 05, 06 and 07 left this group on 2026-11-27.
 3. **Highest-leverage next phase by the constitution's engineering order: Phase 02**
    (provider expansion). It is the earliest non-Complete phase, and it is the direct
    upstream blocker for 11 (capability evidence), 12 (real telemetry) and 13 (dataset
