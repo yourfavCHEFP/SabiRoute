@@ -150,7 +150,7 @@ tested + live-verified · **Implemented** = code and tests exist, verification i
 | 12 | Measured deterministic scoring | **Implemented** | `routing/scoring.py` | Benchmark evidence synthetic only; signals process-local |
 | 13 | ML-assisted routing | **In progress** | `intelligence/dataset.py` | 13.2 aggregate closure pending; **13.3 blocked** |
 | 14 | Benchmarking | **Planned** | — | — |
-| 15 | Admin dashboard | **Complete** | `web/dashboard/`, `docs/admin-dashboard.md` | Browser-verified 2026-11-23 |
+| 15 | Admin dashboard | **Complete** | `web/dashboard/`, `docs/admin-dashboard.md` | Browser-verified 2026-11-23; console v2 (2026-11-28) DOM-verified in Node, not yet browser-reviewed |
 | 16 | Remote access / Tailscale | **Implemented** | `config/remote_access.py`, `scripts/phase16_remote_access_check.py`, `docs/remote-access.md` | Tailnet attach unverified (ADR-010) |
 | 17 | Security hardening | **Planned** | — | — |
 | 18 | Testing & regression | **Planned** | — | Tests required throughout earlier phases |
