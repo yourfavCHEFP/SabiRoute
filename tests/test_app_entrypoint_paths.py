@@ -57,7 +57,7 @@ def test_cli_entry_point_delegates_to_uvicorn(
     import uvicorn
 
     monkeypatch.setattr(uvicorn, "run", fake_run)
-    monkeypatch.setenv("SABIROUTE_HOST", "0.0.0.0")
+    monkeypatch.setenv("SABIROUTE_HOST", "localhost")
     monkeypatch.setenv("SABIROUTE_API_PORT", "9000")
 
     main_module.main([])
@@ -77,7 +77,9 @@ def test_cli_entry_point_refuses_a_non_loopback_bind(
     def fake_run(app_path: str, **kwargs: object) -> None:
         captured["kwargs"] = kwargs
 
-    monkeypatch.setattr(main_module.uvicorn, "run", fake_run)
+    import uvicorn
+
+    monkeypatch.setattr(uvicorn, "run", fake_run)
     monkeypatch.setenv("SABIROUTE_HOST", "0.0.0.0")
     monkeypatch.delenv("SABIROUTE_ALLOW_NON_LOOPBACK_BIND", raising=False)
 
