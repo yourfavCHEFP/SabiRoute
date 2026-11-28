@@ -119,10 +119,19 @@ single highest-risk module in the tree and the one every P0 defect touches.
 
 ## I.3 Phase status map
 
-Statuses reproduce `CLAUDE.md` §11 and the `README.md` roadmap, which **agree** (INSPECTION).
-They are CARRIED — not re-derived here. Vocabulary is the repository's own and is never
-interchangeable: **Complete** = implemented + tested + live-verified · **Implemented** = code
-and tests exist, verification incomplete · **In progress** · **Blocked** · **Planned**.
+Statuses are CARRIED from `CLAUDE.md` §11 and the `README.md` roadmap, not re-derived here.
+**This table is not authoritative where the three disagree.** An earlier revision of this
+paragraph claimed the sources "agree"; a 2026-11-28 review found they do not — Phases 05, 06,
+07, 10, 12, 14, 17, 18 and 19 still read differently between this table, `CLAUDE.md` §11 and
+the README roadmap, and reconciling them requires re-deriving the evidence per phase rather
+than copying a label. Until that reconciliation happens, follow `CLAUDE.md` §11: the
+repository's own rule is that where the two disagree, the repository and test evidence decide.
+Rows 15 and 16 were reconciled against the README and the code during the Phase 15/16 work and
+can be trusted.
+
+Vocabulary is the repository's own and is never interchangeable: **Complete** = implemented +
+tested + live-verified · **Implemented** = code and tests exist, verification incomplete ·
+**In progress** · **Blocked** · **Planned**.
 
 | Phase | Focus | Status | Where it lives | The gap that keeps it from "Complete" |
 |---:|---|---|---|---|

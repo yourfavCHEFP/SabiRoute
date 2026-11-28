@@ -32,7 +32,10 @@ def test_html_has_an_accessible_skeleton() -> None:
     assert html.count("aria-live") >= 2
     assert 'role="alert"' in html
     assert 'for="admin-key"' in html
-    assert 'autocomplete="off"' in html
+    # ``off`` is widely ignored on a password field; ``new-password`` is the
+    # value browsers actually honour when suppressing a save-password prompt
+    # for a credential that is deliberately scoped to one tab.
+    assert 'autocomplete="new-password"' in html
     assert 'type="password"' in html
 
 

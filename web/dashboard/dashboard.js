@@ -10,8 +10,9 @@
  *
  * A note on the sparklines: the admin endpoints report cumulative counters,
  * not time series. Each poll appends the delta since the previous poll, so a
- * sparkline describes the polling window, not all-time traffic. The tile note
- * says "since page opened" to keep that honest.
+ * sparkline describes the polling window, not all-time traffic. The tile
+ * figure is the cumulative number; the sparkline beneath it is the window, and
+ * the note under the summary strip says so in the markup.
  */
 
 "use strict";
@@ -39,6 +40,7 @@
   var previous = { total: null, failed: null, rateLimited: null };
   var lastLoad = 0;
   var pollTimer = null;
+  var loading = false;
   var clockTimer = null;
 
   function byId(id) {
@@ -133,7 +135,7 @@
     if (seconds >= 60) {
       var minutes = Math.floor(seconds / 60);
       var rest = seconds % 60;
-      return minutes + "m " + rest + "s left";
+      return rest === 0 ? minutes + "m left" : minutes + "m " + rest + "s left";
     }
     return Math.max(seconds, 1) + "s left";
   }
@@ -281,13 +283,15 @@
     var width = 100;
     var height = 32;
     var pad = 3;
+    // Anchor the domain at zero. Scaling to the series' own min/max makes a
+    // flat zero and a flat three render identically, which would turn a trend
+    // line into decoration.
     var max = Math.max.apply(null, series);
-    var min = Math.min.apply(null, series);
-    var span = max - min || 1;
+    var span = Math.max(max, 1);
     var step = width / (series.length - 1);
     var points = series.map(function (value, index) {
       var x = index * step;
-      var y = height - pad - ((value - min) / span) * (height - pad * 2);
+      var y = height - pad - (value / span) * (height - pad * 2);
       return [x, y];
     });
 
@@ -546,6 +550,10 @@
       return Promise.resolve();
     }
 
+    if (loading) {
+      return Promise.resolve();
+    }
+    loading = true;
     setBusy(true);
     return loadAll()
       .then(function (results) {
@@ -574,6 +582,7 @@
         );
       })
       .then(function () {
+        loading = false;
         setBusy(false);
       });
   }

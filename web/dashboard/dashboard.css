@@ -16,7 +16,10 @@
 
   --text: #1d1d1f;
   --text-2: #6e6e73;
-  --text-3: #8a8a8f;
+  /* Small labels read at 2am must clear WCAG AA on --canvas. #8a8a8f was
+     ~3.15:1; this is ~4.9:1, the same value as --text-2. Hierarchy comes from
+     size and weight here, not from fading the text out of legibility. */
+  --text-3: #6e6e73;
 
   --accent: #0071e3;
   --accent-soft: rgba(0, 113, 227, 0.12);
@@ -362,7 +365,13 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 16px;
+}
+
+.tiles-note {
+  margin: 10px 2px 18px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-3);
 }
 
 .tile {
@@ -720,6 +729,15 @@ body {
   .empty {
     padding-left: 16px;
     padding-right: 16px;
+  }
+  /* Five nowrap columns clip on a phone and the card has no scroll container.
+     Drop the two count columns; the Reliability bar still carries the ratio
+     that matters at a glance, and the raw counts stay in the JSON. */
+  .card-wide .table th:nth-child(3),
+  .card-wide .table td:nth-child(3),
+  .card-wide .table th:nth-child(4),
+  .card-wide .table td:nth-child(4) {
+    display: none;
   }
 }
 

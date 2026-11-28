@@ -295,7 +295,7 @@ re-executed for this reconciliation. Do not upgrade a phase status without new e
 13 ML Router                    In progress — 13.1 committed; 13.3 BLOCKED, training not authorized
 14 Benchmarking In progress — 30 real observations recorded; comparison still degenerate because groq is both first-healthy and highest-scoring
 15 Admin Dashboard Complete — read-only /admin/dashboard, browser-verified 2026-11-23; admin auth unchanged
-16 Remote Access / Tailscale    Planned
+16 Remote Access / Tailscale Implemented — loopback bind gate enforced at the CLI entry point (ADR-010); tailnet attach UNVERIFIED, so not Complete
 17 Security Hardening In progress — scans recorded; F-07/F-08/F-09/F-13 remediated with 24 tests; F-01 rotation and F-02-F-06 (.github, protected) still open
 18 Testing & Regression In progress — 101 new regression tests; 967 passed / 10 skipped
 19 CI/CD Complete — hosted Actions green on main 117082f; all five steps passed incl. the application container build
