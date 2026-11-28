@@ -60,6 +60,8 @@
     refresh: byId("refresh"),
     signOut: byId("sign-out"),
     lastUpdated: byId("last-updated"),
+    verdict: byId("verdict"),
+    verdictText: byId("verdict-text"),
     healthBody: byId("health-body"),
     healthEmpty: byId("health-empty"),
     healthSummary: byId("health-summary"),
@@ -358,6 +360,76 @@
     drawSpark(ui.sparkSuccess, history.successRate, "");
     drawSpark(ui.sparkFailed, history.failed, history.failed.some(function (v) { return v > 0; }) ? "var(--bad)" : "");
     drawSpark(ui.sparkRateLimited, history.rateLimited, history.rateLimited.some(function (v) { return v > 0; }) ? "var(--warn)" : "");
+
+    return { deltaTotal: deltaTotal, deltaFailed: deltaFailed };
+  }
+
+  /* ---------- verdict ---------- */
+
+  // One line that answers the only question an operator has at 2am: is this
+  // gateway healthy right now? Built from data already fetched — no endpoint.
+  function renderVerdict(health, latency, summary) {
+    if (!ui.verdict || !ui.verdictText) {
+      return;
+    }
+
+    var deployments = (health && health.deployment) || {};
+    var names = Object.keys(deployments);
+    var available = names.filter(function (name) {
+      var entry = deployments[name];
+      return Boolean(entry) && entry.available !== false;
+    }).length;
+
+    var window = Math.round(POLL_MS / 1000) + "s";
+    var deltaFailed = summary ? Number(summary.deltaFailed) || 0 : 0;
+
+    // Weight each deployment's average by its sample count, so one loud
+    // deployment cannot drag the number on its own.
+    var weighted = 0;
+    var weight = 0;
+    var latencies = (latency && latency.deployment) || {};
+    Object.keys(latencies).forEach(function (name) {
+      var entry = latencies[name] || {};
+      var count = Number(entry.samples) || 0;
+      var average = Number(entry.average_ms);
+      if (count > 0 && isFinite(average) && average >= 0) {
+        weighted += average * count;
+        weight += count;
+      }
+    });
+    var meanMs = weight > 0 ? weighted / weight : null;
+
+    var parts = [];
+    parts.push(
+      names.length === 0
+        ? "No deployments configured"
+        : available + "/" + names.length + " deployments available"
+    );
+    parts.push(
+      deltaFailed > 0
+        ? deltaFailed + " failed in the last " + window
+        : "no failures in the last " + window
+    );
+    if (meanMs !== null) {
+      parts.push("avg " + Math.round(meanMs) + " ms");
+    }
+
+    var tone = "ok";
+    if (names.length === 0 || available < names.length || deltaFailed > 0) {
+      tone = "warn";
+    }
+    if (names.length > 0 && available === 0) {
+      tone = "bad";
+    }
+    ui.verdict.setAttribute("data-tone", tone);
+
+    clear(ui.verdictText);
+    parts.forEach(function (part, index) {
+      if (index > 0) {
+        ui.verdictText.appendChild(node("span", "verdict-sep", "·"));
+      }
+      ui.verdictText.appendChild(node("span", "verdict-part", part));
+    });
   }
 
   /* ---------- health ---------- */
@@ -534,12 +606,13 @@
   /* ---------- orchestration ---------- */
 
   function render(health, metrics, latency, errors, usage) {
-    renderTiles(metrics || {});
+    var summary = renderTiles(metrics || {});
     renderHealth(health || {});
     renderLatency(latency || {});
     renderCounts(errors || {}, ui.errorsBody, ui.errorsEmpty, formatCount);
     renderCounts(usage || {}, ui.usageBody, ui.usageEmpty, formatCompact);
     renderCounts((metrics || {}).requests_by_model || {}, ui.byModelBody, ui.byModelEmpty, formatCount);
+    renderVerdict(health || {}, latency || {}, summary);
     tick();
   }
 

@@ -361,6 +361,50 @@ body {
 
 /* ---------- tiles ---------- */
 
+/* ---------- verdict ---------- */
+
+/* One line, above everything, answering "is this healthy right now?".
+   Deliberately not a banner: it is always present, and only its dot changes
+   colour, so a healthy gateway does not shout. */
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 2px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.verdict-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px var(--ok-soft);
+}
+
+.verdict[data-tone="warn"] .verdict-dot {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-soft);
+}
+
+.verdict[data-tone="bad"] .verdict-dot {
+  background: var(--bad);
+  box-shadow: 0 0 0 3px var(--bad-soft);
+}
+
+.verdict-sep {
+  margin: 0 8px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
 .tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -66,3 +66,25 @@ def test_js_is_polite_and_state_aware() -> None:
     assert "toLocaleTimeString" in script
     # The polling window is disclosed rather than implied to be all-time.
     assert "since page opened" in script or "poll" in script.lower()
+
+
+def test_console_answers_health_in_one_line() -> None:
+    """The verdict strip is the 2am question: is this gateway healthy now?"""
+    html = read("index.html")
+    script = read("dashboard.js")
+    css = read("dashboard.css")
+
+    assert 'id="verdict"' in html
+    assert 'id="verdict-text"' in html
+    # Tone is a data attribute, so the dot can carry state without new markup.
+    assert 'data-tone="ok"' in html
+
+    # It is derived from data already fetched — the console adds no endpoint.
+    assert "function renderVerdict(" in script
+    assert "deployments available" in script
+    assert "no failures in the last" in script
+    assert 'setAttribute("data-tone"' in script
+
+    # And it is quiet when healthy: only the dot changes colour.
+    for tone in ('data-tone="warn"', 'data-tone="bad"'):
+        assert tone in css, tone
