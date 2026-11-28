@@ -322,7 +322,10 @@ setTimeout(() => {
   /* --- the clock: text nodes only, no rebuild --- */
   const body = byId.get("health-body");
   const beforeRows = body.children.slice();
-  const beforeHolds = beforeRows.map((row) => row.children[7].textContent);
+  /* An empty registry renders one colspan-8 row, so the HOLD cell may not
+   * exist. Read it defensively. */
+  const holdText = (row) => (row.children[7] ? row.children[7].textContent : null);
+  const beforeHolds = beforeRows.map(holdText);
   clockOffset += 10000;
   intervals
     .filter((entry) => entry.ms === 1000)
@@ -335,7 +338,7 @@ setTimeout(() => {
       beforeRows.length === afterRows.length && beforeRows.every((row, i) => row === afterRows[i]),
     rowCount: afterRows.length,
     beforeHolds,
-    afterHolds: afterRows.map((row) => row.children[7].textContent)
+    afterHolds: afterRows.map(holdText)
   };
 
   /* --- the "/" shortcut must not eat a keystroke in a field --- */
@@ -357,7 +360,13 @@ setTimeout(() => {
 """
 
 
-def _run(tmp_path: Path, *, dark: bool = True, reduce_motion: bool = False) -> dict[str, object]:
+def _run(
+    tmp_path: Path,
+    *,
+    dark: bool = True,
+    reduce_motion: bool = False,
+    empty: bool = False,
+) -> dict[str, object]:
     node = shutil.which("node")
     if node is None:
         pytest.fail("node is required to exercise the console script; the gate runs node --check")
@@ -414,6 +423,23 @@ def _run(tmp_path: Path, *, dark: bool = True, reduce_motion: bool = False) -> d
         "/admin/errors": {"upstream_timeout": 10},
         "/admin/usage": {"model-one": 5000},
     }
+
+    if empty:
+        # Fourteen deployments can be configured in config/config.yaml while
+        # /admin/health returns {} because nothing has been observed yet.
+        payloads = {
+            "/admin/health": {},
+            "/admin/latency": {},
+            "/admin/metrics": {
+                "requests_total": 0,
+                "requests_successful": 0,
+                "requests_failed": 0,
+                "requests_rate_limited": 0,
+                "requests_by_model": {},
+            },
+            "/admin/errors": {},
+            "/admin/usage": {},
+        }
 
     harness = tmp_path / "harness.js"
     harness.write_text(HARNESS, encoding="utf-8")
@@ -603,6 +629,24 @@ def test_search_filters_both_tbodies_and_states_its_empty_case(
     empty = rendered["filterEmpty"]
     assert empty["count"] == 1, "an empty result must be one stated row, not a blank panel"
     assert empty["text"] == "No route matches"
+
+
+def test_an_empty_health_payload_never_claims_to_know_the_config(tmp_path: Path) -> None:
+    """The console can see /admin/health, not config/config.yaml.
+
+    An empty health payload is what a gateway with fourteen configured
+    deployments and no observations yet actually returns, so saying "nothing is
+    configured" is false, and the page has no evidence for either claim. It
+    states only what it observed: nothing is reporting.
+    """
+    empty = _run(tmp_path, empty=True)
+    verdict = empty["verdict"]
+    assert "No deployments reporting" in verdict
+    assert "configured" not in verdict.lower()
+    # The table states the same thing once, rather than sitting blank.
+    assert empty["health"][0]["cells"][0]["text"] == "No deployments reporting"
+    # Still a warning: zero routes reporting is not a healthy gateway.
+    assert empty["tone"] == "warn"
 
 
 # ------------------------------------- correction 5 / 3.7: the field rules --

@@ -518,7 +518,7 @@
 
     if (healthy === 0 && orphaned === 0 && ui.healthBody) {
       ui.healthBody.appendChild(
-        emptyRow(query ? "No route matches" : "No deployments reported")
+        emptyRow(query ? "No route matches" : "No deployments reporting")
       );
     }
   }
@@ -578,7 +578,11 @@
 
     var parts = [];
     if (!configured.length) {
-      parts.push("No deployments configured");
+      /* The console cannot see config/config.yaml, so it must not claim to
+       * know what is configured. An empty /admin/health means only that
+       * nothing is reporting — which is also true when fourteen deployments
+       * are configured and none has an observation yet. */
+      parts.push("No deployments reporting");
     } else {
       parts.push(available + "/" + configured.length + " deployments available");
     }
