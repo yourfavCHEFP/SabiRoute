@@ -29,13 +29,16 @@ from pathlib import Path
 import uvicorn
 
 from sabiroute.config.loader import load_config
+from sabiroute.config.remote_access import resolve_bind_host
 from sabiroute.gateway import GatewayState, build_gateway_state
 from sabiroute.main import create_app
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ADMIN_KEY_ENV = "SABIROUTE_ADMIN_KEY"
-HOST = os.environ.get("SABIROUTE_P15_HOST", "127.0.0.1")
+# Routed through the same gate as the product entry point: a harness that can
+# bind 0.0.0.0 is a second, ungated path around ADR-010.
+HOST = resolve_bind_host(os.environ.get("SABIROUTE_P15_HOST"))
 PORT = int(os.environ.get("SABIROUTE_P15_PORT", "8099"))
 
 # (model, latency_ms, prompt_tokens, completion_tokens)

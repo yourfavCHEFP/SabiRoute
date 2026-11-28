@@ -182,6 +182,29 @@ admissible. A stable reason is what makes the denial testable and loggable.
 
 ---
 
+### ADR-010 — Remote access is a private tailnet, and the loopback bind is enforced
+
+**Decision.** SabiRoute listens on `127.0.0.1`. Any other listener address is refused at
+startup unless `SABIROUTE_ALLOW_NON_LOOPBACK_BIND` is set deliberately. Remote access is
+provided by `tailscale serve`, which terminates TLS on the tailnet and proxies to the loopback
+listener. Tailscale Funnel, a LAN bind, and a routed port are not supported. SabiRoute does not
+consume tailnet identity: the admin key remains the authorisation boundary, and no
+`Tailscale-User-*` header is trusted.
+
+**Reason.** A LAN bind is reachable by every device on the network with no identity attached,
+and a wide bind makes any proxy in front of it optional. Loopback plus a tailnet proxy gives one
+reachable path, one identity layer at the network edge, and one authorisation check inside the
+application, where each can fail independently. Public exposure stays behind the Phase 20
+review; a CLI flag must not be able to route around a phase gate.
+
+**Forbids.** Funnel in any form; binding a non-loopback address without the explicit opt-in;
+trusting proxy-supplied identity headers for authorisation; configuring Serve from application
+startup, so a server cannot publish itself by accident.
+
+Runbook, threat model, ACL guidance, and rollback: `docs/remote-access.md`.
+
+---
+
 ## 3. Roadmap milestones
 
 Twenty-one phases, numbered 00–20 `[V]`. Status vocabulary is the repository's own, and it is
@@ -205,7 +228,7 @@ strict: **Complete means implemented *and* tested *and* live-verified.**
 | 13 | ML-assisted routing | In progress — live sub-gate passed; aggregate integrity failed; 13.3 blocked |
 | 14 | Benchmarking | Planned |
 | 15 | Admin dashboard | Planned |
-| 16 | Private remote access / Tailscale | Planned |
+| 16 | Private remote access / Tailscale | Implemented — loopback bind gate (ADR-010); tailnet attach unverified |
 | 17 | Security hardening | Planned (baseline controls maintained throughout) |
 | 18 | Testing and regression | Planned — tests required throughout earlier phases |
 | 19 | CI/CD | Implemented (definition + local execution) — hosted run not verified |
