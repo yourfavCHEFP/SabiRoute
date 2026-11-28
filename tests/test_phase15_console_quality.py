@@ -39,6 +39,37 @@ def test_html_has_an_accessible_skeleton() -> None:
     assert 'type="password"' in html
 
 
+def _transparency_uses_outside_preferences(css: str) -> list[str]:
+    """Return every ``backdrop-filter`` declaration not inside a prefers-* block."""
+    outside: list[str] = []
+    open_blocks: list[bool] = []
+    index = 0
+    while index < len(css):
+        if css.startswith("@media", index):
+            brace = css.find("{", index)
+            open_blocks.append(css[index:brace].startswith("@media (prefers-"))
+            index = brace + 1
+            continue
+        character = css[index]
+        if character == "{":
+            open_blocks.append(False)
+            index += 1
+            continue
+        if character == "}":
+            if open_blocks:
+                open_blocks.pop()
+            index += 1
+            continue
+        if css.startswith("backdrop-filter", index):
+            if not any(open_blocks):
+                end = css.find(";", index)
+                outside.append(css[index:end].strip())
+            index += len("backdrop-filter")
+            continue
+        index += 1
+    return outside
+
+
 def test_css_handles_stated_preferences() -> None:
     css = read("dashboard.css")
     for media in (
@@ -49,8 +80,17 @@ def test_css_handles_stated_preferences() -> None:
     ):
         assert media in css, media
     assert "font-variant-numeric: tabular-nums" in css
-    assert "backdrop-filter: blur(" in css
     assert "font-optical-sizing: auto" in css
+
+    # D1, approved 2026-11-28. The previous assertion here was
+    #   assert "backdrop-filter: blur(" in css
+    # which forced a blur to exist somewhere and contradicted the owner's
+    # "remove blur from the default path". This is a re-point, not a
+    # weakening: the property asserted is stricter and states the actual
+    # intent, so a blur in the default path now fails instead of being
+    # required.
+    outside = _transparency_uses_outside_preferences(css)
+    assert outside == [], f"transparency outside a prefers-* block: {outside}"
 
 
 def test_js_is_polite_and_state_aware() -> None:
